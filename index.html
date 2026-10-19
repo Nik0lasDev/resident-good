@@ -142,7 +142,7 @@
     };
     function makeEnemy(x,z,index){
       const root=new THREE.Group();root.position.set(x,0,z);scene.add(root);
-      const parts=[],limbs={},protectedParts=new Set();
+      const parts=[],limbs={},protectedParts=new Set(),headParts=new Set();
       const hasVest=Math.random()<.45,hasArmoredPants=Math.random()<.25,hasHelmet=Math.random()<.35;
       const outfitShirt=mat([0x52634b,0x4d5559,0x6c6252,0x353c42][index],.97);
       const outfitPants=mat([0x343b35,0x454747,0x665b4c,0x303943][index],.98);
@@ -150,7 +150,7 @@
 
         const mesh=new THREE.Mesh(geometry,material);
         mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;
-        parent.add(mesh);parts.push(mesh);return mesh;
+        parent.add(mesh);parts.push(mesh);if(parent===root&&y>=1.78)headParts.add(mesh);return mesh;
       }
       function armorPart(geometry,material,parent,x,y,z){
         const mesh=part(geometry,material,parent,x,y,z);protectedParts.add(mesh);return mesh;
@@ -335,7 +335,7 @@
       healthBg.position.set(0,2.35,0);root.add(healthBg);
       const healthFill=new THREE.Mesh(new THREE.PlaneGeometry(.76,.045),new THREE.MeshBasicMaterial({color:0xc84b40,side:THREE.DoubleSide,depthTest:false}));
       healthFill.position.set(0,2.35,.006);root.add(healthFill);
-      const enemyData={root,parts,limbs,protectedParts,hasVest,hasArmoredPants,hasHelmet,hp:100,maxHp:100,spawn:new THREE.Vector3(x,0,z),lastAttack:0,respawnAt:0,healthFill,healthBg,phase:index*1.7,gaitPhase:0,attackStarted:-9999,attackSide:1,alive:true};
+      const enemyData={root,parts,limbs,protectedParts,headParts,hasVest,hasArmoredPants,hasHelmet,hp:100,maxHp:100,spawn:new THREE.Vector3(x,0,z),lastAttack:0,respawnAt:0,healthFill,healthBg,phase:index*1.7,gaitPhase:0,attackStarted:-9999,attackSide:1,alive:true};
       enemies.push(enemyData);return enemyData;
     }
     // Quatro inimigos espalhados pelo estande; eles perseguem o jogador.
@@ -538,8 +538,11 @@
         if(t>=1){
           const target=bullet.targetEnemy;
           if(target&&target.alive&&target.hp>0){
+            const isHeadshot=target.headParts.has(bullet.hitPart);
             const isProtected=target.protectedParts.has(bullet.hitPart);
-            const appliedDamage=isProtected?bullet.damage*.35:bullet.damage;
+            // Tiro na cabeça causa 2,5x; capacetes/placas ainda reduzem o dano balístico.
+            const headshotDamage=isHeadshot?bullet.damage*2.5:bullet.damage;
+            const appliedDamage=isProtected?headshotDamage*.35:headshotDamage;
             target.hp=Math.max(0,target.hp-appliedDamage);
             const ratio=target.hp/target.maxHp;
             target.healthFill.scale.x=Math.max(.001,ratio);
@@ -547,8 +550,8 @@
             ui.hitmarker.style.opacity='1';hitEnd=performance.now()+110;
             if(target.hp===0){
               target.alive=false;target.root.visible=false;target.respawnAt=performance.now()+5000;
-              updateHealth();showToast('INIMIGO ELIMINADO');
-            }else showToast('ACERTO · '+target.hp+' HP');
+              updateHealth();showToast(isHeadshot?'HEADSHOT · ELIMINAÇÃO':'INIMIGO ELIMINADO');
+            }else showToast(isHeadshot?'HEADSHOT · -'+Math.round(appliedDamage)+' HP':'ACERTO · '+Math.ceil(target.hp)+' HP');
           }
           scene.remove(bullet.mesh);activeBullets.splice(i,1);
         }
