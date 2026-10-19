@@ -164,6 +164,19 @@
     gunBox(.045,.012,.13,gunAccent,0,-.2,.09);
     gunBox(.04,.018,.06,gunMetal,0,.118,-.07);
     gunBox(.018,.03,.025,gunMetal,0,.132,-.12);
+    // Modelo simples de mão e manga junto à empunhadura.
+    const skinMat = mat(0xb98262,.88);
+    const sleeveMat = mat(0x303b3e,.9);
+    const sleeveMesh = new THREE.Mesh(new THREE.BoxGeometry(.13,.13,.27),sleeveMat);
+    sleeveMesh.position.set(.005,-.235,.24); sleeveMesh.rotation.x=-.22; gun.add(sleeveMesh);
+    const handMesh = new THREE.Mesh(new THREE.BoxGeometry(.115,.09,.105),skinMat);
+    handMesh.position.set(.005,-.145,.095); handMesh.rotation.x=-.15; gun.add(handMesh);
+    for(let i=0;i<4;i++){
+      const digit = new THREE.Mesh(new THREE.BoxGeometry(.022,.045,.09),skinMat);
+      digit.position.set(-.036+i*.024,-.135,.035); digit.rotation.x=-.2; gun.add(digit);
+    }
+    const thumbMesh = new THREE.Mesh(new THREE.BoxGeometry(.035,.035,.075),skinMat);
+    thumbMesh.position.set(.075,-.12,.08); thumbMesh.rotation.z=-.45; gun.add(thumbMesh);
     const muzzleFlash = new THREE.Mesh(new THREE.ConeGeometry(.09,.24,8),new THREE.MeshBasicMaterial({color:0xffbd63}));
     muzzleFlash.rotation.x=-Math.PI/2; muzzleFlash.position.set(0,.04,-.28); muzzleFlash.visible=false; gun.add(muzzleFlash);
 
