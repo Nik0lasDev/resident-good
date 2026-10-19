@@ -14,6 +14,8 @@
     #brand{position:absolute;left:22px;top:20px;padding:11px 14px;letter-spacing:.12em;font-size:11px;font-weight:800;color:#c8d1d8}
     #brand span{color:#e5a15a}
     #target{position:absolute;top:20px;left:50%;transform:translateX(-50%);width:min(310px,55vw);padding:12px 15px}
+    #player-vitals{position:absolute;right:22px;top:20px;width:170px;padding:11px 13px}
+    #player-fill{height:100%;width:100%;background:linear-gradient(90deg,#3d9b67,#8acb77);transition:width .15s}
     .target-row{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:12px;font-weight:700}
     .muted{color:#9daab4;font-weight:500}
     .bar{height:7px;background:#3a4148;border-radius:20px;overflow:hidden;margin-top:9px}
@@ -44,7 +46,7 @@
     .tip b{color:#f5f6f7;display:block;margin-bottom:4px}
     #toast{position:absolute;left:50%;top:68%;transform:translate(-50%,-50%);font-size:11px;letter-spacing:.13em;font-weight:900;color:#e5a15a;text-shadow:0 2px 10px #000;opacity:0;transition:opacity .15s}
     #mobile-note{display:none}
-    @media(max-width:650px){#brand{left:10px;top:10px;padding:8px;font-size:9px}#target{top:10px;width:54vw;padding:9px 10px}.target-row{font-size:10px}#bottom-left{left:10px;bottom:10px;padding:10px;min-width:110px}#ammo{font-size:21px}#help{right:10px;bottom:10px;padding:9px;font-size:9px}#mobile-note{display:block;font-size:10px;color:#e5a15a;margin-top:8px}}
+    @media(max-width:650px){#brand{left:10px;top:10px;padding:8px;font-size:9px}#target{top:10px;width:48vw;padding:9px 10px}.target-row{font-size:10px}#player-vitals{right:10px;top:10px;width:105px;padding:8px}#bottom-left{left:10px;bottom:10px;padding:10px;min-width:110px}#ammo{font-size:21px}#help{right:10px;bottom:10px;padding:9px;font-size:9px}#mobile-note{display:block;font-size:10px;color:#e5a15a;margin-top:8px}}
   </style>
 </head>
 <body>
@@ -54,6 +56,7 @@
       <div class="target-row"><span>ALVO DE TREINO</span><span id="health-label" class="muted">100 / 100 HP</span></div>
       <div class="bar"><div id="health-fill"></div></div>
     </div>
+    <div id="player-vitals" class="panel"><div class="target-row"><span>VIDA</span><span id="player-health-label" class="muted">100 HP</span></div><div class="bar"><div id="player-fill"></div></div></div>
     <div id="crosshair"></div><div id="hitmarker">×</div>
     <div id="bottom-left" class="panel">
       <div class="eyebrow">PISTOLA / 9 MM</div>
@@ -168,7 +171,7 @@
       healthBg.position.set(0,2.35,0);root.add(healthBg);
       const healthFill=new THREE.Mesh(new THREE.PlaneGeometry(.76,.045),new THREE.MeshBasicMaterial({color:0xc84b40,side:THREE.DoubleSide,depthTest:false}));
       healthFill.position.set(0,2.35,.006);root.add(healthFill);
-      const enemyData={root,parts,limbs,hp:100,maxHp:100,spawn:new THREE.Vector3(x,0,z),lastAttack:0,respawnAt:0,healthFill,phase:index*1.7,alive:true};
+      const enemyData={root,parts,limbs,hp:100,maxHp:100,spawn:new THREE.Vector3(x,0,z),lastAttack:0,respawnAt:0,healthFill,healthBg,phase:index*1.7,alive:true};
       enemies.push(enemyData);return enemyData;
     }
     // Quatro inimigos espalhados pelo estande; eles perseguem o jogador.
@@ -256,29 +259,33 @@
     const activeBullets = [];
     const bulletGeometry = new THREE.SphereGeometry(.035,8,6);
     const bulletMaterial = new THREE.MeshBasicMaterial({color:0xffd078});
-    function spawnBullet(start,end,hitTarget){
+    function spawnBullet(start,end,targetEnemy){
       const mesh = new THREE.Mesh(bulletGeometry,bulletMaterial);
       mesh.position.copy(start);
       scene.add(mesh);
       const delta = end.clone().sub(start);
       const distance = delta.length();
-      activeBullets.push({mesh,start:start.clone(),end:end.clone(),distance,travelled:0,hitTarget});
+      activeBullets.push({mesh,start:start.clone(),end:end.clone(),distance,travelled:0,targetEnemy});
     }
     function updateBullets(dt){
       for(let i=activeBullets.length-1;i>=0;i--){
-        const bullet=activeBullets[i];
-        bullet.travelled+=dt*65;
+        const bullet=activeBullets[i];bullet.travelled+=dt*65;
         const t=Math.min(1,bullet.travelled/Math.max(bullet.distance,.001));
         bullet.mesh.position.lerpVectors(bullet.start,bullet.end,t);
         if(t>=1){
-          if(bullet.hitTarget&&hp>0){
-            hp=Math.max(0,hp-10);updateHealth();
+          const target=bullet.targetEnemy;
+          if(target&&target.alive&&target.hp>0){
+            target.hp=Math.max(0,target.hp-25);
+            const ratio=target.hp/target.maxHp;
+            target.healthFill.scale.x=Math.max(.001,ratio);
+            target.healthFill.position.x=-.38+.38*ratio;
             ui.hitmarker.style.opacity='1';hitEnd=performance.now()+110;
-            enemy.children.forEach(o=>{if(o.material&&o.material.color&&o.material!==targetPlate.material)o.material.emissive?.setHex?.(0x552016);});
-            showToast(hp===0?'ALVO NEUTRALIZADO':'ACERTO CONFIRMADO');
+            if(target.hp===0){
+              target.alive=false;target.root.visible=false;target.respawnAt=performance.now()+5000;
+              showToast('INIMIGO ELIMINADO');
+            }else showToast('ACERTO · '+target.hp+' HP');
           }
-          scene.remove(bullet.mesh);
-          activeBullets.splice(i,1);
+          scene.remove(bullet.mesh);activeBullets.splice(i,1);
         }
       }
     }
@@ -286,10 +293,11 @@
       overlay:document.getElementById('overlay'), start:document.getElementById('start'),
       ammo:document.getElementById('ammo'), status:document.getElementById('status'),
       health:document.getElementById('health-fill'), healthLabel:document.getElementById('health-label'),
+      playerHealth:document.getElementById('player-fill'), playerHealthLabel:document.getElementById('player-health-label'),
       hitmarker:document.getElementById('hitmarker'), crosshair:document.getElementById('crosshair'),
       toast:document.getElementById('toast')
     };
-    let hp=100, magazine=12, reserve=48, reloading=false, reloadEnd=0, lastShot=0, locked=false, yaw=0, pitch=0, recoil=0, muzzleEnd=0, hitEnd=0, toastEnd=0;
+    let hp=100, playerHp=100, magazine=12, reserve=48, reloading=false, reloadEnd=0, lastShot=0, locked=false, yaw=0, pitch=0, recoil=0, muzzleEnd=0, hitEnd=0, toastEnd=0;
     const keys = new Set();
     const clock = new THREE.Clock();
     const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -341,31 +349,66 @@
       recoil=Math.min(recoil+.09,.22);muzzleFlash.visible=true;muzzleEnd=now+55;
       camera.rotation.order='YXZ';camera.rotation.set(pitch-recoil,yaw,0);
       raycaster.setFromCamera(center,camera);
-      const parts=enemy.children.filter(o=>o.isMesh);
-      const hits=raycaster.intersectObjects(parts,false);
-      const muzzle = gun.localToWorld(new THREE.Vector3(0,.04,-.28));
-      const direction = raycaster.ray.direction.clone().normalize();
-      const hitTarget = hits.length>0 && hp>0;
-      const endPoint = hitTarget ? hits[0].point.clone() : raycaster.ray.origin.clone().addScaledVector(direction,8);
-      // A bala começa na boca do cano, não no centro da câmera.
-      spawnBullet(muzzle,endPoint,hitTarget);
-      if(!hitTarget)ui.status.textContent='TIRO DISPARADO';
+      const candidates=enemies.filter(e=>e.alive).flatMap(e=>e.parts);
+      const hits=raycaster.intersectObjects(candidates,false);
+      const hitPart=hits[0]?.object;
+      const targetEnemy=hitPart?enemies.find(e=>e.alive&&e.parts.includes(hitPart)):null;
+      const muzzle=gun.localToWorld(new THREE.Vector3(0,.04,-.28));
+      const direction=raycaster.ray.direction.clone().normalize();
+      const endPoint=hits.length?hits[0].point.clone():raycaster.ray.origin.clone().addScaledVector(direction,18);
+      spawnBullet(muzzle,endPoint,targetEnemy);
+      if(!targetEnemy)ui.status.textContent='TIRO DISPARADO';
       if(magazine===0)ui.status.textContent='CARREGADOR VAZIO · R';
     }
-    // Recomeça o exercício quando o alvo é neutralizado.
-    function resetTarget(){
-      hp=100;updateHealth();
-      enemy.children.forEach(o=>{if(o.material&&o.material.emissive)o.material.emissive.setHex(0x000000);});
-      showToast('NOVO ALVO · 100 HP');
+    function updatePlayerHealth(){
+      ui.playerHealth.style.width=playerHp+'%';
+      ui.playerHealthLabel.textContent=playerHp+' HP';
+      ui.playerHealth.style.background=playerHp<=30?'linear-gradient(90deg,#a52f2b,#ed5548)':'linear-gradient(90deg,#3d9b67,#8acb77)';
+    }
+    function updateEnemies(dt,now){
+      for(const e of enemies){
+        if(!e.alive){
+          if(now>=e.respawnAt){
+            e.alive=true;e.hp=e.maxHp;e.root.visible=true;e.root.position.copy(e.spawn);
+            e.healthFill.scale.x=1;e.healthFill.position.x=0;
+          }
+          continue;
+        }
+        const dx=camera.position.x-e.root.position.x,dz=camera.position.z-e.root.position.z;
+        const distance=Math.hypot(dx,dz);
+        e.root.rotation.y=Math.atan2(-dx,-dz);
+        if(distance>1.28){
+          const speed=distance>5?1.65:1.05;
+          e.root.position.x+=dx/distance*speed*dt;
+          e.root.position.z+=dz/distance*speed*dt;
+          const walk=Math.sin(now*.009+e.phase);
+          e.limbs.leftLeg.rotation.x=walk*.55;e.limbs.rightLeg.rotation.x=-walk*.55;
+          e.limbs.leftArm.rotation.x=-walk*.35;e.limbs.rightArm.rotation.x=walk*.35;
+        }else{
+          e.limbs.leftLeg.rotation.x=0;e.limbs.rightLeg.rotation.x=0;
+          const swing=Math.sin(now*.018+e.phase);
+          e.limbs.leftArm.rotation.x=-1.05+Math.max(0,swing)*.95;
+          e.limbs.rightArm.rotation.x=-1.05+Math.max(0,-swing)*.95;
+          if(now-e.lastAttack>1050){
+            e.lastAttack=now;playerHp=Math.max(0,playerHp-8);
+            updatePlayerHealth();showToast('VOCÊ RECEBEU 8 DE DANO',500);
+            if(playerHp<=0){
+              playerHp=100;camera.position.set(0,1.68,5);yaw=0;pitch=0;
+              updatePlayerHealth();showToast('VOCÊ FOI DERRUBADO · REINICIANDO');
+            }
+          }
+        }
+        e.healthBg.lookAt(camera.position);e.healthFill.lookAt(camera.position);
+      }
     }
     function update(dt,now){
       if(reloading&&now>=reloadEnd){
         const needed=12-magazine, amount=Math.min(needed,reserve);
         magazine+=amount;reserve-=amount;reloading=false;updateAmmo();ui.status.textContent='PRONTA';
       }
-      if(hp<=0&&now-toastEnd>700){resetTarget();}
       if(now>muzzleEnd)muzzleFlash.visible=false;
       updateBullets(dt);
+      updateEnemies(dt,now);
       if(now>hitEnd)ui.hitmarker.style.opacity='0';
       if(now>toastEnd)ui.toast.style.opacity='0';
       recoil=Math.max(0,recoil-dt*.7);
@@ -399,7 +442,7 @@
       camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
       renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));renderer.setSize(innerWidth,innerHeight);
     });
-    updateAmmo();updateHealth();animate();
+    updateAmmo();updateHealth();updatePlayerHealth();animate();
   </script>
 </body>
 </html>
