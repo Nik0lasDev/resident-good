@@ -309,6 +309,62 @@
     weaponPart(rifle,.12,.14,.23,gunPolymer,0,-.08,.27);
     weaponPart(rifle,.09,.2,.12,rubber,0,-.17,.08,-.12);
     weaponPart(rifle,.18,.045,.14,gunMetal,0,.13,-.08);
+    // Acabamento premium: componentes cilíndricos, miras, trilhos e peças funcionais.
+    function weaponShape(group,geometry,material,x,y,z,rx=0,ry=0,rz=0){
+      const m=new THREE.Mesh(geometry,material);
+      m.position.set(x,y,z);m.rotation.set(rx,ry,rz);
+      m.renderOrder=21;m.frustumCulled=false;m.castShadow=false;group.add(m);return m;
+    }
+    const muzzleMat=mat(0x111619,.3,.85), polymerGrip=mat(0x111719,.88,.02), engraved=mat(0x7c8588,.34,.78);
+    // Pistola: cano, janela de ejeção, alça traseira e texturas do punho.
+    weaponShape(gun,new THREE.CylinderGeometry(.025,.025,.16,16),muzzleMat,0,.055,-.23,Math.PI/2);
+    weaponShape(gun,new THREE.CylinderGeometry(.031,.031,.018,16),engraved,0,.055,-.316,Math.PI/2);
+    weaponShape(gun,new THREE.BoxGeometry(.058,.027,.075),muzzleMat,.035,.098,-.055,0,0,0);
+    weaponShape(gun,new THREE.BoxGeometry(.042,.012,.045),engraved,.035,.114,-.058);
+    weaponShape(gun,new THREE.BoxGeometry(.045,.016,.08),gunPolymer,0,.175,-.04);
+    weaponShape(gun,new THREE.BoxGeometry(.025,.024,.018),detailMetal,0,.188,-.065);
+    weaponShape(gun,new THREE.BoxGeometry(.035,.018,.06),gunAccent,0,-.155,.095,-.23);
+    for(let i=0;i<4;i++){
+      weaponShape(gun,new THREE.BoxGeometry(.09,.009,.009),dark,0,-.12+i*.027,.151);
+    }
+    // Escopeta: dois tubos paralelos, bocas reforçadas, guarda-mão estriado e mira.
+    weaponShape(shotgun,new THREE.CylinderGeometry(.032,.032,.49,14),gunMetal,-.043,.071,-.46,Math.PI/2);
+    weaponShape(shotgun,new THREE.CylinderGeometry(.032,.032,.49,14),detailMetal,.043,.071,-.46,Math.PI/2);
+    for(const x of [-.043,.043]){
+      weaponShape(shotgun,new THREE.CylinderGeometry(.039,.039,.035,14),muzzleMat,x,.071,-.715,Math.PI/2);
+      weaponShape(shotgun,new THREE.CylinderGeometry(.023,.023,.038,12),dark,x,.071,-.735,Math.PI/2);
+    }
+    weaponPart(shotgun,.19,.105,.24,polymerGrip,0,.015,-.28);
+    for(let i=0;i<7;i++) weaponPart(shotgun,.196,.012,.014,rubber,0,-.025,-.37+i*.032);
+    weaponPart(shotgun,.055,.07,.18,gunPolymer,0,.13,-.31);
+    weaponPart(shotgun,.04,.055,.08,detailMetal,0,.165,-.31);
+    weaponPart(shotgun,.065,.19,.11,gunPolymer,0,-.13,.31,.08);
+    weaponPart(shotgun,.045,.025,.14,gunMetal,0,-.035,.34);
+    weaponShape(shotgun,new THREE.CylinderGeometry(.023,.023,.13,12),gunAccent,0,-.105,-.05,Math.PI/2);
+    // Rifle de assalto: cano comprido, quebra-chamas, guarda-mão com ranhuras,
+    // carregador curvo, coronha, alça de transporte e miras metálicas.
+    weaponShape(rifle,new THREE.CylinderGeometry(.027,.027,.46,16),gunMetal,0,.055,-.59,Math.PI/2);
+    weaponShape(rifle,new THREE.CylinderGeometry(.036,.029,.075,16),muzzleMat,0,.055,-.84,Math.PI/2);
+    weaponShape(rifle,new THREE.CylinderGeometry(.022,.022,.012,16),engraved,0,.055,-.88,Math.PI/2);
+    weaponPart(rifle,.105,.095,.31,gunPolymer,0,.055,-.43);
+    for(let i=0;i<8;i++) weaponPart(rifle,.116,.012,.018,detailMetal,0,.015,-.54+i*.033);
+    weaponPart(rifle,.09,.22,.13,polymerGrip,0,-.17,.08,-.12);
+    for(let i=0;i<5;i++) weaponPart(rifle,.075,.01,.012,rubber,0,-.13+i*.027,.151);
+    weaponPart(rifle,.13,.115,.29,gunPolymer,0,.025,.31,-.06);
+    weaponPart(rifle,.145,.075,.15,gunMetal,0,.055,.49);
+    weaponPart(rifle,.06,.04,.22,detailMetal,0,.135,-.12);
+    weaponPart(rifle,.055,.07,.055,gunMetal,0,.17,-.19);
+    weaponPart(rifle,.045,.06,.045,gunMetal,0,.16,.02);
+    weaponPart(rifle,.05,.045,.11,gunPolymer,.09,.09,-.27);
+    weaponPart(rifle,.06,.055,.12,gunPolymer,0,-.07,-.12);
+    weaponShape(rifle,new THREE.CylinderGeometry(.055,.07,.23,8),gunPolymer,0,-.17,-.035,-.17);
+    weaponPart(rifle,.12,.035,.11,gunMetal,0,-.285,-.01);
+    // Pequenos parafusos e placas laterais dão escala e leitura de material.
+    for(const group of [gun,shotgun,rifle]){
+      for(const side of [-1,1]){
+        weaponShape(group,new THREE.CylinderGeometry(.009,.009,.008,10),engraved,side*.083,.045,-.03,Math.PI/2,0,0);
+      }
+    }
     rifle.visible=false;
     const weapons=[
       {name:'PISTOLA / 9 MM',magSize:12,magazine:12,reserve:48,damage:25,fireDelay:260,reloadMs:1350,model:gun},
