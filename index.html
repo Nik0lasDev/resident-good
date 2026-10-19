@@ -77,7 +77,7 @@
         <div class="tip"><b>03 / MUNIÇÃO</b>12 tiros por carregador</div>
         <div class="tip"><b>04 / AMEAÇAS</b>4 inimigos · ataques corpo a corpo</div>
       </div>
-      <button id="start">ENTRAR NO TESTE</button>
+      <button id="start" onclick="window.__residentStartFallback=true;document.getElementById('overlay').classList.add('hidden');">ENTRAR NO TESTE</button>
       <div id="mobile-note">Para este teste, use teclado e mouse em um computador.</div>
     </div>
   </div>
@@ -310,24 +310,30 @@
     }
     function showToast(text,duration=650){ui.toast.textContent=text;ui.toast.style.opacity='1';toastEnd=performance.now()+duration;}
     function enterGame(){
-      if(!renderer.domElement.requestPointerLock){
-        showToast('SEU NAVEGADOR NÃO SUPORTA CONTROLE DE MOUSE');
-        return;
-      }
+      // Inicia o jogo mesmo se o navegador recusar Pointer Lock.
+      locked=true;
+      window.__residentStartFallback=true;
+      ui.overlay.classList.add('hidden');
       try {
-        const request=renderer.domElement.requestPointerLock();
-        if(request && typeof request.catch==='function'){
-          request.catch(()=>showToast('CLIQUE EM ENTRAR NO TESTE PARA CAPTURAR O MOUSE'));
+        if(renderer.domElement.requestPointerLock){
+          const request=renderer.domElement.requestPointerLock();
+          if(request && typeof request.catch==='function'){
+            request.catch(()=>showToast('JOGO INICIADO · CLIQUE NO JOGO PARA CAPTURAR O MOUSE'));
+          }
+        } else {
+          showToast('JOGO INICIADO · CONTROLE DE MOUSE LIMITADO');
         }
       } catch(error) {
-        showToast('NÃO FOI POSSÍVEL CAPTURAR O MOUSE');
-        console.error('Falha ao iniciar o teste:',error);
+        showToast('JOGO INICIADO · CONTROLE DE MOUSE LIMITADO');
+        console.error('Falha ao capturar o mouse:',error);
       }
     }
     ui.start.addEventListener('click',enterGame);
     document.addEventListener('pointerlockchange',()=>{
-      locked=document.pointerLockElement===renderer.domElement;
-      ui.overlay.classList.toggle('hidden',locked);
+      const hasPointerLock=document.pointerLockElement===renderer.domElement;
+      if(hasPointerLock) locked=true;
+      else if(!window.__residentStartFallback) locked=false;
+      ui.overlay.classList.toggle('hidden',locked || window.__residentStartFallback);
       if(!locked){keys.clear();}
     });
     document.addEventListener('mousemove',e=>{
