@@ -331,7 +331,7 @@
     ui.start.addEventListener('click',enterGame);
     document.addEventListener('pointerlockchange',()=>{
       const hasPointerLock=document.pointerLockElement===renderer.domElement;
-      if(hasPointerLock) locked=true;
+      if(hasPointerLock){locked=true;window.__residentStartFallback=false;}
       else if(!window.__residentStartFallback) locked=false;
       ui.overlay.classList.toggle('hidden',locked || window.__residentStartFallback);
       if(!locked){keys.clear();}
