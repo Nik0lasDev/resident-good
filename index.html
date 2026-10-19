@@ -171,10 +171,7 @@
       part(new THREE.BoxGeometry(.48,.075,.31),pouchMat,root,0,.99,0);
       part(new THREE.BoxGeometry(.13,.11,.07),strapMat,root,0,.99,-.17);
       for(const side of [-1,1]){
-        part(new THREE.BoxGeometry(.16,.16,.12),enemyMaterials.armor,root,side*.29,1.48,0);
         part(new THREE.BoxGeometry(.13,.13,.09),enemyMaterials.accent,root,side*.22,1.17,-.19);
-        part(new THREE.BoxGeometry(.13,.12,.1),enemyMaterials.armor,root,side*.145,.48,-.055);
-        part(new THREE.BoxGeometry(.13,.12,.1),enemyMaterials.armor,root,side*.36,1.29,.035);
         part(new THREE.BoxGeometry(.105,.13,.095),pouchMat,root,side*.23,.96,-.15);
         part(new THREE.BoxGeometry(.035,.15,.04),strapMat,root,side*.31,1.0,-.15);
       }
@@ -203,7 +200,7 @@
       healthBg.position.set(0,2.35,0);root.add(healthBg);
       const healthFill=new THREE.Mesh(new THREE.PlaneGeometry(.76,.045),new THREE.MeshBasicMaterial({color:0xc84b40,side:THREE.DoubleSide,depthTest:false}));
       healthFill.position.set(0,2.35,.006);root.add(healthFill);
-      const enemyData={root,parts,limbs,hp:100,maxHp:100,spawn:new THREE.Vector3(x,0,z),lastAttack:0,respawnAt:0,healthFill,healthBg,phase:index*1.7,alive:true};
+      const enemyData={root,parts,limbs,hp:100,maxHp:100,spawn:new THREE.Vector3(x,0,z),lastAttack:0,respawnAt:0,healthFill,healthBg,phase:index*1.7,gaitPhase:0,alive:true};
       enemies.push(enemyData);return enemyData;
     }
     // Quatro inimigos espalhados pelo estande; eles perseguem o jogador.
@@ -490,19 +487,21 @@
           const speed=distance>5?1.65:1.05;
           e.root.position.x+=dx/distance*speed*dt;
           e.root.position.z+=dz/distance*speed*dt;
-          const gait=now*.009+e.phase;
-          const walk=Math.sin(gait);
-          e.root.position.y=Math.abs(Math.sin(gait*2))*.035;
-          e.limbs.leftLeg.rotation.x=walk*.62;e.limbs.rightLeg.rotation.x=-walk*.62;
-          e.limbs.leftArm.rotation.x=-.18-walk*.42;e.limbs.rightArm.rotation.x=-.18+walk*.42;
-          e.limbs.leftArm.rotation.z=-.06;e.limbs.rightArm.rotation.z=.06;
+          // O ciclo acompanha o deslocamento para reduzir o efeito de pés deslizando.
+          e.gaitPhase+=dt*speed*3.6;
+          const walk=Math.sin(e.gaitPhase);
+          const stride=Math.min(1,distance/2.2);
+          e.root.position.y=Math.max(0,Math.sin(e.gaitPhase*2))*.018*stride;
+          e.root.rotation.z=Math.sin(e.gaitPhase)*.025*stride;
+          e.limbs.leftLeg.rotation.x=walk*.48*stride;e.limbs.rightLeg.rotation.x=-walk*.48*stride;
+          e.limbs.leftArm.rotation.x=-.12-walk*.30*stride;e.limbs.rightArm.rotation.x=-.12+walk*.30*stride;
+          e.limbs.leftArm.rotation.z=-.035-.025*walk*stride;e.limbs.rightArm.rotation.z=.035-.025*walk*stride;
         }else{
-          e.root.position.y=Math.abs(Math.sin(now*.018+e.phase))*.018;
-          e.limbs.leftLeg.rotation.x=-.12;e.limbs.rightLeg.rotation.x=.12;
-          const swing=Math.sin(now*.018+e.phase);
-          e.limbs.leftArm.rotation.x=-1.05+Math.max(0,swing)*.95;
-          e.limbs.rightArm.rotation.x=-1.05+Math.max(0,-swing)*.95;
-          e.limbs.leftArm.rotation.z=-.16;e.limbs.rightArm.rotation.z=.16;
+          e.root.position.y=0;e.root.rotation.z=0;
+          // Postura de combate estável, sem balanços bruscos quando o inimigo para.
+          e.limbs.leftLeg.rotation.x=0;e.limbs.rightLeg.rotation.x=0;
+          e.limbs.leftArm.rotation.x=-.72;e.limbs.rightArm.rotation.x=-.72;
+          e.limbs.leftArm.rotation.z=-.12;e.limbs.rightArm.rotation.z=.12;
           if(now-e.lastAttack>1050){
             e.lastAttack=now;playerHp=Math.max(0,playerHp-8);
             updatePlayerHealth();showToast('VOCÊ RECEBEU 8 DE DANO',500);
