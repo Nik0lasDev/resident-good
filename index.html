@@ -377,7 +377,8 @@
     function shoot(){
       const now=performance.now();
       if(reloading||now-lastShot<260)return;
-      if(magazine<=0){ui.status.textContent='PRESSIONE R PARA RECARREGAR';return;}
+      // Clicar para atirar com o carregador vazio inicia a recarga automaticamente.
+      if(magazine<=0){reload();return;}
       lastShot=now;magazine--;updateAmmo();ui.status.textContent='DISPARO';
       recoil=Math.min(recoil+.09,.22);muzzleFlash.visible=true;muzzleEnd=now+55;
       camera.rotation.order='YXZ';camera.rotation.set(pitch-recoil,yaw,0);
