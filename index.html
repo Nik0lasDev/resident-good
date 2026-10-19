@@ -27,6 +27,11 @@
     #status{font-size:11px;color:#e5a15a;margin-top:6px;min-height:14px}
     #help{position:absolute;right:22px;bottom:22px;padding:13px 15px;color:#aeb8c0;font-size:10px;line-height:1.9;text-align:right}
     kbd{display:inline-block;padding:1px 5px;border:1px solid #5a636b;border-radius:4px;color:#f2f4f6;background:#282f35;font:inherit;font-weight:700}
+    #minimap-wrap{position:absolute;right:22px;top:86px;width:190px;padding:7px;border:1px solid rgba(220,230,238,.22);border-radius:9px;background:rgba(12,17,21,.82);box-shadow:0 8px 28px #0004;backdrop-filter:blur(5px)}
+    #minimap-title{display:flex;justify-content:space-between;gap:8px;margin:0 2px 5px;color:#d6dde2;font-size:9px;font-weight:900;letter-spacing:.13em}
+    #minimap-title span{color:#e5a15a}
+    #minimap{display:block;width:100%;height:auto;aspect-ratio:11/9;border-radius:4px;background:#20272b}
+    @media(max-width:650px){#minimap-wrap{right:10px;top:68px;width:130px;padding:5px}#minimap-title{font-size:8px;margin-bottom:3px}}
     #crosshair{position:absolute;left:50%;top:50%;width:22px;height:22px;transform:translate(-50%,-50%);transition:transform .08s}
     #crosshair:before,#crosshair:after{content:"";position:absolute;background:rgba(245,248,250,.9);box-shadow:0 0 3px #000}
     #crosshair:before{left:10px;top:3px;width:2px;height:6px;box-shadow:0 10px 0 rgba(245,248,250,.9)}
@@ -51,6 +56,7 @@
 </head>
 <body>
   <div id="hud">
+    <div id="minimap-wrap"><div id="minimap-title">MAPA DA SALA <span id="minimap-room">01</span></div><canvas id="minimap" width="220" height="180" aria-label="Minimapa da sala atual"></canvas></div>
     <div id="brand" class="panel">RESIDENT <span>GOOD</span> <span style="color:#89949c">/ FPS TEST</span></div>
     <div id="target" class="panel">
       <div class="target-row"><span>AMEAÇAS HOSTIS</span><span id="health-label" class="muted">4 ATIVOS</span></div>
@@ -889,10 +895,52 @@
         }
       }
     }
+    const minimapCanvas=document.getElementById('minimap');
+    const minimapCtx=minimapCanvas.getContext('2d');
+    function drawMinimap(){
+      const ctx=minimapCtx,W=minimapCanvas.width,H=minimapCanvas.height;
+      ctx.clearRect(0,0,W,H);ctx.fillStyle='#20272b';ctx.fillRect(0,0,W,H);
+      if(!currentRoom)return;
+      document.getElementById('minimap-room').textContent=String(roomIndex).padStart(2,'0');
+      const pad=15,scale=Math.min((W-pad*2)/currentRoom.w,(H-pad*2)/currentRoom.d);
+      const rw=currentRoom.w*scale,rh=currentRoom.d*scale,left=(W-rw)/2,top=(H-rh)/2;
+      const px=x=>left+(x+currentRoom.w/2)*scale;
+      const pz=z=>top+(z+currentRoom.d/2)*scale;
+      ctx.fillStyle='#414a4d';ctx.fillRect(left,top,rw,rh);
+      ctx.strokeStyle='#aab3b6';ctx.lineWidth=3;ctx.lineCap='square';
+      const doorHalf=1.625;
+      ctx.beginPath();
+      if(!currentRoom.doors.includes('north')){ctx.moveTo(left,top);ctx.lineTo(left+rw,top)}
+      else{ctx.moveTo(left,top);ctx.lineTo(px(-doorHalf),top);ctx.moveTo(px(doorHalf),top);ctx.lineTo(left+rw,top)}
+      if(!currentRoom.doors.includes('south')){ctx.moveTo(left,top+rh);ctx.lineTo(left+rw,top+rh)}
+      else{ctx.moveTo(left,top+rh);ctx.lineTo(px(-doorHalf),top+rh);ctx.moveTo(px(doorHalf),top+rh);ctx.lineTo(left+rw,top+rh)}
+      if(!currentRoom.doors.includes('west')){ctx.moveTo(left,top);ctx.lineTo(left,top+rh)}
+      else{ctx.moveTo(left,top);ctx.lineTo(left,pz(-doorHalf));ctx.moveTo(left,pz(doorHalf));ctx.lineTo(left,top+rh)}
+      if(!currentRoom.doors.includes('east')){ctx.moveTo(left+rw,top);ctx.lineTo(left+rw,top+rh)}
+      else{ctx.moveTo(left+rw,top);ctx.lineTo(left+rw,pz(-doorHalf));ctx.moveTo(left+rw,pz(doorHalf));ctx.lineTo(left+rw,top+rh)}
+      ctx.stroke();
+      const count=currentRoom.decor===1?6:currentRoom.decor===4?8:currentRoom.decor===3?4:5;
+      for(let i=0;i<count;i++){
+        const angle=i/count*Math.PI*2+(roomIndex-1)*.37,radius=currentRoom.decor===1?3.8:currentRoom.decor===4?5.2:4.1;
+        const x=Math.cos(angle)*radius,z=Math.sin(angle)*radius;
+        const sx=currentRoom.decor===4?1.5:.7+(i%3)*.25,sz=currentRoom.decor===1?1.25:.65;
+        ctx.fillStyle='#778080';ctx.fillRect(px(x-sx/2),pz(z-sz/2),Math.max(2,sx*scale),Math.max(2,sz*scale));
+      }
+      for(const enemy of enemies){
+        if(!enemy.alive)continue;
+        ctx.fillStyle=enemy.type==='brute'?'#ff704d':enemy.type==='ranged'?'#68c5ff':enemy.type==='runner'?'#f4d35e':'#ff5b55';
+        ctx.beginPath();ctx.arc(px(enemy.root.position.x),pz(enemy.root.position.z),3.2,0,Math.PI*2);ctx.fill();
+      }
+      const x=px(camera.position.x),y=pz(camera.position.z),yaw=camera.rotation.y;
+      ctx.save();ctx.translate(x,y);ctx.rotate(-yaw);
+      ctx.fillStyle='#8dffb0';ctx.strokeStyle='#eaffef';ctx.lineWidth=1.2;
+      ctx.beginPath();ctx.moveTo(0,-7);ctx.lineTo(5,5);ctx.lineTo(0,3);ctx.lineTo(-5,5);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
+    }
     function animate(){
       requestAnimationFrame(animate);
       const dt=Math.min(clock.getDelta(),.05),now=performance.now();
       update(dt,now);
+      drawMinimap();
       renderer.render(scene,camera);
     }
     addEventListener('resize',()=>{
