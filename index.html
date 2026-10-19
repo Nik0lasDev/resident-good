@@ -131,32 +131,53 @@
     }
     // Linhas de segurança no chão.
     for(let x=-3;x<=3;x+=.35) box(.17,.012,.45,orange,x,.01,-1.7,false,false);
-    // Alvo: manequim inerte com partes separadas para feedback visual.
-    const enemy = new THREE.Group();
-    enemy.position.set(0,0,-10);
-    scene.add(enemy);
-    const enemyBodyMat = mat(0x6c7776, .82), enemyArmor = mat(0x3e494a,.58), enemySkin = mat(0xb8a18b), enemyAccent = mat(0xb85c43,.6);
-    function enemyPart(geometry, material, x,y,z){
-      const mesh = new THREE.Mesh(geometry,material); mesh.position.set(x,y,z); mesh.castShadow=true; mesh.receiveShadow=true; enemy.add(mesh); return mesh;
+    // Inimigos humanoides que perseguem o jogador e atacam corpo a corpo.
+    const enemies=[];
+    const enemyMaterials={
+      skin:mat(0x9d765d,.9),shirt:mat(0x555d58,.95),pants:mat(0x343b40,.96),
+      armor:mat(0x252d30,.75),accent:mat(0x9e4939,.72),eyes:mat(0x171819,.55)
+    };
+    function makeEnemy(x,z,index){
+      const root=new THREE.Group();root.position.set(x,0,z);scene.add(root);
+      const parts=[],limbs={};
+      function part(geometry,material,parent,x,y,z){
+        const mesh=new THREE.Mesh(geometry,material);
+        mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;
+        parent.add(mesh);parts.push(mesh);return mesh;
+      }
+      part(new THREE.CapsuleGeometry(.27,.48,5,10),enemyMaterials.shirt,root,0,1.25,0);
+      part(new THREE.SphereGeometry(.235,16,12),enemyMaterials.skin,root,0,1.91,0);
+      part(new THREE.BoxGeometry(.34,.12,.13),enemyMaterials.armor,root,0,1.65,-.035);
+      part(new THREE.SphereGeometry(.025,8,6),enemyMaterials.eyes,root,-.075,1.94,-.207);
+      part(new THREE.SphereGeometry(.025,8,6),enemyMaterials.eyes,root,.075,1.94,-.207);
+      const leftArm=new THREE.Group();leftArm.position.set(-.34,1.48,0);root.add(leftArm);limbs.leftArm=leftArm;
+      part(new THREE.CapsuleGeometry(.09,.34,4,8),enemyMaterials.shirt,leftArm,0,-.22,0);
+      part(new THREE.CapsuleGeometry(.075,.19,4,8),enemyMaterials.skin,leftArm,0,-.49,-.015);
+      part(new THREE.SphereGeometry(.085,12,10),enemyMaterials.skin,leftArm,0,-.61,-.045);
+      const rightArm=new THREE.Group();rightArm.position.set(.34,1.48,0);root.add(rightArm);limbs.rightArm=rightArm;
+      part(new THREE.CapsuleGeometry(.09,.34,4,8),enemyMaterials.shirt,rightArm,0,-.22,0);
+      part(new THREE.CapsuleGeometry(.075,.19,4,8),enemyMaterials.skin,rightArm,0,-.49,-.015);
+      part(new THREE.SphereGeometry(.085,12,10),enemyMaterials.skin,rightArm,0,-.61,-.045);
+      const leftLeg=new THREE.Group();leftLeg.position.set(-.145,.83,0);root.add(leftLeg);limbs.leftLeg=leftLeg;
+      part(new THREE.CapsuleGeometry(.105,.38,4,8),enemyMaterials.pants,leftLeg,0,-.25,0);
+      part(new THREE.BoxGeometry(.15,.12,.27),enemyMaterials.armor,leftLeg,0,-.49,-.055);
+      const rightLeg=new THREE.Group();rightLeg.position.set(.145,.83,0);root.add(rightLeg);limbs.rightLeg=rightLeg;
+      part(new THREE.CapsuleGeometry(.105,.38,4,8),enemyMaterials.pants,rightLeg,0,-.25,0);
+      part(new THREE.BoxGeometry(.15,.12,.27),enemyMaterials.armor,rightLeg,0,-.49,-.055);
+      const healthBg=new THREE.Mesh(new THREE.PlaneGeometry(.8,.075),new THREE.MeshBasicMaterial({color:0x222629,side:THREE.DoubleSide,depthTest:false}));
+      healthBg.position.set(0,2.35,0);root.add(healthBg);
+      const healthFill=new THREE.Mesh(new THREE.PlaneGeometry(.76,.045),new THREE.MeshBasicMaterial({color:0xc84b40,side:THREE.DoubleSide,depthTest:false}));
+      healthFill.position.set(0,2.35,.006);root.add(healthFill);
+      const enemyData={root,parts,limbs,hp:100,maxHp:100,spawn:new THREE.Vector3(x,0,z),lastAttack:0,respawnAt:0,healthFill,phase:index*1.7,alive:true};
+      enemies.push(enemyData);return enemyData;
     }
-    enemyPart(new THREE.CylinderGeometry(.29,.38,.9,12),enemyBodyMat,0,1.25,0);
-    enemyPart(new THREE.SphereGeometry(.27,16,12),enemySkin,0,1.96,0);
-    enemyPart(new THREE.BoxGeometry(.62,.13,.35),enemyArmor,0,1.68,-.02);
-    enemyPart(new THREE.BoxGeometry(.16,.7,.18),enemyBodyMat,-.44,1.28,0);
-    enemyPart(new THREE.BoxGeometry(.16,.7,.18),enemyBodyMat,.44,1.28,0);
-    enemyPart(new THREE.BoxGeometry(.23,.62,.25),enemyArmor,-.16,.49,0);
-    enemyPart(new THREE.BoxGeometry(.23,.62,.25),enemyArmor,.16,.49,0);
-    enemyPart(new THREE.BoxGeometry(.16,.18,.14),enemyAccent,-.14,.12,-.01);
-    enemyPart(new THREE.BoxGeometry(.16,.18,.14),enemyAccent,.14,.12,-.01);
-    const targetPlate = new THREE.Mesh(new THREE.BoxGeometry(1.3,2.25,.08),mat(0x293537,.9));
-    targetPlate.position.set(0,1.12,.28); enemy.add(targetPlate);
-    for(let i=0;i<3;i++){
-      const ring = new THREE.Mesh(new THREE.TorusGeometry(.16+i*.16,.018,6,32),mat(i===0?0xe7b16b:0x8c9997));
-      ring.position.set(0,1.45,.34); enemy.add(ring);
-    }
-    // Pistola low-poly presa alla câmera, com corpo, empunhadura, cano e mira.
-    const gun = new THREE.Group();
-    // A arma e os braços são elementos da cena alinhados à câmera, com profundidade fixa.
+    // Quatro inimigos espalhados pelo estande; eles perseguem o jogador.
+    makeEnemy(-5,-11,0);
+    makeEnemy(4,-14,1);
+    makeEnemy(-8,-5,2);
+    makeEnemy(7,-8,3);
+    const enemy=enemies[0]; // Referência usada pelo HUD do alvo principal.
+        // A arma e os braços são elementos da cena alinhados à câmera, com profundidade fixa.
     // Isso evita que o modelo seja ocultado pela ordem de renderização da câmera.
     gun.renderOrder = 20;
     camera.add(gun);
