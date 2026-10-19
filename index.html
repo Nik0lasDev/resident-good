@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#101419">
+  <title>Resident Good — FPS Teste</title>
+  <style>
+    :root{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101419;color:#f4f6f8}
+    canvas{display:block;width:100%;height:100%;outline:none}
+    #hud{position:fixed;inset:0;pointer-events:none;user-select:none}
+    .panel{background:linear-gradient(135deg,rgba(15,20,25,.9),rgba(15,20,25,.65));border:1px solid rgba(220,230,238,.15);box-shadow:0 8px 28px #0003;backdrop-filter:blur(8px);border-radius:10px}
+    #brand{position:absolute;left:22px;top:20px;padding:11px 14px;letter-spacing:.12em;font-size:11px;font-weight:800;color:#c8d1d8}
+    #brand span{color:#e5a15a}
+    #target{position:absolute;top:20px;left:50%;transform:translateX(-50%);width:min(310px,55vw);padding:12px 15px}
+    .target-row{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:12px;font-weight:700}
+    .muted{color:#9daab4;font-weight:500}
+    .bar{height:7px;background:#3a4148;border-radius:20px;overflow:hidden;margin-top:9px}
+    #health-fill{height:100%;width:100%;background:linear-gradient(90deg,#c9483d,#ed795b);transition:width .15s}
+    #bottom-left{position:absolute;left:22px;bottom:22px;padding:13px 16px;min-width:142px}
+    .eyebrow{font-size:9px;letter-spacing:.16em;color:#9daab4;font-weight:800;margin-bottom:5px}
+    #ammo{font-size:26px;font-weight:800;line-height:1.15;letter-spacing:-.04em}
+    #ammo small{font-size:14px;color:#9daab4;letter-spacing:0}
+    #status{font-size:11px;color:#e5a15a;margin-top:6px;min-height:14px}
+    #help{position:absolute;right:22px;bottom:22px;padding:13px 15px;color:#aeb8c0;font-size:10px;line-height:1.9;text-align:right}
+    kbd{display:inline-block;padding:1px 5px;border:1px solid #5a636b;border-radius:4px;color:#f2f4f6;background:#282f35;font:inherit;font-weight:700}
+    #crosshair{position:absolute;left:50%;top:50%;width:22px;height:22px;transform:translate(-50%,-50%);transition:transform .08s}
+    #crosshair:before,#crosshair:after{content:"";position:absolute;background:rgba(245,248,250,.9);box-shadow:0 0 3px #000}
+    #crosshair:before{left:10px;top:3px;width:2px;height:6px;box-shadow:0 10px 0 rgba(245,248,250,.9)}
+    #crosshair:after{left:3px;top:10px;width:6px;height:2px;box-shadow:10px 0 0 rgba(245,248,250,.9)}
+    #hitmarker{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(45deg);font-size:26px;font-weight:300;opacity:0;color:#fff;transition:opacity .06s}
+    #overlay{position:fixed;inset:0;display:grid;place-items:center;background:radial-gradient(ellipse at center,rgba(16,22,28,.72),rgba(5,8,11,.94));z-index:5}
+    #overlay.hidden{display:none}
+    #intro{width:min(460px,calc(100vw - 34px));padding:28px;border:1px solid #ffffff20;border-radius:16px;background:linear-gradient(145deg,#202930f5,#11171cf5);box-shadow:0 25px 90px #0008}
+    .tag{display:inline-flex;align-items:center;gap:7px;color:#e5a15a;font-size:10px;font-weight:900;letter-spacing:.17em}
+    .dot{width:7px;height:7px;background:#e5a15a;border-radius:50%;box-shadow:0 0 12px #e5a15a80}
+    h1{font-size:clamp(27px,6vw,40px);letter-spacing:-.055em;line-height:1.05;margin:15px 0 10px}
+    #intro p{font-size:13px;color:#aeb8c0;line-height:1.65;margin:0 0 20px}
+    #start{border:0;border-radius:8px;padding:13px 17px;background:#e5a15a;color:#20170e;font-size:12px;font-weight:900;letter-spacing:.08em;cursor:pointer;width:100%}
+    #start:hover{background:#f3b574}
+    .tips{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:18px 0 20px}
+    .tip{font-size:11px;color:#c3ccd2;border:1px solid #ffffff13;border-radius:7px;padding:9px;background:#ffffff05}
+    .tip b{color:#f5f6f7;display:block;margin-bottom:4px}
+    #toast{position:absolute;left:50%;top:68%;transform:translate(-50%,-50%);font-size:11px;letter-spacing:.13em;font-weight:900;color:#e5a15a;text-shadow:0 2px 10px #000;opacity:0;transition:opacity .15s}
+    #mobile-note{display:none}
+    @media(max-width:650px){#brand{left:10px;top:10px;padding:8px;font-size:9px}#target{top:10px;width:54vw;padding:9px 10px}.target-row{font-size:10px}#bottom-left{left:10px;bottom:10px;padding:10px;min-width:110px}#ammo{font-size:21px}#help{right:10px;bottom:10px;padding:9px;font-size:9px}#mobile-note{display:block;font-size:10px;color:#e5a15a;margin-top:8px}}
+  </style>
+</head>
+<body>
+  <div id="hud">
+    <div id="brand" class="panel">RESIDENT <span>GOOD</span> <span style="color:#89949c">/ FPS TEST</span></div>
+    <div id="target" class="panel">
+      <div class="target-row"><span>ALVO DE TREINO</span><span id="health-label" class="muted">100 / 100 HP</span></div>
+      <div class="bar"><div id="health-fill"></div></div>
+    </div>
+    <div id="crosshair"></div><div id="hitmarker">×</div>
+    <div id="bottom-left" class="panel">
+      <div class="eyebrow">PISTOLA / 9 MM</div>
+      <div id="ammo">12 <small>/ 48</small></div>
+      <div id="status">PRONTA</div>
+    </div>
+    <div id="help" class="panel"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> mover<br><kbd>SHIFT</kbd> correr · <kbd>R</kbd> recarregar<br><kbd>CLIQUE</kbd> atirar · <kbd>ESC</kbd> liberar mouse</div>
+    <div id="toast">ACERTO</div>
+  </div>
+  <div id="overlay">
+    <div id="intro">
+      <div class="tag"><span class="dot"></span> PROTÓTIPO JOGÁVEL · BUILD 0.1</div>
+      <h1>Teste de combate<br>em primeira pessoa.</h1>
+      <p>Um cenário de treinamento para validar a base do Resident Good: movimento, mira, disparo, recarga e dano no alvo.</p>
+      <div class="tips">
+        <div class="tip"><b>01 / MOVIMENTO</b>WASD + mouse</div>
+        <div class="tip"><b>02 / COMBATE</b>Clique para disparar</div>
+        <div class="tip"><b>03 / MUNIÇÃO</b>12 tiros por carregador</div>
+        <div class="tip"><b>04 / ALVO</b>100 HP · 10 por tiro</div>
+      </div>
+      <button id="start">ENTRAR NO TESTE</button>
+      <div id="mobile-note">Para este teste, use teclado e mouse em um computador.</div>
+    </div>
+  </div>
+  <div id="toast"></div>
+  <script type="module">
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x9aa5a8);
+    scene.fog = new THREE.Fog(0x9aa5a8, 18, 48);
+
+    const camera = new THREE.PerspectiveCamera(74, innerWidth / innerHeight, 0.1, 100);
+    camera.position.set(0, 1.68, 5);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
+    document.body.prepend(renderer.domElement);
+
+    scene.add(new THREE.HemisphereLight(0xdce8ed, 0x555044, 2.1));
+    const sun = new THREE.DirectionalLight(0xffe2bd, 2.6);
+    sun.position.set(-5, 10, 4);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(1024, 1024);
+    sun.shadow.camera.left = -15; sun.shadow.camera.right = 15;
+    sun.shadow.camera.top = 15; sun.shadow.camera.bottom = -15;
+    scene.add(sun);
+
+    const mat = (color, roughness = 0.85, metalness = 0) => new THREE.MeshStandardMaterial({ color, roughness, metalness });
+    const concrete = mat(0x737c7c), floorMat = mat(0x515b59), trim = mat(0x333b3c), orange = mat(0xc77b42), dark = mat(0x202629, 0.42, 0.6);
+    function box(w,h,d,material,x,y,z,cast=true,receive=true){
+      const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), material);
+      m.position.set(x,y,z); m.castShadow=cast; m.receiveShadow=receive; scene.add(m); return m;
+    }
+    box(34,.35,34,floorMat,0,-.2,-5,false,true);
+    // Marcas discretas no piso do estande.
+    for(let x=-15;x<=15;x+=2) box(.018,.008,30,mat(0x68716e),x,-.02,-5,false,false);
+    for(let z=-20;z<=10;z+=2) box(30,.008,.018,mat(0x68716e),0,-.02,z,false,false);
+    box(34,5,.5,concrete,0,2.3,-22);
+    box(.5,5,34,concrete,-17,2.3,-5);
+    box(.5,5,34,concrete,17,2.3,-5);
+    box(34,.25,.6,trim,0,4.85,-22);
+    box(.6,.25,34,trim,-17,4.85,-5); box(.6,.25,34,trim,17,4.85,-5);
+    // Painéis e luminárias do estande.
+    for(let x=-12;x<=12;x+=4){
+      box(2.8,2.2,.12,mat(0x626b69),x,1.15,-21.7,false);
+      box(2.5,.035,.025,orange,x,2.05,-21.61,false,false);
+      box(.85,.06,.16,mat(0xd5d2c1,.5),x,4.45,-20.5,false,false);
+    }
+    // Linhas de segurança no chão.
+    for(let x=-3;x<=3;x+=.35) box(.17,.012,.45,orange,x,.01,-1.7,false,false);
+    // Alvo: manequim inerte com partes separadas para feedback visual.
+    const enemy = new THREE.Group();
+    enemy.position.set(0,0,-10);
+    scene.add(enemy);
+    const enemyBodyMat = mat(0x6c7776, .82), enemyArmor = mat(0x3e494a,.58), enemySkin = mat(0xb8a18b), enemyAccent = mat(0xb85c43,.6);
+    function enemyPart(geometry, material, x,y,z){
+      const mesh = new THREE.Mesh(geometry,material); mesh.position.set(x,y,z); mesh.castShadow=true; mesh.receiveShadow=true; enemy.add(mesh); return mesh;
+    }
+    enemyPart(new THREE.CylinderGeometry(.29,.38,.9,12),enemyBodyMat,0,1.25,0);
+    enemyPart(new THREE.SphereGeometry(.27,16,12),enemySkin,0,1.96,0);
+    enemyPart(new THREE.BoxGeometry(.62,.13,.35),enemyArmor,0,1.68,-.02);
+    enemyPart(new THREE.BoxGeometry(.16,.7,.18),enemyBodyMat,-.44,1.28,0);
+    enemyPart(new THREE.BoxGeometry(.16,.7,.18),enemyBodyMat,.44,1.28,0);
+    enemyPart(new THREE.BoxGeometry(.23,.62,.25),enemyArmor,-.16,.49,0);
+    enemyPart(new THREE.BoxGeometry(.23,.62,.25),enemyArmor,.16,.49,0);
+    enemyPart(new THREE.BoxGeometry(.16,.18,.14),enemyAccent,-.14,.12,-.01);
+    enemyPart(new THREE.BoxGeometry(.16,.18,.14),enemyAccent,.14,.12,-.01);
+    const targetPlate = new THREE.Mesh(new THREE.BoxGeometry(1.3,2.25,.08),mat(0x293537,.9));
+    targetPlate.position.set(0,1.12,.28); enemy.add(targetPlate);
+    for(let i=0;i<3;i++){
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(.16+i*.16,.018,6,32),mat(i===0?0xe7b16b:0x8c9997));
+      ring.position.set(0,1.45,.34); enemy.add(ring);
+    }
+    // Pistola low-poly presa alla câmera, com corpo, empunhadura, cano e mira.
+    const gun = new THREE.Group();
+    camera.add(gun);
+    gun.position.set(.34,-.31,-.62);
+    const gunMetal = mat(0x30383d,.3,.78), gunPolymer = mat(0x171d21,.65,.05), gunAccent = mat(0x9b6b3d,.42,.4);
+    function gunBox(w,h,d,material,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);m.position.set(x,y,z);m.castShadow=true;gun.add(m);return m;}
+    gunBox(.16,.15,.34,gunMetal,0,.035,0);
+    gunBox(.13,.1,.19,gunMetal,0,.095,-.07);
+    gunBox(.105,.2,.14,gunPolymer,0,-.105,.08).rotation.x=-.23;
+    gunBox(.045,.012,.13,gunAccent,0,-.2,.09);
+    gunBox(.04,.018,.06,gunMetal,0,.118,-.07);
+    gunBox(.018,.03,.025,gunMetal,0,.132,-.12);
+    const muzzleFlash = new THREE.Mesh(new THREE.ConeGeometry(.09,.24,8),new THREE.MeshBasicMaterial({color:0xffbd63}));
+    muzzleFlash.rotation.x=-Math.PI/2; muzzleFlash.position.set(0,.04,-.28); muzzleFlash.visible=false; gun.add(muzzleFlash);
+
+    const raycaster = new THREE.Raycaster();
+    const center = new THREE.Vector2(0,0);
+    const ui = {
+      overlay:document.getElementById('overlay'), start:document.getElementById('start'),
+      ammo:document.getElementById('ammo'), status:document.getElementById('status'),
+      health:document.getElementById('health-fill'), healthLabel:document.getElementById('health-label'),
+      hitmarker:document.getElementById('hitmarker'), crosshair:document.getElementById('crosshair'),
+      toast:document.getElementById('toast')
+    };
+    let hp=100, magazine=12, reserve=48, reloading=false, reloadEnd=0, lastShot=0, locked=false, yaw=0, pitch=0, recoil=0, muzzleEnd=0, hitEnd=0, toastEnd=0;
+    const keys = new Set();
+    const clock = new THREE.Clock();
+    const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+    function updateAmmo(){ui.ammo.innerHTML=String(magazine)+' <small>/ '+reserve+'</small>';}
+    function updateHealth(){
+      ui.health.style.width=hp+'%';
+      ui.healthLabel.textContent=hp+' / 100 HP';
+      ui.health.style.background=hp<=30?'linear-gradient(90deg,#9f302e,#e24d42)':'linear-gradient(90deg,#c9483d,#ed795b)';
+    }
+    function showToast(text,duration=650){ui.toast.textContent=text;ui.toast.style.opacity='1';toastEnd=performance.now()+duration;}
+    function enterGame(){
+      if(!renderer.domElement.requestPointerLock){ui.overlay.classList.remove('hidden');return;}
+      renderer.domElement.requestPointerLock();
+    }
+    ui.start.addEventListener('click',enterGame);
+    document.addEventListener('pointerlockchange',()=>{
+      locked=document.pointerLockElement===renderer.domElement;
+      ui.overlay.classList.toggle('hidden',locked);
+      if(!locked){keys.clear();}
+    });
+    document.addEventListener('mousemove',e=>{
+      if(!locked)return;
+      yaw-=e.movementX*.0022;
+      pitch=clamp(pitch-e.movementY*.0022,-1.25,1.25);
+    });
+    document.addEventListener('keydown',e=>{
+      if(['KeyW','KeyA','KeyS','KeyD','ShiftLeft','ShiftRight','Space','KeyR'].includes(e.code))e.preventDefault();
+      keys.add(e.code);
+      if(e.code==='KeyR'&&!e.repeat)reload();
+    });
+    document.addEventListener('keyup',e=>keys.delete(e.code));
+    document.addEventListener('mousedown',e=>{
+      if(e.button!==0)return;
+      if(!locked){if(!ui.overlay.classList.contains('hidden'))enterGame();return;}
+      shoot();
+    });
+    window.addEventListener('blur',()=>keys.clear());
+
+    function reload(){
+      if(reloading||magazine===12||reserve<=0){if(reserve<=0&&magazine<12)showToast('SEM MUNIÇÃO RESERVA');return;}
+      reloading=true;reloadEnd=performance.now()+1350;
+      ui.status.textContent='RECARREGANDO…';
+    }
+    function shoot(){
+      const now=performance.now();
+      if(reloading||now-lastShot<260)return;
+      if(magazine<=0){ui.status.textContent='PRESSIONE R PARA RECARREGAR';return;}
+      lastShot=now;magazine--;updateAmmo();ui.status.textContent='DISPARO';
+      recoil=Math.min(recoil+.09,.22);muzzleFlash.visible=true;muzzleEnd=now+55;
+      camera.rotation.order='YXZ';camera.rotation.set(pitch-recoil,yaw,0);
+      raycaster.setFromCamera(center,camera);
+      const parts=enemy.children.filter(o=>o.isMesh);
+      const hits=raycaster.intersectObjects(parts,false);
+      if(hits.length&&hp>0){
+        hp=Math.max(0,hp-10);updateHealth();
+        ui.hitmarker.style.opacity='1';hitEnd=now+110;
+        enemy.children.forEach(o=>{if(o.material&&o.material.color&&o.material!==targetPlate.material)o.material.emissive?.setHex?.(0x552016);});
+        showToast(hp===0?'ALVO NEUTRALIZADO':'ACERTO CONFIRMADO');
+      }else{ui.status.textContent='TIRO DISPARADO';}
+      if(magazine===0)ui.status.textContent='CARREGADOR VAZIO · R';
+    }
+    // Recomeça o exercício quando o alvo é neutralizado.
+    function resetTarget(){
+      hp=100;updateHealth();
+      enemy.children.forEach(o=>{if(o.material&&o.material.emissive)o.material.emissive.setHex(0x000000);});
+      showToast('NOVO ALVO · 100 HP');
+    }
+    function update(dt,now){
+      if(reloading&&now>=reloadEnd){
+        const needed=12-magazine, amount=Math.min(needed,reserve);
+        magazine+=amount;reserve-=amount;reloading=false;updateAmmo();ui.status.textContent='PRONTA';
+      }
+      if(hp<=0&&now-toastEnd>700){resetTarget();}
+      if(now>muzzleEnd)muzzleFlash.visible=false;
+      if(now>hitEnd)ui.hitmarker.style.opacity='0';
+      if(now>toastEnd)ui.toast.style.opacity='0';
+      recoil=Math.max(0,recoil-dt*.7);
+      gun.position.y=-.31+Math.sin(now*.004)*.004;
+      gun.rotation.x=-recoil*1.5;
+      camera.rotation.order='YXZ';camera.rotation.set(pitch-recoil*.45,yaw,0);
+      if(locked){
+        const speed=(keys.has('ShiftLeft')||keys.has('ShiftRight'))?6.4:4.2;
+        const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
+        const right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
+        const move=new THREE.Vector3();
+        if(keys.has('KeyW'))move.add(forward);
+        if(keys.has('KeyS'))move.sub(forward);
+        if(keys.has('KeyD'))move.add(right);
+        if(keys.has('KeyA'))move.sub(right);
+        if(move.lengthSq()>0){
+          move.normalize().multiplyScalar(speed*dt);
+          const nx=clamp(camera.position.x+move.x,-15.5,15.5);
+          const nz=clamp(camera.position.z+move.z,-20.5,9.5);
+          camera.position.x=nx;camera.position.z=nz;
+        }
+      }
+    }
+    function animate(){
+      requestAnimationFrame(animate);
+      const dt=Math.min(clock.getDelta(),.05),now=performance.now();
+      update(dt,now);
+      renderer.render(scene,camera);
+    }
+    addEventListener('resize',()=>{
+      camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
+      renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));renderer.setSize(innerWidth,innerHeight);
+    });
+    updateAmmo();updateHealth();animate();
+  </script>
+</body>
+</html>
