@@ -142,15 +142,22 @@
     };
     function makeEnemy(x,z,index){
       const root=new THREE.Group();root.position.set(x,0,z);scene.add(root);
-      const parts=[],limbs={};
+      const parts=[],limbs={},protectedParts=new Set();
+      const hasVest=Math.random()<.45,hasArmoredPants=Math.random()<.25,hasHelmet=Math.random()<.35;
+      const outfitShirt=mat([0x52634b,0x4d5559,0x6c6252,0x353c42][index],.97);
+      const outfitPants=mat([0x343b35,0x454747,0x665b4c,0x303943][index],.98);
       function part(geometry,material,parent,x,y,z){
+
         const mesh=new THREE.Mesh(geometry,material);
         mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;
         parent.add(mesh);parts.push(mesh);return mesh;
       }
-      part(new THREE.CapsuleGeometry(.27,.48,5,10),enemyMaterials.shirt,root,0,1.25,0);
+      function armorPart(geometry,material,parent,x,y,z){
+        const mesh=part(geometry,material,parent,x,y,z);protectedParts.add(mesh);return mesh;
+      }
+      part(new THREE.CapsuleGeometry(.27,.48,5,10),outfitShirt,root,0,1.25,0);
       part(new THREE.SphereGeometry(.235,16,12),enemyMaterials.skin,root,0,1.91,0);
-      part(new THREE.BoxGeometry(.34,.12,.13),enemyMaterials.armor,root,0,1.65,-.035);
+      if(hasVest)armorPart(new THREE.BoxGeometry(.34,.12,.13),enemyMaterials.armor,root,0,1.65,-.035);
       part(new THREE.SphereGeometry(.025,8,6),enemyMaterials.eyes,root,-.075,1.94,-.207);
       part(new THREE.SphereGeometry(.025,8,6),enemyMaterials.eyes,root,.075,1.94,-.207);
       // Detalhes adicionais no rosto, com variações visuais entre inimigos.
@@ -164,32 +171,36 @@
       part(new THREE.SphereGeometry(.028,10,8),eyeGlow,root,-.075,1.95,-.222);
       part(new THREE.SphereGeometry(.028,10,8),eyeGlow,root,.075,1.95,-.222);
       // Colete tático em camadas, tiras, placas, cinto e bolsas.
-      part(new THREE.CapsuleGeometry(.285,.31,4,10),enemyMaterials.armor,root,0,1.28,-.035);
-      part(new THREE.BoxGeometry(.085,.49,.035),strapMat,root,-.14,1.3,-.19).rotation.z=-.12;
-      part(new THREE.BoxGeometry(.085,.49,.035),strapMat,root,.14,1.3,-.19).rotation.z=.12;
-      part(new THREE.BoxGeometry(.22,.15,.045),enemyMaterials.accent,root,0,1.38,-.222);
-      part(new THREE.BoxGeometry(.48,.075,.31),pouchMat,root,0,.99,0);
-      part(new THREE.BoxGeometry(.13,.11,.07),strapMat,root,0,.99,-.17);
-      for(const side of [-1,1]){
-        part(new THREE.BoxGeometry(.13,.13,.09),enemyMaterials.accent,root,side*.22,1.17,-.19);
-        part(new THREE.BoxGeometry(.105,.13,.095),pouchMat,root,side*.23,.96,-.15);
-        part(new THREE.BoxGeometry(.035,.15,.04),strapMat,root,side*.31,1.0,-.15);
+      if(hasVest)armorPart(new THREE.CapsuleGeometry(.285,.31,4,10),enemyMaterials.armor,root,0,1.28,-.035);
+      if(hasVest){
+        part(new THREE.BoxGeometry(.085,.49,.035),strapMat,root,-.14,1.3,-.19).rotation.z=-.12;
+        part(new THREE.BoxGeometry(.085,.49,.035),strapMat,root,.14,1.3,-.19).rotation.z=.12;
+        armorPart(new THREE.BoxGeometry(.22,.15,.045),enemyMaterials.accent,root,0,1.38,-.222);
+        part(new THREE.BoxGeometry(.48,.075,.31),pouchMat,root,0,.99,0);
+        part(new THREE.BoxGeometry(.13,.11,.07),strapMat,root,0,.99,-.17);
+        for(const side of [-1,1]){
+          part(new THREE.BoxGeometry(.13,.13,.09),enemyMaterials.accent,root,side*.22,1.17,-.19);
+          part(new THREE.BoxGeometry(.105,.13,.095),pouchMat,root,side*.23,.96,-.15);
+          part(new THREE.BoxGeometry(.035,.15,.04),strapMat,root,side*.31,1.0,-.15);
+        }
+        part(new THREE.BoxGeometry(.34,.43,.17),enemyMaterials.armor,root,0,1.34,.19);
       }
-      part(new THREE.BoxGeometry(.34,.43,.17),enemyMaterials.armor,root,0,1.34,.19);
       part(new THREE.CylinderGeometry(.12,.14,.12,10),enemyMaterials.shirt,root,0,1.67,0);
       // Silhueta tática mais legível: capacete, proteção facial e equipamento de missão.
       const helmetMat=mat([0x303936,0x393c38,0x282f34,0x4a4035][index],.78,.08);
       const clothMat=mat([0x454d48,0x55514a,0x343d43,0x5a5145][index],.96);
       const plateMat=mat([0x3a4442,0x45443e,0x303a42,0x51483c][index],.68,.16);
       const enemyMetalMat=mat(0x687176,.28,.82), rubberMat=mat(0x171c1d,.98), lensMat=new THREE.MeshStandardMaterial({color:index%2?0x9d3d2e:0x8d7541,emissive:index%2?0x35100b:0x30230b,emissiveIntensity:.35,roughness:.28,metalness:.25});
-      // Capacete arredondado com aba, trilho lateral e suportes.
-      part(new THREE.SphereGeometry(.235,16,10),helmetMat,root,0,2.105,.005).scale.set(1.08,.62,1.02);
-      part(new THREE.BoxGeometry(.31,.045,.21),helmetMat,root,0,2.035,-.085);
-      part(new THREE.BoxGeometry(.19,.035,.035),enemyMetalMat,root,0,2.065,-.205);
-      for(const side of [-1,1]){
-        part(new THREE.CylinderGeometry(.055,.055,.035,12),helmetMat,root,side*.225,1.99,0,0,0,Math.PI/2);
-        part(new THREE.CylinderGeometry(.035,.035,.012,12),dark,root,side*.248,1.99,0,0,0,Math.PI/2);
-        part(new THREE.BoxGeometry(.045,.11,.09),helmetMat,root,side*.25,1.79,.015);
+      // Capacete aparece apenas na parcela sorteada de 35% dos inimigos.
+      if(hasHelmet){
+        armorPart(new THREE.SphereGeometry(.235,16,10),helmetMat,root,0,2.105,.005).scale.set(1.08,.62,1.02);
+        part(new THREE.BoxGeometry(.31,.045,.21),helmetMat,root,0,2.035,-.085);
+        part(new THREE.BoxGeometry(.19,.035,.035),enemyMetalMat,root,0,2.065,-.205);
+        for(const side of [-1,1]){
+          part(new THREE.CylinderGeometry(.055,.055,.035,12),helmetMat,root,side*.225,1.99,0);
+          part(new THREE.CylinderGeometry(.035,.035,.012,12),dark,root,side*.248,1.99,0);
+          part(new THREE.BoxGeometry(.045,.11,.09),helmetMat,root,side*.25,1.79,.015);
+        }
       }
       // Óculos de proteção e máscara têxtil, sem ocultar a leitura do rosto.
       part(new THREE.BoxGeometry(.105,.052,.035),rubberMat,root,-.073,1.96,-.226);
@@ -200,58 +211,66 @@
       part(new THREE.CapsuleGeometry(.125,.105,4,8),clothMat,root,0,1.825,-.12).scale.set(1,.72,.58);
       part(new THREE.BoxGeometry(.15,.028,.018),strapMat,root,0,1.78,-.19);
       // Placa balística frontal com segmentos, parafusos e identificação.
-      part(new THREE.BoxGeometry(.27,.22,.035),plateMat,root,0,1.36,-.245);
-      part(new THREE.BoxGeometry(.19,.025,.012),enemyMetalMat,root,0,1.43,-.267);
-      part(new THREE.BoxGeometry(.055,.075,.014),enemyMaterials.accent,root,0,1.37,-.269);
+      if(hasVest){
+        armorPart(new THREE.BoxGeometry(.27,.22,.035),plateMat,root,0,1.36,-.245);
+        part(new THREE.BoxGeometry(.19,.025,.012),enemyMetalMat,root,0,1.43,-.267);
+        part(new THREE.BoxGeometry(.055,.075,.014),enemyMaterials.accent,root,0,1.37,-.269);
+      }
       for(const side of [-1,1]){
         part(new THREE.CylinderGeometry(.012,.012,.009,8),enemyMetalMat,root,side*.105,1.29,-.269,Math.PI/2,0,0);
         // Ombreiras, cotoveleiras e proteção externa dos antebraços.
-        part(new THREE.SphereGeometry(.135,12,9),helmetMat,root,side*.355,1.48,-.005).scale.set(1,.78,1);
-        part(new THREE.BoxGeometry(.13,.105,.09),plateMat,root,side*.365,1.19,-.055);
-        part(new THREE.BoxGeometry(.115,.18,.055),plateMat,root,side*.35,1.06,-.115);
+        if(hasVest){
+          armorPart(new THREE.SphereGeometry(.135,12,9),helmetMat,root,side*.355,1.48,-.005).scale.set(1,.78,1);
+          armorPart(new THREE.BoxGeometry(.13,.105,.09),plateMat,root,side*.365,1.19,-.055);
+          armorPart(new THREE.BoxGeometry(.115,.18,.055),plateMat,root,side*.35,1.06,-.115);
+        }
         // Bolsas laterais e presilhas do equipamento.
         part(new THREE.BoxGeometry(.09,.13,.09),clothMat,root,side*.285,1.02,.045);
         part(new THREE.BoxGeometry(.105,.025,.095),strapMat,root,side*.285,1.075,-.005);
         // Joelheiras rígidas e botas com biqueira e sola em camadas.
-        part(new THREE.SphereGeometry(.112,12,8),plateMat,root,side*.145,.39,-.085).scale.set(1,.82,.55);
+        if(hasArmoredPants)armorPart(new THREE.SphereGeometry(.112,12,8),plateMat,root,side*.145,.39,-.085).scale.set(1,.82,.55);
         part(new THREE.BoxGeometry(.19,.055,.31),rubberMat,root,side*.145,.075,-.11);
         part(new THREE.BoxGeometry(.17,.14,.28),helmetMat,root,side*.145,.16,-.075);
         part(new THREE.BoxGeometry(.15,.035,.07),enemyMetalMat,root,side*.145,.19,-.22);
       }
       // Mochila compacta, alças traseiras e bolsos utilitários.
-      part(new THREE.BoxGeometry(.34,.42,.17),clothMat,root,0,1.34,.245);
-      part(new THREE.BoxGeometry(.26,.15,.09),helmetMat,root,0,1.22,.345);
-      part(new THREE.BoxGeometry(.07,.31,.025),strapMat,root,-.13,1.35,.16).rotation.z=-.12;
-      part(new THREE.BoxGeometry(.07,.31,.025),strapMat,root,.13,1.35,.16).rotation.z=.12;
-      part(new THREE.BoxGeometry(.14,.12,.055),plateMat,root,0,1.48,.34);
+      if(hasVest){
+        part(new THREE.BoxGeometry(.34,.42,.17),clothMat,root,0,1.34,.245);
+        part(new THREE.BoxGeometry(.26,.15,.09),helmetMat,root,0,1.22,.345);
+        part(new THREE.BoxGeometry(.07,.31,.025),strapMat,root,-.13,1.35,.16).rotation.z=-.12;
+        part(new THREE.BoxGeometry(.07,.31,.025),strapMat,root,.13,1.35,.16).rotation.z=.12;
+        part(new THREE.BoxGeometry(.14,.12,.055),plateMat,root,0,1.48,.34);
+      }
       // Luvas e botas com solas mais espessas.
       const leftArm=new THREE.Group();leftArm.position.set(-.34,1.48,0);root.add(leftArm);limbs.leftArm=leftArm;
-      part(new THREE.CapsuleGeometry(.09,.34,4,8),enemyMaterials.shirt,leftArm,0,-.22,0);
+      part(new THREE.CapsuleGeometry(.09,.34,4,8),outfitShirt,leftArm,0,-.22,0);
       part(new THREE.CapsuleGeometry(.075,.19,4,8),enemyMaterials.skin,leftArm,0,-.49,-.015);
       part(new THREE.SphereGeometry(.085,12,10),enemyMaterials.skin,leftArm,0,-.61,-.045);
       part(new THREE.BoxGeometry(.16,.16,.12),enemyMaterials.armor,leftArm,0,-.025,0);
       part(new THREE.BoxGeometry(.12,.08,.14),pouchMat,leftArm,0,-.60,-.04);
       const rightArm=new THREE.Group();rightArm.position.set(.34,1.48,0);root.add(rightArm);limbs.rightArm=rightArm;
-      part(new THREE.CapsuleGeometry(.09,.34,4,8),enemyMaterials.shirt,rightArm,0,-.22,0);
+      part(new THREE.CapsuleGeometry(.09,.34,4,8),outfitShirt,rightArm,0,-.22,0);
       part(new THREE.CapsuleGeometry(.075,.19,4,8),enemyMaterials.skin,rightArm,0,-.49,-.015);
       part(new THREE.SphereGeometry(.085,12,10),enemyMaterials.skin,rightArm,0,-.61,-.045);
       part(new THREE.BoxGeometry(.16,.16,.12),enemyMaterials.armor,rightArm,0,-.025,0);
       part(new THREE.BoxGeometry(.12,.08,.14),pouchMat,rightArm,0,-.60,-.04);
       const leftLeg=new THREE.Group();leftLeg.position.set(-.145,.83,0);root.add(leftLeg);limbs.leftLeg=leftLeg;
-      part(new THREE.CapsuleGeometry(.105,.38,4,8),enemyMaterials.pants,leftLeg,0,-.25,0);
-      part(new THREE.BoxGeometry(.15,.12,.27),enemyMaterials.armor,leftLeg,0,-.49,-.055);
-      part(new THREE.BoxGeometry(.13,.12,.1),enemyMaterials.armor,leftLeg,0,-.30,-.09);
-      part(new THREE.BoxGeometry(.18,.075,.3),pouchMat,leftLeg,0,-.49,-.095);
+      part(new THREE.CapsuleGeometry(.105,.38,4,8),outfitPants,leftLeg,0,-.25,0);
+      if(hasArmoredPants){
+        armorPart(new THREE.BoxGeometry(.15,.12,.27),enemyMaterials.armor,leftLeg,0,-.49,-.055);
+        armorPart(new THREE.BoxGeometry(.13,.12,.1),enemyMaterials.armor,leftLeg,0,-.30,-.09);
+      }
       const rightLeg=new THREE.Group();rightLeg.position.set(.145,.83,0);root.add(rightLeg);limbs.rightLeg=rightLeg;
-      part(new THREE.CapsuleGeometry(.105,.38,4,8),enemyMaterials.pants,rightLeg,0,-.25,0);
-      part(new THREE.BoxGeometry(.15,.12,.27),enemyMaterials.armor,rightLeg,0,-.49,-.055);
-      part(new THREE.BoxGeometry(.13,.12,.1),enemyMaterials.armor,rightLeg,0,-.30,-.09);
-      part(new THREE.BoxGeometry(.18,.075,.3),pouchMat,rightLeg,0,-.49,-.095);
+      part(new THREE.CapsuleGeometry(.105,.38,4,8),outfitPants,rightLeg,0,-.25,0);
+      if(hasArmoredPants){
+        armorPart(new THREE.BoxGeometry(.15,.12,.27),enemyMaterials.armor,rightLeg,0,-.49,-.055);
+        armorPart(new THREE.BoxGeometry(.13,.12,.1),enemyMaterials.armor,rightLeg,0,-.30,-.09);
+      }
       const healthBg=new THREE.Mesh(new THREE.PlaneGeometry(.8,.075),new THREE.MeshBasicMaterial({color:0x222629,side:THREE.DoubleSide,depthTest:false}));
       healthBg.position.set(0,2.35,0);root.add(healthBg);
       const healthFill=new THREE.Mesh(new THREE.PlaneGeometry(.76,.045),new THREE.MeshBasicMaterial({color:0xc84b40,side:THREE.DoubleSide,depthTest:false}));
       healthFill.position.set(0,2.35,.006);root.add(healthFill);
-      const enemyData={root,parts,limbs,hp:100,maxHp:100,spawn:new THREE.Vector3(x,0,z),lastAttack:0,respawnAt:0,healthFill,healthBg,phase:index*1.7,gaitPhase:0,attackStarted:-9999,attackSide:1,alive:true};
+      const enemyData={root,parts,limbs,protectedParts,hasVest,hasArmoredPants,hasHelmet,hp:100,maxHp:100,spawn:new THREE.Vector3(x,0,z),lastAttack:0,respawnAt:0,healthFill,healthBg,phase:index*1.7,gaitPhase:0,attackStarted:-9999,attackSide:1,alive:true};
       enemies.push(enemyData);return enemyData;
     }
     // Quatro inimigos espalhados pelo estande; eles perseguem o jogador.
@@ -443,7 +462,8 @@
       scene.add(mesh);
       const delta = end.clone().sub(start);
       const distance = delta.length();
-      activeBullets.push({mesh,start:start.clone(),end:end.clone(),distance,travelled:0,targetEnemy,damage});
+      activeBullets.push({mesh,start:start.clone(),end:end.clone(),distance,travelled:0,targetEnemy,damage,hitPart:null});
+      return activeBullets[activeBullets.length-1];
     }
     function updateBullets(dt){
       for(let i=activeBullets.length-1;i>=0;i--){
@@ -453,7 +473,9 @@
         if(t>=1){
           const target=bullet.targetEnemy;
           if(target&&target.alive&&target.hp>0){
-            target.hp=Math.max(0,target.hp-bullet.damage);
+            const isProtected=target.protectedParts.has(bullet.hitPart);
+            const appliedDamage=isProtected?bullet.damage*.35:bullet.damage;
+            target.hp=Math.max(0,target.hp-appliedDamage);
             const ratio=target.hp/target.maxHp;
             target.healthFill.scale.x=Math.max(.001,ratio);
             target.healthFill.position.x=-.38+.38*ratio;
@@ -569,7 +591,8 @@
       const muzzle=gun.localToWorld(new THREE.Vector3(0,.04,-.28));
       const direction=raycaster.ray.direction.clone().normalize();
       const endPoint=hits.length?hits[0].point.clone():raycaster.ray.origin.clone().addScaledVector(direction,18);
-      spawnBullet(muzzle,endPoint,targetEnemy,w.damage);
+      const bullet=spawnBullet(muzzle,endPoint,targetEnemy,w.damage);
+      if(bullet)bullet.hitPart=hitPart;
       if(!targetEnemy)ui.status.textContent='TIRO DISPARADO';
       if(magazine===0)ui.status.textContent='CARREGADOR VAZIO · R';
     }
