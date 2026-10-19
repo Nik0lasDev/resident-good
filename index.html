@@ -285,6 +285,8 @@
     let weaponIndex=0;
     function switchWeapon(){
       if(reloading)return;
+      // Guarda a munição atual para que cada arma mantenha seu próprio carregador.
+      weapons[weaponIndex].magazine=magazine;weapons[weaponIndex].reserve=reserve;
       weaponIndex=(weaponIndex+1)%weapons.length;
       const w=weapons[weaponIndex];
       weapons.forEach(item=>item.model.visible=item===w);
