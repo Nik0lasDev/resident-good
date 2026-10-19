@@ -400,9 +400,12 @@
       }
       box(2.8,.08,.08,mat(palette.accent),0,3.65,-d/2+.32,false,false);
     }
-    function chooseRoom(){
+    function chooseRoom(requiredSide=null){
       const template=roomTypes[roomIndex%roomTypes.length];
-      return {...template,doors:roomSides.slice().sort(()=>Math.random()-.5).slice(0,template.doorCount)};
+      const available=roomSides.filter(side=>side!==requiredSide);
+      const doors=available.sort(()=>Math.random()-.5).slice(0,template.doorCount-(requiredSide?1:0));
+      if(requiredSide)doors.push(requiredSide);
+      return {...template,doors};
     }
     function spawnRoomEnemies(room){
       const types=['runner','soldier','brute','ranged'],count=3+Math.min(3,Math.floor(roomIndex/2));
@@ -427,9 +430,10 @@
       updateHealth();
     }
     function enterRoom(exitSide=null){
-      clearRoom();currentRoom=chooseRoom();buildRoom(currentRoom,roomPalette[roomIndex%roomPalette.length]);
+      clearRoom();
+      const opposite=exitSide?({north:'south',south:'north',east:'west',west:'east'}[exitSide]):null;
+      currentRoom=chooseRoom(opposite);buildRoom(currentRoom,roomPalette[roomIndex%roomPalette.length]);
       if(exitSide){
-        const opposite={north:'south',south:'north',east:'west',west:'east'}[exitSide];
         if(opposite==='north')camera.position.set(0,groundY,-currentRoom.d/2+2.4);
         if(opposite==='south')camera.position.set(0,groundY,currentRoom.d/2-2.4);
         if(opposite==='east')camera.position.set(currentRoom.w/2-2.4,groundY,0);
