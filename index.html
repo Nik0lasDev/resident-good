@@ -59,11 +59,11 @@
     <div id="player-vitals" class="panel"><div class="target-row"><span>VIDA</span><span id="player-health-label" class="muted">100 HP</span></div><div class="bar"><div id="player-fill"></div></div></div>
     <div id="crosshair"></div><div id="hitmarker">×</div>
     <div id="bottom-left" class="panel">
-      <div class="eyebrow">PISTOLA / 9 MM</div>
+      <div id="weapon-name" class="eyebrow">PISTOLA / 9 MM</div>
       <div id="ammo">12 <small>/ 48</small></div>
       <div id="status">PRONTA</div>
     </div>
-    <div id="help" class="panel"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> mover<br><kbd>SHIFT</kbd> correr · <kbd>ESPAÇO</kbd> pular · <kbd>R</kbd> recarregar<br><kbd>CLIQUE</kbd> atirar · <kbd>ESC</kbd> liberar mouse</div>
+    <div id="help" class="panel"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> mover<br><kbd>SHIFT</kbd> correr · <kbd>ESPAÇO</kbd> pular · <kbd>R</kbd> recarregar · <kbd>E</kbd> trocar arma<br><kbd>CLIQUE</kbd> atirar · <kbd>ESC</kbd> liberar mouse</div>
     <div id="toast">ACERTO</div>
   </div>
   <div id="overlay">
@@ -253,7 +253,45 @@
     armCapsule(.022,.055,skinMat,.082,-.065,.075,.35,0,-.72);
     armMesh(new THREE.SphereGeometry(.023,12,10),skinLight,.094,-.045,.047,0,0,0,[1,.8,.8]);
     const muzzleFlash = new THREE.Mesh(new THREE.ConeGeometry(.09,.24,8),new THREE.MeshBasicMaterial({color:0xffbd63}));
-    muzzleFlash.rotation.x=-Math.PI/2; muzzleFlash.position.set(0,.04,-.28); muzzleFlash.visible=false; gun.add(muzzleFlash);
+    muzzleFlash.rotation.x=-Math.PI/2; muzzleFlash.position.set(0,.04,-.28); muzzleFlash.visible=false; gun.add(muzzleFlash); 
+    // Duas armas adicionais, modeladas como peças 3D presas à câmera.
+    function createWeaponModel(){const group=new THREE.Group();group.position.copy(gun.position);group.renderOrder=20;camera.add(group);return group;}
+    function weaponPart(group,w,h,d,material,x,y,z,rotationY=0){
+      const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);
+      m.position.set(x,y,z);m.rotation.y=rotationY;m.renderOrder=20;m.frustumCulled=false;m.castShadow=false;group.add(m);return m;
+    }
+    const shotgun=createWeaponModel();
+    weaponPart(shotgun,.19,.16,.43,gunMetal,0,.035,-.04);
+    weaponPart(shotgun,.13,.11,.37,gunPolymer,0,-.075,.06);
+    weaponPart(shotgun,.055,.055,.52,detailMetal,0,.07,-.43);
+    weaponPart(shotgun,.065,.065,.12,gunMetal,0,.07,-.73);
+    weaponPart(shotgun,.12,.19,.13,rubber,0,-.16,.13,-.12);
+    weaponPart(shotgun,.12,.035,.22,gunAccent,0,-.055,-.16);
+    shotgun.visible=false;
+    const rifle=createWeaponModel();
+    weaponPart(rifle,.17,.14,.38,gunMetal,0,.035,-.04);
+    weaponPart(rifle,.11,.09,.28,gunPolymer,0,-.065,.04);
+    weaponPart(rifle,.045,.045,.58,detailMetal,0,.055,-.47);
+    weaponPart(rifle,.065,.065,.12,dark,0,.055,-.79);
+    weaponPart(rifle,.12,.14,.23,gunPolymer,0,-.08,.27);
+    weaponPart(rifle,.09,.2,.12,rubber,0,-.17,.08,-.12);
+    weaponPart(rifle,.18,.045,.14,gunMetal,0,.13,-.08);
+    rifle.visible=false;
+    const weapons=[
+      {name:'PISTOLA / 9 MM',magSize:12,magazine:12,reserve:48,damage:25,fireDelay:260,reloadMs:1350,model:gun},
+      {name:'ESCOPETA',magSize:6,magazine:6,reserve:30,damage:45,fireDelay:750,reloadMs:1650,model:shotgun},
+      {name:'RIFLE DE ASSALTO',magSize:30,magazine:30,reserve:120,damage:18,fireDelay:115,reloadMs:1450,model:rifle}
+    ];
+    let weaponIndex=0;
+    function switchWeapon(){
+      if(reloading)return;
+      weaponIndex=(weaponIndex+1)%weapons.length;
+      const w=weapons[weaponIndex];
+      weapons.forEach(item=>item.model.visible=item===w);
+      magazine=w.magazine;reserve=w.reserve;updateAmmo();
+      ui.weapon.textContent=w.name;ui.status.textContent='ARMA TROCADA';
+      showToast('ARMA: '+w.name,850);
+    }
 
     const raycaster = new THREE.Raycaster();
     const center = new THREE.Vector2(0,0);
@@ -261,13 +299,13 @@
     const activeBullets = [];
     const bulletGeometry = new THREE.SphereGeometry(.035,8,6);
     const bulletMaterial = new THREE.MeshBasicMaterial({color:0xffd078});
-    function spawnBullet(start,end,targetEnemy){
+    function spawnBullet(start,end,targetEnemy,damage){
       const mesh = new THREE.Mesh(bulletGeometry,bulletMaterial);
       mesh.position.copy(start);
       scene.add(mesh);
       const delta = end.clone().sub(start);
       const distance = delta.length();
-      activeBullets.push({mesh,start:start.clone(),end:end.clone(),distance,travelled:0,targetEnemy});
+      activeBullets.push({mesh,start:start.clone(),end:end.clone(),distance,travelled:0,targetEnemy,damage});
     }
     function updateBullets(dt){
       for(let i=activeBullets.length-1;i>=0;i--){
@@ -277,7 +315,7 @@
         if(t>=1){
           const target=bullet.targetEnemy;
           if(target&&target.alive&&target.hp>0){
-            target.hp=Math.max(0,target.hp-25);
+            target.hp=Math.max(0,target.hp-bullet.damage);
             const ratio=target.hp/target.maxHp;
             target.healthFill.scale.x=Math.max(.001,ratio);
             target.healthFill.position.x=-.38+.38*ratio;
@@ -297,7 +335,7 @@
       health:document.getElementById('health-fill'), healthLabel:document.getElementById('health-label'),
       playerHealth:document.getElementById('player-fill'), playerHealthLabel:document.getElementById('player-health-label'),
       hitmarker:document.getElementById('hitmarker'), crosshair:document.getElementById('crosshair'),
-      toast:document.getElementById('toast')
+      toast:document.getElementById('toast'), weapon:document.getElementById('weapon-name')
     };
     let hp=100, playerHp=100, magazine=12, reserve=48, reloading=false, reloadEnd=0, lastShot=0, locked=false, yaw=0, pitch=0, recoil=0, muzzleEnd=0, hitEnd=0, toastEnd=0;
     const keys = new Set();
@@ -349,12 +387,13 @@
       pitch=clamp(pitch-e.movementY*.0022,-1.25,1.25);
     });
     document.addEventListener('keydown',e=>{
-      if(['KeyW','KeyA','KeyS','KeyD','ShiftLeft','ShiftRight','Space','KeyR'].includes(e.code))e.preventDefault();
+      if(['KeyW','KeyA','KeyS','KeyD','ShiftLeft','ShiftRight','Space','KeyR','KeyE'].includes(e.code))e.preventDefault();
       keys.add(e.code);
       if(e.code==='Space' && locked && !e.repeat && camera.position.y <= groundY + 0.001){
         verticalVelocity = jumpVelocity;
       }
       if(e.code==='KeyR'&&!e.repeat)reload();
+      if(e.code==='KeyE'&&!e.repeat && locked)switchWeapon();
     });
     document.addEventListener('keyup',e=>keys.delete(e.code));
     document.addEventListener('mousedown',e=>{
@@ -370,13 +409,15 @@
     window.addEventListener('blur',()=>keys.clear());
 
     function reload(){
-      if(reloading||magazine===12||reserve<=0){if(reserve<=0&&magazine<12)showToast('SEM MUNIÇÃO RESERVA');return;}
-      reloading=true;reloadEnd=performance.now()+1350;
+      const w=weapons[weaponIndex];
+      if(reloading||magazine===w.magSize||reserve<=0){if(reserve<=0&&magazine<w.magSize)showToast('SEM MUNIÇÃO RESERVA');return;}
+      reloading=true;reloadEnd=performance.now()+w.reloadMs;
       ui.status.textContent='RECARREGANDO…';
     }
     function shoot(){
       const now=performance.now();
-      if(reloading||now-lastShot<260)return;
+      const w=weapons[weaponIndex];
+      if(reloading||now-lastShot<w.fireDelay)return;
       // Clicar para atirar com o carregador vazio inicia a recarga automaticamente.
       if(magazine<=0){reload();return;}
       lastShot=now;magazine--;updateAmmo();ui.status.textContent='DISPARO';
@@ -390,7 +431,7 @@
       const muzzle=gun.localToWorld(new THREE.Vector3(0,.04,-.28));
       const direction=raycaster.ray.direction.clone().normalize();
       const endPoint=hits.length?hits[0].point.clone():raycaster.ray.origin.clone().addScaledVector(direction,18);
-      spawnBullet(muzzle,endPoint,targetEnemy);
+      spawnBullet(muzzle,endPoint,targetEnemy,w.damage);
       if(!targetEnemy)ui.status.textContent='TIRO DISPARADO';
       if(magazine===0)ui.status.textContent='CARREGADOR VAZIO · R';
     }
@@ -437,7 +478,7 @@
     }
     function update(dt,now){
       if(reloading&&now>=reloadEnd){
-        const needed=12-magazine, amount=Math.min(needed,reserve);
+        const needed=weapons[weaponIndex].magSize-magazine, amount=Math.min(needed,reserve);
         magazine+=amount;reserve-=amount;reloading=false;updateAmmo();ui.status.textContent='PRONTA';
       }
       if(now>muzzleEnd)muzzleFlash.visible=false;
@@ -447,7 +488,8 @@
       if(now>toastEnd)ui.toast.style.opacity='0';
       recoil=Math.max(0,recoil-dt*.7);
       gun.position.y=-.31+Math.sin(now*.004)*.004;
-      gun.rotation.x=-recoil*1.5;
+      shotgun.position.y=gun.position.y; rifle.position.y=gun.position.y;
+      gun.rotation.x=-recoil*1.5; shotgun.rotation.x=-recoil*1.5; rifle.rotation.x=-recoil*1.5;
       camera.rotation.order='YXZ';camera.rotation.set(pitch-recoil*.45,yaw,0);
       if(locked){
         // Gravidade e salto: o jogador só pode iniciar outro salto ao tocar o chão.
