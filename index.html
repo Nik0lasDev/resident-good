@@ -168,8 +168,8 @@
     gunBox(.04,.018,.06,gunMetal,0,.118,-.07);
     gunBox(.018,.03,.025,gunMetal,0,.132,-.12);
     // Braço mais alto e largo para ficar claramente visível no enquadramento em primeira pessoa.
-    const skinMat = new THREE.MeshStandardMaterial({color:0xc98d6b,roughness:.92,side:THREE.DoubleSide});
-    const sleeveMat = new THREE.MeshStandardMaterial({color:0x4a555b,roughness:.95,side:THREE.DoubleSide});
+    const skinMat = new THREE.MeshStandardMaterial({color:0xc98d6b,roughness:.92,side:THREE.DoubleSide,depthTest:false,depthWrite:false});
+    const sleeveMat = new THREE.MeshStandardMaterial({color:0x4a555b,roughness:.95,side:THREE.DoubleSide,depthTest:false,depthWrite:false});
     function armPart(w,h,d,material,x,y,z,rx=0,ry=0,rz=0){
       const part=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);
       part.position.set(x,y,z);part.rotation.set(rx,ry,rz);
