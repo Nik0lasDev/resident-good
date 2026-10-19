@@ -310,8 +310,19 @@
     }
     function showToast(text,duration=650){ui.toast.textContent=text;ui.toast.style.opacity='1';toastEnd=performance.now()+duration;}
     function enterGame(){
-      if(!renderer.domElement.requestPointerLock){ui.overlay.classList.remove('hidden');return;}
-      renderer.domElement.requestPointerLock();
+      if(!renderer.domElement.requestPointerLock){
+        showToast('SEU NAVEGADOR NÃO SUPORTA CONTROLE DE MOUSE');
+        return;
+      }
+      try {
+        const request=renderer.domElement.requestPointerLock();
+        if(request && typeof request.catch==='function'){
+          request.catch(()=>showToast('CLIQUE EM ENTRAR NO TESTE PARA CAPTURAR O MOUSE'));
+        }
+      } catch(error) {
+        showToast('NÃO FOI POSSÍVEL CAPTURAR O MOUSE');
+        console.error('Falha ao iniciar o teste:',error);
+      }
     }
     ui.start.addEventListener('click',enterGame);
     document.addEventListener('pointerlockchange',()=>{
@@ -332,8 +343,13 @@
     document.addEventListener('keyup',e=>keys.delete(e.code));
     document.addEventListener('mousedown',e=>{
       if(e.button!==0)return;
-      if(!locked){if(!ui.overlay.classList.contains('hidden'))enterGame();return;}
+      // O início é tratado apenas pelo botão; evitar pedir Pointer Lock duas vezes
+      // no mesmo clique (mousedown + click), o que pode fazer o navegador rejeitar.
+      if(!locked)return;
       shoot();
+    });
+    document.addEventListener('pointerlockerror',()=>{
+      showToast('O NAVEGADOR BLOQUEOU O MOUSE — TENTE NOVAMENTE');
     });
     window.addEventListener('blur',()=>keys.clear());
 
