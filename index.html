@@ -162,14 +162,12 @@
       part(new THREE.SphereGeometry(.025,8,6),enemyMaterials.eyes,root,.075,1.94,-.207);
       // Detalhes adicionais no rosto, com variações visuais entre inimigos.
       const hairMat=mat(index%2?0x292a28:0x44352c,.96), pouchMat=mat(0x252b2b,.9), strapMat=mat(0x9b6b3d,.75);
-      const eyeGlow=new THREE.MeshStandardMaterial({color:index%2?0xc44736:0xe0b45e,emissive:index%2?0x68150d:0x5a3005,emissiveIntensity:1.1,roughness:.4});
+      const eyeGlow=enemyMaterials.eyes;
       part(new THREE.SphereGeometry(.22,14,9),hairMat,root,0,2.075,.012).scale.set(1,.48,1);
       part(new THREE.SphereGeometry(.052,10,8),enemyMaterials.skin,root,-.232,1.91,-.005);
       part(new THREE.SphereGeometry(.052,10,8),enemyMaterials.skin,root,.232,1.91,-.005);
       part(new THREE.ConeGeometry(.043,.105,8),enemyMaterials.skin,root,0,1.875,-.228).rotation.x=-.35;
       part(new THREE.BoxGeometry(.105,.018,.018),hairMat,root,0,1.82,-.221);
-      part(new THREE.SphereGeometry(.028,10,8),eyeGlow,root,-.075,1.95,-.222);
-      part(new THREE.SphereGeometry(.028,10,8),eyeGlow,root,.075,1.95,-.222);
       // Colete tático em camadas, tiras, placas, cinto e bolsas.
       if(hasVest)armorPart(new THREE.CapsuleGeometry(.285,.31,4,10),enemyMaterials.armor,root,0,1.28,-.035);
       if(hasVest){
@@ -202,14 +200,16 @@
           part(new THREE.BoxGeometry(.045,.11,.09),helmetMat,root,side*.25,1.79,.015);
         }
       }
-      // Óculos de proteção e máscara têxtil, sem ocultar a leitura do rosto.
-      part(new THREE.BoxGeometry(.105,.052,.035),rubberMat,root,-.073,1.96,-.226);
-      part(new THREE.BoxGeometry(.105,.052,.035),rubberMat,root,.073,1.96,-.226);
-      part(new THREE.BoxGeometry(.082,.034,.012),lensMat,root,-.073,1.96,-.247);
-      part(new THREE.BoxGeometry(.082,.034,.012),lensMat,root,.073,1.96,-.247);
-      part(new THREE.BoxGeometry(.035,.075,.025),rubberMat,root,0,1.925,-.226);
-      part(new THREE.CapsuleGeometry(.125,.105,4,8),clothMat,root,0,1.825,-.12).scale.set(1,.72,.58);
-      part(new THREE.BoxGeometry(.15,.028,.018),strapMat,root,0,1.78,-.19);
+      // Óculos e proteção facial só acompanham quem recebeu capacete.
+      if(hasHelmet){
+        part(new THREE.BoxGeometry(.105,.052,.035),rubberMat,root,-.073,1.96,-.226);
+        part(new THREE.BoxGeometry(.105,.052,.035),rubberMat,root,.073,1.96,-.226);
+        part(new THREE.BoxGeometry(.082,.034,.012),lensMat,root,-.073,1.96,-.247);
+        part(new THREE.BoxGeometry(.082,.034,.012),lensMat,root,.073,1.96,-.247);
+        part(new THREE.BoxGeometry(.035,.075,.025),rubberMat,root,0,1.925,-.226);
+        part(new THREE.CapsuleGeometry(.125,.105,4,8),clothMat,root,0,1.825,-.12).scale.set(1,.72,.58);
+        part(new THREE.BoxGeometry(.15,.028,.018),strapMat,root,0,1.78,-.19);
+      }
       // Placa balística frontal com segmentos, parafusos e identificação.
       if(hasVest){
         armorPart(new THREE.BoxGeometry(.27,.22,.035),plateMat,root,0,1.36,-.245);
@@ -246,14 +246,12 @@
       part(new THREE.CapsuleGeometry(.09,.34,4,8),outfitShirt,leftArm,0,-.22,0);
       part(new THREE.CapsuleGeometry(.075,.19,4,8),enemyMaterials.skin,leftArm,0,-.49,-.015);
       part(new THREE.SphereGeometry(.085,12,10),enemyMaterials.skin,leftArm,0,-.61,-.045);
-      part(new THREE.BoxGeometry(.16,.16,.12),enemyMaterials.armor,leftArm,0,-.025,0);
-      part(new THREE.BoxGeometry(.12,.08,.14),pouchMat,leftArm,0,-.60,-.04);
+      if(hasVest)armorPart(new THREE.BoxGeometry(.16,.16,.12),enemyMaterials.armor,leftArm,0,-.025,0);
       const rightArm=new THREE.Group();rightArm.position.set(.34,1.48,0);root.add(rightArm);limbs.rightArm=rightArm;
       part(new THREE.CapsuleGeometry(.09,.34,4,8),outfitShirt,rightArm,0,-.22,0);
       part(new THREE.CapsuleGeometry(.075,.19,4,8),enemyMaterials.skin,rightArm,0,-.49,-.015);
       part(new THREE.SphereGeometry(.085,12,10),enemyMaterials.skin,rightArm,0,-.61,-.045);
-      part(new THREE.BoxGeometry(.16,.16,.12),enemyMaterials.armor,rightArm,0,-.025,0);
-      part(new THREE.BoxGeometry(.12,.08,.14),pouchMat,rightArm,0,-.60,-.04);
+      if(hasVest)armorPart(new THREE.BoxGeometry(.16,.16,.12),enemyMaterials.armor,rightArm,0,-.025,0);
       const leftLeg=new THREE.Group();leftLeg.position.set(-.145,.83,0);root.add(leftLeg);limbs.leftLeg=leftLeg;
       part(new THREE.CapsuleGeometry(.105,.38,4,8),outfitPants,leftLeg,0,-.25,0);
       if(hasArmoredPants){
