@@ -87,6 +87,8 @@
 
     const camera = new THREE.PerspectiveCamera(74, innerWidth / innerHeight, 0.1, 100);
     camera.position.set(0, 1.68, 5);
+    // A câmera precisa pertencer à cena para que seus filhos (arma e braço) sejam renderizados.
+    scene.add(camera);
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
     renderer.setSize(innerWidth, innerHeight);
