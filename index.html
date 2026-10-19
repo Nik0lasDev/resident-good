@@ -181,11 +181,11 @@
       const helmetMat=mat([0x303936,0x393c38,0x282f34,0x4a4035][index],.78,.08);
       const clothMat=mat([0x454d48,0x55514a,0x343d43,0x5a5145][index],.96);
       const plateMat=mat([0x3a4442,0x45443e,0x303a42,0x51483c][index],.68,.16);
-      const rubberMat=mat(0x171c1d,.98), lensMat=new THREE.MeshStandardMaterial({color:index%2?0x9d3d2e:0x8d7541,emissive:index%2?0x35100b:0x30230b,emissiveIntensity:.35,roughness:.28,metalness:.25});
+      const enemyMetalMat=mat(0x687176,.28,.82), rubberMat=mat(0x171c1d,.98), lensMat=new THREE.MeshStandardMaterial({color:index%2?0x9d3d2e:0x8d7541,emissive:index%2?0x35100b:0x30230b,emissiveIntensity:.35,roughness:.28,metalness:.25});
       // Capacete arredondado com aba, trilho lateral e suportes.
       part(new THREE.SphereGeometry(.235,16,10),helmetMat,root,0,2.105,.005).scale.set(1.08,.62,1.02);
       part(new THREE.BoxGeometry(.31,.045,.21),helmetMat,root,0,2.035,-.085);
-      part(new THREE.BoxGeometry(.19,.035,.035),detailMetal,root,0,2.065,-.205);
+      part(new THREE.BoxGeometry(.19,.035,.035),enemyMetalMat,root,0,2.065,-.205);
       for(const side of [-1,1]){
         part(new THREE.CylinderGeometry(.055,.055,.035,12),helmetMat,root,side*.225,1.99,0,0,0,Math.PI/2);
         part(new THREE.CylinderGeometry(.035,.035,.012,12),dark,root,side*.248,1.99,0,0,0,Math.PI/2);
@@ -201,10 +201,10 @@
       part(new THREE.BoxGeometry(.15,.028,.018),strapMat,root,0,1.78,-.19);
       // Placa balística frontal com segmentos, parafusos e identificação.
       part(new THREE.BoxGeometry(.27,.22,.035),plateMat,root,0,1.36,-.245);
-      part(new THREE.BoxGeometry(.19,.025,.012),detailMetal,root,0,1.43,-.267);
+      part(new THREE.BoxGeometry(.19,.025,.012),enemyMetalMat,root,0,1.43,-.267);
       part(new THREE.BoxGeometry(.055,.075,.014),enemyMaterials.accent,root,0,1.37,-.269);
       for(const side of [-1,1]){
-        part(new THREE.CylinderGeometry(.012,.012,.009,8),detailMetal,root,side*.105,1.29,-.269,Math.PI/2,0,0);
+        part(new THREE.CylinderGeometry(.012,.012,.009,8),enemyMetalMat,root,side*.105,1.29,-.269,Math.PI/2,0,0);
         // Ombreiras, cotoveleiras e proteção externa dos antebraços.
         part(new THREE.SphereGeometry(.135,12,9),helmetMat,root,side*.355,1.48,-.005).scale.set(1,.78,1);
         part(new THREE.BoxGeometry(.13,.105,.09),plateMat,root,side*.365,1.19,-.055);
@@ -216,7 +216,7 @@
         part(new THREE.SphereGeometry(.112,12,8),plateMat,root,side*.145,.39,-.085).scale.set(1,.82,.55);
         part(new THREE.BoxGeometry(.19,.055,.31),rubberMat,root,side*.145,.075,-.11);
         part(new THREE.BoxGeometry(.17,.14,.28),helmetMat,root,side*.145,.16,-.075);
-        part(new THREE.BoxGeometry(.15,.035,.07),detailMetal,root,side*.145,.19,-.22);
+        part(new THREE.BoxGeometry(.15,.035,.07),enemyMetalMat,root,side*.145,.19,-.22);
       }
       // Mochila compacta, alças traseiras e bolsos utilitários.
       part(new THREE.BoxGeometry(.34,.42,.17),clothMat,root,0,1.34,.245);
