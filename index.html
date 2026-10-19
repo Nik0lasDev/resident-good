@@ -227,11 +227,8 @@
         // Bolsas laterais e presilhas do equipamento.
         part(new THREE.BoxGeometry(.09,.13,.09),clothMat,root,side*.285,1.02,.045);
         part(new THREE.BoxGeometry(.105,.025,.095),strapMat,root,side*.285,1.075,-.005);
-        // Joelheiras rígidas e botas com biqueira e sola em camadas.
-        if(hasArmoredPants)armorPart(new THREE.SphereGeometry(.112,12,8),plateMat,root,side*.145,.39,-.085).scale.set(1,.82,.55);
-        part(new THREE.BoxGeometry(.19,.055,.31),rubberMat,root,side*.145,.075,-.11);
-        part(new THREE.BoxGeometry(.17,.14,.28),helmetMat,root,side*.145,.16,-.075);
-        part(new THREE.BoxGeometry(.15,.035,.07),enemyMetalMat,root,side*.145,.19,-.22);
+        // Joelheiras e botas são criadas junto às pernas para acompanhar a animação.
+
       }
       // Mochila compacta, alças traseiras e bolsos utilitários.
       if(hasVest){
@@ -257,13 +254,21 @@
       if(hasArmoredPants){
         armorPart(new THREE.BoxGeometry(.15,.12,.27),enemyMaterials.armor,leftLeg,0,-.49,-.055);
         armorPart(new THREE.BoxGeometry(.13,.12,.1),enemyMaterials.armor,leftLeg,0,-.30,-.09);
+        armorPart(new THREE.SphereGeometry(.112,12,8),plateMat,leftLeg,0,-.34,-.085).scale.set(1,.82,.55);
       }
+      part(new THREE.BoxGeometry(.17,.14,.28),helmetMat,leftLeg,0,-.61,-.075);
+      part(new THREE.BoxGeometry(.19,.055,.31),rubberMat,leftLeg,0,-.685,-.11);
+      part(new THREE.BoxGeometry(.15,.035,.07),enemyMetalMat,leftLeg,0,-.58,-.22);
       const rightLeg=new THREE.Group();rightLeg.position.set(.145,.83,0);root.add(rightLeg);limbs.rightLeg=rightLeg;
       part(new THREE.CapsuleGeometry(.105,.38,4,8),outfitPants,rightLeg,0,-.25,0);
       if(hasArmoredPants){
         armorPart(new THREE.BoxGeometry(.15,.12,.27),enemyMaterials.armor,rightLeg,0,-.49,-.055);
         armorPart(new THREE.BoxGeometry(.13,.12,.1),enemyMaterials.armor,rightLeg,0,-.30,-.09);
+        armorPart(new THREE.SphereGeometry(.112,12,8),plateMat,rightLeg,0,-.34,-.085).scale.set(1,.82,.55);
       }
+      part(new THREE.BoxGeometry(.17,.14,.28),helmetMat,rightLeg,0,-.61,-.075);
+      part(new THREE.BoxGeometry(.19,.055,.31),rubberMat,rightLeg,0,-.685,-.11);
+      part(new THREE.BoxGeometry(.15,.035,.07),enemyMetalMat,rightLeg,0,-.58,-.22);
       const healthBg=new THREE.Mesh(new THREE.PlaneGeometry(.8,.075),new THREE.MeshBasicMaterial({color:0x222629,side:THREE.DoubleSide,depthTest:false}));
       healthBg.position.set(0,2.35,0);root.add(healthBg);
       const healthFill=new THREE.Mesh(new THREE.PlaneGeometry(.76,.045),new THREE.MeshBasicMaterial({color:0xc84b40,side:THREE.DoubleSide,depthTest:false}));
