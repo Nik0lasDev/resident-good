@@ -53,7 +53,7 @@
   <div id="hud">
     <div id="brand" class="panel">RESIDENT <span>GOOD</span> <span style="color:#89949c">/ FPS TEST</span></div>
     <div id="target" class="panel">
-      <div class="target-row"><span>ALVO DE TREINO</span><span id="health-label" class="muted">100 / 100 HP</span></div>
+      <div class="target-row"><span>AMEAÇAS HOSTIS</span><span id="health-label" class="muted">4 ATIVOS</span></div>
       <div class="bar"><div id="health-fill"></div></div>
     </div>
     <div id="player-vitals" class="panel"><div class="target-row"><span>VIDA</span><span id="player-health-label" class="muted">100 HP</span></div><div class="bar"><div id="player-fill"></div></div></div>
@@ -70,12 +70,12 @@
     <div id="intro">
       <div class="tag"><span class="dot"></span> PROTÓTIPO JOGÁVEL · BUILD 0.1</div>
       <h1>Teste de combate<br>em primeira pessoa.</h1>
-      <p>Um cenário de treinamento para validar a base do Resident Good: movimento, mira, disparo, recarga e dano no alvo.</p>
+      <p>Sobreviva à investida de quatro inimigos que perseguem você e atacam corpo a corpo. Mire, dispare, recarregue e mantenha distância.</p>
       <div class="tips">
         <div class="tip"><b>01 / MOVIMENTO</b>WASD + mouse</div>
         <div class="tip"><b>02 / COMBATE</b>Clique para disparar</div>
         <div class="tip"><b>03 / MUNIÇÃO</b>12 tiros por carregador</div>
-        <div class="tip"><b>04 / ALVO</b>100 HP · 10 por tiro</div>
+        <div class="tip"><b>04 / AMEAÇAS</b>4 inimigos · ataques corpo a corpo</div>
       </div>
       <button id="start">ENTRAR NO TESTE</button>
       <div id="mobile-note">Para este teste, use teclado e mouse em um computador.</div>
@@ -282,7 +282,7 @@
             ui.hitmarker.style.opacity='1';hitEnd=performance.now()+110;
             if(target.hp===0){
               target.alive=false;target.root.visible=false;target.respawnAt=performance.now()+5000;
-              showToast('INIMIGO ELIMINADO');
+              updateHealth();showToast('INIMIGO ELIMINADO');
             }else showToast('ACERTO · '+target.hp+' HP');
           }
           scene.remove(bullet.mesh);activeBullets.splice(i,1);
@@ -303,9 +303,10 @@
     const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
     function updateAmmo(){ui.ammo.innerHTML=String(magazine)+' <small>/ '+reserve+'</small>';}
     function updateHealth(){
-      ui.health.style.width=hp+'%';
-      ui.healthLabel.textContent=hp+' / 100 HP';
-      ui.health.style.background=hp<=30?'linear-gradient(90deg,#9f302e,#e24d42)':'linear-gradient(90deg,#c9483d,#ed795b)';
+      const active=enemies.filter(e=>e.alive).length;
+      ui.health.style.width=(active/enemies.length*100)+'%';
+      ui.healthLabel.textContent=active+' / '+enemies.length+' ATIVOS';
+      ui.health.style.background=active<=1?'linear-gradient(90deg,#9f302e,#e24d42)':'linear-gradient(90deg,#c9483d,#ed795b)';
     }
     function showToast(text,duration=650){ui.toast.textContent=text;ui.toast.style.opacity='1';toastEnd=performance.now()+duration;}
     function enterGame(){
@@ -370,7 +371,7 @@
         if(!e.alive){
           if(now>=e.respawnAt){
             e.alive=true;e.hp=e.maxHp;e.root.visible=true;e.root.position.copy(e.spawn);
-            e.healthFill.scale.x=1;e.healthFill.position.x=0;
+            e.healthFill.scale.x=1;e.healthFill.position.x=0;updateHealth();
           }
           continue;
         }
@@ -408,7 +409,7 @@
       }
       if(now>muzzleEnd)muzzleFlash.visible=false;
       updateBullets(dt);
-      updateEnemies(dt,now);
+      if(locked)updateEnemies(dt,now);
       if(now>hitEnd)ui.hitmarker.style.opacity='0';
       if(now>toastEnd)ui.toast.style.opacity='0';
       recoil=Math.max(0,recoil-dt*.7);
