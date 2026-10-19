@@ -169,6 +169,36 @@
 
     const raycaster = new THREE.Raycaster();
     const center = new THREE.Vector2(0,0);
+    // Projéteis visíveis: saem da boca do cano e viajam até o ponto atingido.
+    const activeBullets = [];
+    const bulletGeometry = new THREE.SphereGeometry(.035,8,6);
+    const bulletMaterial = new THREE.MeshBasicMaterial({color:0xffd078});
+    function spawnBullet(start,end,hitTarget){
+      const mesh = new THREE.Mesh(bulletGeometry,bulletMaterial);
+      mesh.position.copy(start);
+      scene.add(mesh);
+      const delta = end.clone().sub(start);
+      const distance = delta.length();
+      activeBullets.push({mesh,start:start.clone(),end:end.clone(),distance,travelled:0,hitTarget});
+    }
+    function updateBullets(dt){
+      for(let i=activeBullets.length-1;i>=0;i--){
+        const bullet=activeBullets[i];
+        bullet.travelled+=dt*65;
+        const t=Math.min(1,bullet.travelled/Math.max(bullet.distance,.001));
+        bullet.mesh.position.lerpVectors(bullet.start,bullet.end,t);
+        if(t>=1){
+          if(bullet.hitTarget&&hp>0){
+            hp=Math.max(0,hp-10);updateHealth();
+            ui.hitmarker.style.opacity='1';hitEnd=performance.now()+110;
+            enemy.children.forEach(o=>{if(o.material&&o.material.color&&o.material!==targetPlate.material)o.material.emissive?.setHex?.(0x552016);});
+            showToast(hp===0?'ALVO NEUTRALIZADO':'ACERTO CONFIRMADO');
+          }
+          scene.remove(bullet.mesh);
+          activeBullets.splice(i,1);
+        }
+      }
+    }
     const ui = {
       overlay:document.getElementById('overlay'), start:document.getElementById('start'),
       ammo:document.getElementById('ammo'), status:document.getElementById('status'),
@@ -230,12 +260,13 @@
       raycaster.setFromCamera(center,camera);
       const parts=enemy.children.filter(o=>o.isMesh);
       const hits=raycaster.intersectObjects(parts,false);
-      if(hits.length&&hp>0){
-        hp=Math.max(0,hp-10);updateHealth();
-        ui.hitmarker.style.opacity='1';hitEnd=now+110;
-        enemy.children.forEach(o=>{if(o.material&&o.material.color&&o.material!==targetPlate.material)o.material.emissive?.setHex?.(0x552016);});
-        showToast(hp===0?'ALVO NEUTRALIZADO':'ACERTO CONFIRMADO');
-      }else{ui.status.textContent='TIRO DISPARADO';}
+      const muzzle = gun.localToWorld(new THREE.Vector3(0,.04,-.28));
+      const direction = raycaster.ray.direction.clone().normalize();
+      const hitTarget = hits.length>0 && hp>0;
+      const endPoint = hitTarget ? hits[0].point.clone() : raycaster.ray.origin.clone().addScaledVector(direction,8);
+      // A bala começa na boca do cano, não no centro da câmera.
+      spawnBullet(muzzle,endPoint,hitTarget);
+      if(!hitTarget)ui.status.textContent='TIRO DISPARADO';
       if(magazine===0)ui.status.textContent='CARREGADOR VAZIO · R';
     }
     // Recomeça o exercício quando o alvo é neutralizado.
@@ -251,6 +282,7 @@
       }
       if(hp<=0&&now-toastEnd>700){resetTarget();}
       if(now>muzzleEnd)muzzleFlash.visible=false;
+      updateBullets(dt);
       if(now>hitEnd)ui.hitmarker.style.opacity='0';
       if(now>toastEnd)ui.toast.style.opacity='0';
       recoil=Math.max(0,recoil-dt*.7);
