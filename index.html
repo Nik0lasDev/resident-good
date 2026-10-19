@@ -63,7 +63,7 @@
       <div id="ammo">12 <small>/ 48</small></div>
       <div id="status">PRONTA</div>
     </div>
-    <div id="help" class="panel"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> mover<br><kbd>SHIFT</kbd> correr · <kbd>R</kbd> recarregar<br><kbd>CLIQUE</kbd> atirar · <kbd>ESC</kbd> liberar mouse</div>
+    <div id="help" class="panel"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> mover<br><kbd>SHIFT</kbd> correr · <kbd>ESPAÇO</kbd> pular · <kbd>R</kbd> recarregar<br><kbd>CLIQUE</kbd> atirar · <kbd>ESC</kbd> liberar mouse</div>
     <div id="toast">ACERTO</div>
   </div>
   <div id="overlay">
@@ -301,6 +301,11 @@
     };
     let hp=100, playerHp=100, magazine=12, reserve=48, reloading=false, reloadEnd=0, lastShot=0, locked=false, yaw=0, pitch=0, recoil=0, muzzleEnd=0, hitEnd=0, toastEnd=0;
     const keys = new Set();
+    // Física vertical simples para o salto em primeira pessoa.
+    const groundY = 1.68;
+    let verticalVelocity = 0;
+    const jumpVelocity = 6.2;
+    const gravity = 17;
     const clock = new THREE.Clock();
     const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
     function updateAmmo(){ui.ammo.innerHTML=String(magazine)+' <small>/ '+reserve+'</small>';}
@@ -346,6 +351,9 @@
     document.addEventListener('keydown',e=>{
       if(['KeyW','KeyA','KeyS','KeyD','ShiftLeft','ShiftRight','Space','KeyR'].includes(e.code))e.preventDefault();
       keys.add(e.code);
+      if(e.code==='Space' && locked && !e.repeat && camera.position.y <= groundY + 0.001){
+        verticalVelocity = jumpVelocity;
+      }
       if(e.code==='KeyR'&&!e.repeat)reload();
     });
     document.addEventListener('keyup',e=>keys.delete(e.code));
@@ -418,7 +426,7 @@
             e.lastAttack=now;playerHp=Math.max(0,playerHp-8);
             updatePlayerHealth();showToast('VOCÊ RECEBEU 8 DE DANO',500);
             if(playerHp<=0){
-              playerHp=100;camera.position.set(0,1.68,5);yaw=0;pitch=0;
+              playerHp=100;camera.position.set(0,groundY,5);verticalVelocity=0;yaw=0;pitch=0;
               updatePlayerHealth();showToast('VOCÊ FOI DERRUBADO · REINICIANDO');
             }
           }
@@ -441,6 +449,13 @@
       gun.rotation.x=-recoil*1.5;
       camera.rotation.order='YXZ';camera.rotation.set(pitch-recoil*.45,yaw,0);
       if(locked){
+        // Gravidade e salto: o jogador só pode iniciar outro salto ao tocar o chão.
+        verticalVelocity -= gravity * dt;
+        camera.position.y += verticalVelocity * dt;
+        if(camera.position.y <= groundY){
+          camera.position.y = groundY;
+          verticalVelocity = 0;
+        }
         const speed=(keys.has('ShiftLeft')||keys.has('ShiftRight'))?6.4:4.2;
         const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
         const right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
