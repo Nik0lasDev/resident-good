@@ -446,10 +446,12 @@
       if(!currentRoom||performance.now()<roomTransitionLock)return false;
       const allDead=enemies.length>0&&enemies.every(e=>!e.alive),x=camera.position.x,z=camera.position.z;
       let side=null;
-      if(z<=-currentRoom.d/2+.35&&Math.abs(x)<1.65)side='north';
-      else if(z>=currentRoom.d/2-.35&&Math.abs(x)<1.65)side='south';
-      else if(x>=currentRoom.w/2-.35&&Math.abs(z)<1.65)side='east';
-      else if(x<=-currentRoom.w/2+.35&&Math.abs(z)<1.65)side='west';
+      // O jogador é limitado a 0,9 m da parede; detectar a porta antes desse limite.
+      const threshold=1.05;
+      if(z<=-currentRoom.d/2+threshold&&Math.abs(x)<1.8)side='north';
+      else if(z>=currentRoom.d/2-threshold&&Math.abs(x)<1.8)side='south';
+      else if(x>=currentRoom.w/2-threshold&&Math.abs(z)<1.8)side='east';
+      else if(x<=-currentRoom.w/2+threshold&&Math.abs(z)<1.8)side='west';
       if(!side||!currentRoom.doors.includes(side))return false;
       if(!allDead){
         camera.position.x=clamp(camera.position.x,-currentRoom.w/2+.9,currentRoom.w/2-.9);
