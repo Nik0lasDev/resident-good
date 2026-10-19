@@ -154,10 +154,13 @@
     }
     // Pistola low-poly presa alla câmera, com corpo, empunhadura, cano e mira.
     const gun = new THREE.Group();
+    // A arma e os braços são elementos da cena alinhados à câmera, com profundidade fixa.
+    // Isso evita que o modelo seja ocultado pela ordem de renderização da câmera.
+    gun.renderOrder = 20;
     camera.add(gun);
     gun.position.set(.32,-.23,-.58);
     const gunMetal = mat(0x30383d,.3,.78), gunPolymer = mat(0x171d21,.65,.05), gunAccent = mat(0x9b6b3d,.42,.4);
-    function gunBox(w,h,d,material,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);m.position.set(x,y,z);m.castShadow=true;gun.add(m);return m;}
+    function gunBox(w,h,d,material,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);m.position.set(x,y,z);m.castShadow=false;m.frustumCulled=false;m.renderOrder=20;gun.add(m);return m;}
     gunBox(.16,.15,.34,gunMetal,0,.035,0);
     gunBox(.13,.1,.19,gunMetal,0,.095,-.07);
     gunBox(.105,.2,.14,gunPolymer,0,-.105,.08).rotation.x=-.23;
@@ -165,21 +168,20 @@
     gunBox(.04,.018,.06,gunMetal,0,.118,-.07);
     gunBox(.018,.03,.025,gunMetal,0,.132,-.12);
     // Braço mais alto e largo para ficar claramente visível no enquadramento em primeira pessoa.
-    const skinMat = mat(0xb98262,.88);
-    const sleeveMat = mat(0x303b3e,.9);
-    const sleeveMesh = new THREE.Mesh(new THREE.BoxGeometry(.17,.17,.38),sleeveMat);
-    sleeveMesh.position.set(.005,-.16,.27); sleeveMesh.rotation.x=-.18; gun.add(sleeveMesh);
-    const cuffMesh = new THREE.Mesh(new THREE.BoxGeometry(.175,.18,.07),gunPolymer);
-    cuffMesh.position.set(.005,-.135,.105); cuffMesh.rotation.x=-.18; gun.add(cuffMesh);
-    const handMesh = new THREE.Mesh(new THREE.BoxGeometry(.14,.115,.14),skinMat);
-    handMesh.position.set(.005,-.075,.055); handMesh.rotation.x=-.12; gun.add(handMesh);
-    // Dedos contornam a empunhadura; ficam à frente dela no eixo Z.
-    for(let i=0;i<4;i++){
-      const digit = new THREE.Mesh(new THREE.BoxGeometry(.026,.05,.105),skinMat);
-      digit.position.set(-.042+i*.028,-.115,.105); digit.rotation.x=-.12; gun.add(digit);
+    const skinMat = new THREE.MeshStandardMaterial({color:0xc98d6b,roughness:.92,side:THREE.DoubleSide});
+    const sleeveMat = new THREE.MeshStandardMaterial({color:0x4a555b,roughness:.95,side:THREE.DoubleSide});
+    function armPart(w,h,d,material,x,y,z,rx=0,ry=0,rz=0){
+      const part=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);
+      part.position.set(x,y,z);part.rotation.set(rx,ry,rz);
+      part.renderOrder=21;part.frustumCulled=false;part.castShadow=false;
+      gun.add(part);return part;
     }
-    const thumbMesh = new THREE.Mesh(new THREE.BoxGeometry(.045,.04,.095),skinMat);
-    thumbMesh.position.set(.085,-.075,.055); thumbMesh.rotation.z=-.45; gun.add(thumbMesh);
+    // Manga/antebraço em primeiro plano, com a mão envolvendo o cabo.
+    armPart(.22,.23,.48,sleeveMat,.015,-.17,.28,-.18);
+    armPart(.205,.21,.09,gunPolymer,.015,-.135,.075,-.18);
+    armPart(.155,.13,.16,skinMat,.012,-.075,.015,-.12);
+    for(let i=0;i<4;i++) armPart(.029,.052,.13,skinMat,-.043+i*.029,-.115,.075,-.12);
+    armPart(.05,.045,.11,skinMat,.09,-.075,.025,-.12,0,-.48);
     const muzzleFlash = new THREE.Mesh(new THREE.ConeGeometry(.09,.24,8),new THREE.MeshBasicMaterial({color:0xffbd63}));
     muzzleFlash.rotation.x=-Math.PI/2; muzzleFlash.position.set(0,.04,-.28); muzzleFlash.visible=false; gun.add(muzzleFlash);
 
