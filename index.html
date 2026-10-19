@@ -439,7 +439,7 @@
         if(opposite==='east')camera.position.set(currentRoom.w/2-2.4,groundY,0);
         if(opposite==='west')camera.position.set(-currentRoom.w/2+2.4,groundY,0);
       }else camera.position.set(0,groundY,0);
-      spawnRoomEnemies(currentRoom);roomIndex++;
+      spawnRoomEnemies(currentRoom);roomIndex++;updateHealth();
       showToast('SALA '+roomIndex+' · '+currentRoom.name,1300);
     }
     function tryRoomExit(){
