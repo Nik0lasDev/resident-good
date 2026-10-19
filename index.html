@@ -177,6 +177,53 @@
       }
       part(new THREE.BoxGeometry(.34,.43,.17),enemyMaterials.armor,root,0,1.34,.19);
       part(new THREE.CylinderGeometry(.12,.14,.12,10),enemyMaterials.shirt,root,0,1.67,0);
+      // Silhueta tática mais legível: capacete, proteção facial e equipamento de missão.
+      const helmetMat=mat([0x303936,0x393c38,0x282f34,0x4a4035][index],.78,.08);
+      const clothMat=mat([0x454d48,0x55514a,0x343d43,0x5a5145][index],.96);
+      const plateMat=mat([0x3a4442,0x45443e,0x303a42,0x51483c][index],.68,.16);
+      const rubberMat=mat(0x171c1d,.98), lensMat=new THREE.MeshStandardMaterial({color:index%2?0x9d3d2e:0x8d7541,emissive:index%2?0x35100b:0x30230b,emissiveIntensity:.35,roughness:.28,metalness:.25});
+      // Capacete arredondado com aba, trilho lateral e suportes.
+      part(new THREE.SphereGeometry(.235,16,10),helmetMat,root,0,2.105,.005).scale.set(1.08,.62,1.02);
+      part(new THREE.BoxGeometry(.31,.045,.21),helmetMat,root,0,2.035,-.085);
+      part(new THREE.BoxGeometry(.19,.035,.035),detailMetal,root,0,2.065,-.205);
+      for(const side of [-1,1]){
+        part(new THREE.CylinderGeometry(.055,.055,.035,12),helmetMat,root,side*.225,1.99,0,0,0,Math.PI/2);
+        part(new THREE.CylinderGeometry(.035,.035,.012,12),dark,root,side*.248,1.99,0,0,0,Math.PI/2);
+        part(new THREE.BoxGeometry(.045,.11,.09),helmetMat,root,side*.25,1.79,.015);
+      }
+      // Óculos de proteção e máscara têxtil, sem ocultar a leitura do rosto.
+      part(new THREE.BoxGeometry(.105,.052,.035),rubberMat,root,-.073,1.96,-.226);
+      part(new THREE.BoxGeometry(.105,.052,.035),rubberMat,root,.073,1.96,-.226);
+      part(new THREE.BoxGeometry(.082,.034,.012),lensMat,root,-.073,1.96,-.247);
+      part(new THREE.BoxGeometry(.082,.034,.012),lensMat,root,.073,1.96,-.247);
+      part(new THREE.BoxGeometry(.035,.075,.025),rubberMat,root,0,1.925,-.226);
+      part(new THREE.CapsuleGeometry(.125,.105,4,8),clothMat,root,0,1.825,-.12).scale.set(1,.72,.58);
+      part(new THREE.BoxGeometry(.15,.028,.018),strapMat,root,0,1.78,-.19);
+      // Placa balística frontal com segmentos, parafusos e identificação.
+      part(new THREE.BoxGeometry(.27,.22,.035),plateMat,root,0,1.36,-.245);
+      part(new THREE.BoxGeometry(.19,.025,.012),detailMetal,root,0,1.43,-.267);
+      part(new THREE.BoxGeometry(.055,.075,.014),enemyMaterials.accent,root,0,1.37,-.269);
+      for(const side of [-1,1]){
+        part(new THREE.CylinderGeometry(.012,.012,.009,8),detailMetal,root,side*.105,1.29,-.269,Math.PI/2,0,0);
+        // Ombreiras, cotoveleiras e proteção externa dos antebraços.
+        part(new THREE.SphereGeometry(.135,12,9),helmetMat,root,side*.355,1.48,-.005).scale.set(1,.78,1);
+        part(new THREE.BoxGeometry(.13,.105,.09),plateMat,root,side*.365,1.19,-.055);
+        part(new THREE.BoxGeometry(.115,.18,.055),plateMat,root,side*.35,1.06,-.115);
+        // Bolsas laterais e presilhas do equipamento.
+        part(new THREE.BoxGeometry(.09,.13,.09),clothMat,root,side*.285,1.02,.045);
+        part(new THREE.BoxGeometry(.105,.025,.095),strapMat,root,side*.285,1.075,-.005);
+        // Joelheiras rígidas e botas com biqueira e sola em camadas.
+        part(new THREE.SphereGeometry(.112,12,8),plateMat,root,side*.145,.39,-.085).scale.set(1,.82,.55);
+        part(new THREE.BoxGeometry(.19,.055,.31),rubberMat,root,side*.145,.075,-.11);
+        part(new THREE.BoxGeometry(.17,.14,.28),helmetMat,root,side*.145,.16,-.075);
+        part(new THREE.BoxGeometry(.15,.035,.07),detailMetal,root,side*.145,.19,-.22);
+      }
+      // Mochila compacta, alças traseiras e bolsos utilitários.
+      part(new THREE.BoxGeometry(.34,.42,.17),clothMat,root,0,1.34,.245);
+      part(new THREE.BoxGeometry(.26,.15,.09),helmetMat,root,0,1.22,.345);
+      part(new THREE.BoxGeometry(.07,.31,.025),strapMat,root,-.13,1.35,.16).rotation.z=-.12;
+      part(new THREE.BoxGeometry(.07,.31,.025),strapMat,root,.13,1.35,.16).rotation.z=.12;
+      part(new THREE.BoxGeometry(.14,.12,.055),plateMat,root,0,1.48,.34);
       // Luvas e botas com solas mais espessas.
       const leftArm=new THREE.Group();leftArm.position.set(-.34,1.48,0);root.add(leftArm);limbs.leftArm=leftArm;
       part(new THREE.CapsuleGeometry(.09,.34,4,8),enemyMaterials.shirt,leftArm,0,-.22,0);
