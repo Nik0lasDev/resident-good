@@ -77,7 +77,7 @@
         <div class="tip"><b>03 / MUNIÇÃO</b>12 tiros por carregador</div>
         <div class="tip"><b>04 / AMEAÇAS</b>4 inimigos · ataques corpo a corpo</div>
       </div>
-      <button id="start" onclick="window.__residentStartFallback=true;document.getElementById('overlay').classList.add('hidden');">ENTRAR NO TESTE</button>
+      <button id="start">ENTRAR NO TESTE</button>
       <div id="mobile-note">Para este teste, use teclado e mouse em um computador.</div>
     </div>
   </div>
@@ -180,7 +180,9 @@
     makeEnemy(-8,-5,2);
     makeEnemy(7,-8,3);
     const enemy=enemies[0]; // Referência usada pelo HUD do alvo principal.
-        // A arma e os braços são elementos da cena alinhados à câmera, com profundidade fixa.
+        // Grupo da arma e dos braços, preso à câmera em primeira pessoa.
+    const gun = new THREE.Group();
+    // A arma e os braços são elementos da cena alinhados à câmera, com profundidade fixa.
     // Isso evita que o modelo seja ocultado pela ordem de renderização da câmera.
     gun.renderOrder = 20;
     camera.add(gun);
