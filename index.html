@@ -141,6 +141,7 @@
     const activeEnemyOrbs=[];
     // A abertura começa em casa; o complexo passa a ser carregado após o primeiro confronto.
     let introActive=true,introPhase=0,introFlashlightTaken=false,introGunPicked=false,introTransitionAt=0;
+    let armAmmoCollected=false;
     let introWalls=[];
     let homeDoors=[];
     let lightSwitchObject=null,wallGunObject=null,homeFlashlightPickup=null;
@@ -556,6 +557,7 @@
       const droppedWound=new THREE.Mesh(new THREE.CylinderGeometry(.065,.08,.035,10),armBlood);droppedWound.rotation.x=Math.PI/2;droppedWound.position.z=.06;droppedArm.add(droppedWound);
       // A cópia no chão também mantém a caixa de munição presa à mão.
       const groundAmmoBox=new THREE.Group();groundAmmoBox.position.set(.02,-.035,-.68);groundAmmoBox.rotation.set(.08,.12,-.08);droppedArm.add(groundAmmoBox);
+      e.ammoBoxPickup=groundAmmoBox;
       const groundAmmoCase=new THREE.Mesh(new THREE.BoxGeometry(.31,.19,.12),ammoCaseMat);groundAmmoCase.castShadow=true;groundAmmoBox.add(groundAmmoCase);
       const groundAmmoLid=new THREE.Mesh(new THREE.BoxGeometry(.32,.035,.125),ammoEdgeMat);groundAmmoLid.position.y=.105;groundAmmoBox.add(groundAmmoLid);
       const groundAmmoLabel=new THREE.Mesh(new THREE.PlaneGeometry(.17,.085),new THREE.MeshBasicMaterial({map:ammoLabelTex}));groundAmmoLabel.position.set(0,.012,.061);groundAmmoBox.add(groundAmmoLabel);
@@ -579,6 +581,29 @@
       e.root.rotation.y=Math.atan2(-dx,-dz);
       showToast('O INFECTADO PERCEBEU VOCÊ!',1400);
     }
+    function tryCollectArmAmmo(){
+      if(armAmmoCollected)return false;
+      raycaster.setFromCamera(new THREE.Vector2(0,0),camera);
+      const pickups=enemies.filter(e=>e.droppedArm?.visible&&e.ammoBoxPickup?.visible).map(e=>e.ammoBoxPickup);
+      if(!pickups.length)return false;
+      const hit=raycaster.intersectObjects(pickups,true)[0];
+      if(!hit||hit.distance>2.8)return false;
+      const owner=enemies.find(e=>e.ammoBoxPickup&&e.ammoBoxPickup.getObjectById(hit.object.id));
+      if(!owner)return false;
+      armAmmoCollected=true;
+      owner.ammoBoxPickup.visible=false;
+      weapons[0].reserve=(weapons[0].reserve||0)+6;
+      if(introGunPicked){
+        reserve=(reserve||0)+6;
+        weapons[0].reserve=reserve;
+        updateAmmo();
+        ui.status.textContent='+6 MUNIÇÕES RESERVA';
+        showToast('6 MUNIÇÕES RECOLHIDAS · +6 NA RESERVA',1700);
+      }else{
+        showToast('CAIXA RECOLHIDA · 6 MUNIÇÕES GUARDADAS PARA A PISTOLA',1900);
+      }
+      return true;
+    }
     function interactIntro(){
       const px=camera.position.x,pz=camera.position.z;
       for(const door of homeDoors){
@@ -587,6 +612,7 @@
           showToast((door.open?'ABRIU: ':'FECHOU: ')+door.name.toUpperCase(),1000);return;
         }
       }
+      if(tryCollectArmAmmo())return;
       if(introPhase===0&&Math.hypot(px+11.2,pz+4.6)<2.0){
         introPhase=1;document.getElementById('story-title').textContent='PENSAMENTO';document.getElementById('story-text').textContent='Que estranho, acho melhor conferir a bateria lá fora...';document.getElementById('story-hint').textContent='BOTÃO DIREITO · PEGAR A LANTERNA';document.getElementById('story-box').style.display='block';
         showToast('O INTERRUPTOR NÃO RESPONDE',1100);return;
@@ -597,7 +623,7 @@
         introPhase=2;introFlashlightTaken=true;if(homeFlashlightPickup)homeFlashlightPickup.visible=false;weaponIndex=flashlightIndex;weapons.forEach(w=>w.model.visible=false);flashlightModel.visible=true;updateFlashlightUI();ui.weapon.textContent='LANTERNA';ui.status.textContent='LANTERNA EQUIPADA';document.getElementById('story-text').textContent='Pego a lanterna em cima da mesinha. Preciso descobrir de onde veio aquele barulho.';document.getElementById('story-hint').textContent='';setTimeout(()=>{document.getElementById('story-box').style.display='none';},2600);ui.objectiveTitle.textContent='Vá até a cozinha';ui.objectiveDetail.textContent='Saia do quarto e investigue o estrondo.';ui.objectivePrompt.textContent='SIGA PARA A COZINHA';return;
       }
       if(introPhase>=2&&!introGunPicked&&Math.hypot(px-10.8,pz+2.2)<2.1){
-        introGunPicked=true;wallGunObject.visible=false;weaponIndex=0;weapons[0].magazine=6;weapons[0].reserve=0;magazine=6;reserve=0;weapons.forEach((w,i)=>w.model.visible=i===0);flashlightModel.visible=false;flashlightSpot.intensity=0;updateAmmo();updateFlashlightUI();ui.weapon.textContent=weapons[0].name;ui.status.textContent='6 MUNIÇÕES · SEM RESERVA';ui.objectiveTitle.textContent='Defenda-se do invasor';ui.objectiveDetail.textContent='Use as 6 munições para eliminar o inimigo na cozinha.';ui.objectivePrompt.textContent='CLIQUE PARA ATIRAR';showToast('PISTOLA RECOLHIDA · 6 MUNIÇÕES',1700);return;
+        introGunPicked=true;wallGunObject.visible=false;weaponIndex=0;weapons[0].magazine=6;magazine=6;reserve=weapons[0].reserve||0;weapons.forEach((w,i)=>w.model.visible=i===0);flashlightModel.visible=false;flashlightSpot.intensity=0;updateAmmo();updateFlashlightUI();ui.weapon.textContent=weapons[0].name;ui.status.textContent='6 MUNIÇÕES · SEM RESERVA';ui.objectiveTitle.textContent='Defenda-se do invasor';ui.objectiveDetail.textContent='Use as 6 munições para eliminar o inimigo na cozinha.';ui.objectivePrompt.textContent='CLIQUE PARA ATIRAR';showToast('PISTOLA RECOLHIDA · 6 MUNIÇÕES',1700);return;
       }
       if(introPhase===0)showToast('APROXIME-SE DO INTERRUPTOR NO CANTO DO QUARTO',1100);
       else if(!introGunPicked)showToast('PROCURE A ARMA MONTADA NA PAREDE DA COZINHA',1100);
@@ -928,6 +954,7 @@
           showToast((door.open?'ABRIU: ':'FECHOU: ')+door.name.toUpperCase(),1000);return;
         }
       }
+      if(tryCollectArmAmmo())return;
       // Procura objetos próximos na direção da câmera para não exigir coordenadas exatas.
       raycaster.setFromCamera(new THREE.Vector2(0,0),camera);
       const nearbyObjects=[homeFlashlightPickup,wallGunObject].filter(o=>o&&o.visible);
@@ -941,8 +968,7 @@
           showToast('LANTERNA RECOLHIDA',1200);return;
         }
         if(wallGunObject&&wallGunObject.visible&&wallGunObject.getObjectById(target.id)){
-          wallGunObject.visible=false;introGunPicked=true;weaponIndex=0;
-          weapons[0].magazine=6;weapons[0].reserve=0;magazine=6;reserve=0;
+          wallGunObject.visible=false;introGunPicked=true;weaponIndex=0;weapons[0].magazine=6;magazine=6;reserve=weapons[0].reserve||0;
           weapons.forEach((w,i)=>w.model.visible=i===0);flashlightModel.visible=false;flashlightSpot.intensity=0;
           updateAmmo();updateFlashlightUI();ui.weapon.textContent=weapons[0].name;ui.status.textContent='6 MUNIÇÕES · SEM RESERVA';
           showToast('PISTOLA RECOLHIDA · 6 MUNIÇÕES',1500);return;
