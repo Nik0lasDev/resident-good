@@ -111,17 +111,11 @@
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
+    renderer.toneMappingExposure = 1.2;
     document.body.prepend(renderer.domElement);
 
-    scene.add(new THREE.HemisphereLight(0xdce8ed, 0x555044, 2.1));
-    const sun = new THREE.DirectionalLight(0xffe2bd, 2.6);
-    sun.position.set(-5, 10, 4);
-    sun.castShadow = true;
-    sun.shadow.mapSize.set(1024, 1024);
-    sun.shadow.camera.left = -15; sun.shadow.camera.right = 15;
-    sun.shadow.camera.top = 15; sun.shadow.camera.bottom = -15;
-    scene.add(sun);
+    // A instalação não recebe luz solar: a iluminação ambiente é mínima e as luminárias fazem o trabalho.
+    scene.add(new THREE.HemisphereLight(0x26312e, 0x111514, 0.12));
 
     const mat = (color, roughness = 0.85, metalness = 0) => new THREE.MeshStandardMaterial({ color, roughness, metalness });
     const concrete = mat(0x737c7c), floorMat = mat(0x515b59), trim = mat(0x333b3c), orange = mat(0xc77b42), dark = mat(0x202629, 0.42, 0.6);
@@ -202,7 +196,7 @@
       for(let x=-w/2+2;x<w/2;x+=4)box(.035,.012,d-.5,ceilingSeam,x,4.065,0,false,false);
       // Luminárias industriais no alto das paredes, com difusor emissivo e luz local.
       const lampHousing=mat(0x252d2d,.55,.25);
-      const lampGlow=new THREE.MeshStandardMaterial({color:0xe8f0d4,emissive:0xc4dda0,emissiveIntensity:2.4,roughness:.35});
+      const lampGlow=new THREE.MeshStandardMaterial({color:0xe8f0d4,emissive:0xc4dda0,emissiveIntensity:3.2,roughness:.35});
       const wallLamps=[
         [-20,-21.48,0],[-7,-21.48,0],[7,-21.48,0],[20,-21.48,0],
         [-27.48,-12,Math.PI/2],[-27.48,0,Math.PI/2],[-27.48,12,Math.PI/2],
@@ -215,12 +209,12 @@
         housing.rotation.y=rotation;
         const diffuser=box(.54,.055,.07,lampGlow,x,3.53,z,false,false);
         diffuser.rotation.y=rotation;
-        const glow=new THREE.PointLight(0xd7e8b2,2.1,8,2);
+        const glow=new THREE.PointLight(0xd7e8b2,4.2,10,1.7);
         glow.position.set(x+(Math.abs(x)>25?(x<0?.45:-.45):0),3.35,z+(Math.abs(z)>20?(z<0?.45:-.45):0));
         scene.add(glow);roomObjects.push(glow);
       });
       // Sinais de emergência ajudam a identificar os setores do complexo.
-      const signMat=mat(0x9c3d31,.55,.1),lightMat=new THREE.MeshStandardMaterial({color:0xe5a15a,emissive:0x8c3e16,emissiveIntensity:1.1});
+      const signMat=mat(0x9c3d31,.55,.1),lightMat=new THREE.MeshStandardMaterial({color:0xe5a15a,emissive:0x8c3e16,emissiveIntensity:1.8});
       for(const [x,z,label] of [[-19,-17,'RECEPÇÃO'],[18,-17,'LABORATÓRIO'],[-21,8,'ENFERMARIA'],[20,9,'ARQUIVO']]){
         box(3.2,.12,.12,signMat,x,3.2,z,false,false);
         box(1.8,.06,.08,lightMat,x,3.38,z,false,false);
