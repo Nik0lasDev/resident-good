@@ -468,7 +468,7 @@
     const chapterSteps=[
       {title:'Encontre o cartão de acesso',detail:'Procure na recepção por um cartão que libere os setores internos.',position:new THREE.Vector3(-20,0,-17)},
       {title:'Restaure a energia',detail:'Ative o terminal auxiliar no laboratório para destravar a doca.',position:new THREE.Vector3(18,0,-17)},
-      {title:'Chegue à doca de evacuação',detail:'A saída de serviço fica no extremo leste do complexo. Não pare agora.',position:new THREE.Vector3(24,0,18)}
+      {title:'Chegue à doca de evacuação',detail:'A saída de serviço fica no extremo leste do complexo. Não pare agora.',position:new THREE.Vector3(24,0,12)}
     ];
     function updateChapterUI(){
       if(chapterComplete){ui.objectiveTitle.textContent='CAPÍTULO CONCLUÍDO';ui.objectiveDetail.textContent='Você escapou do Complexo Arklay. Fim do Capítulo 1.';ui.objectivePrompt.textContent='CAMPANHA · 01 / 01';return;}
@@ -481,9 +481,20 @@
       const colors=[0xe5a15a,0x5bba8b,0xc94a3d];
       chapterSteps.forEach((step,i)=>{
         const beacon=new THREE.Group();beacon.position.copy(step.position);
-        const base=new THREE.Mesh(new THREE.CylinderGeometry(.34,.42,.08,16),mat(0x292f30,.55,.25));base.position.y=.04;beacon.add(base);
-        const crystal=new THREE.Mesh(new THREE.OctahedronGeometry(.18,0),new THREE.MeshStandardMaterial({color:colors[i],emissive:colors[i],emissiveIntensity:.8,roughness:.35}));crystal.position.y=.72;beacon.add(crystal);
-        const beam=new THREE.Mesh(new THREE.CylinderGeometry(.035,.12,1.2,8,1,true),new THREE.MeshBasicMaterial({color:colors[i],transparent:true,opacity:.16,depthWrite:false}));beam.position.y=.65;beacon.add(beam);
+        const metal=mat(0x353b3b,.48,.55),screen=new THREE.MeshStandardMaterial({color:colors[i],emissive:colors[i],emissiveIntensity:.45,roughness:.35});
+        if(i===0){
+          const card=new THREE.Mesh(new THREE.BoxGeometry(.34,.025,.22),mat(0xd7d9c8,.7,.1));card.position.y=.12;card.rotation.y=-.22;beacon.add(card);
+          const stripe=new THREE.Mesh(new THREE.BoxGeometry(.2,.006,.025),screen);stripe.position.set(0,.136,-.025);stripe.rotation.y=-.22;beacon.add(stripe);
+        }else if(i===1){
+          const console=new THREE.Mesh(new THREE.BoxGeometry(.58,.72,.34),metal);console.position.y=.36;beacon.add(console);
+          const display=new THREE.Mesh(new THREE.BoxGeometry(.4,.24,.025),screen);display.position.set(0,.54,-.18);beacon.add(display);
+          for(let k=0;k<3;k++){const button=new THREE.Mesh(new THREE.CylinderGeometry(.035,.035,.025,10),mat(k===0?0x9e3029:0x9aa58e,.45,.15));button.rotation.x=Math.PI/2;button.position.set(-.15+k*.15,.25,-.19);beacon.add(button);}
+        }else{
+          const pedestal=new THREE.Mesh(new THREE.BoxGeometry(.45,.75,.32),metal);pedestal.position.y=.375;beacon.add(pedestal);
+          const panel=new THREE.Mesh(new THREE.BoxGeometry(.29,.28,.035),screen);panel.position.set(0,.52,-.18);beacon.add(panel);
+          const lever=new THREE.Mesh(new THREE.CylinderGeometry(.025,.035,.22,10),mat(0xaaa89a,.4,.65));lever.position.set(.08,.3,-.2);lever.rotation.z=-.45;beacon.add(lever);
+        }
+        const beam=new THREE.Mesh(new THREE.CylinderGeometry(.025,.09,.95,8,1,true),new THREE.MeshBasicMaterial({color:colors[i],transparent:true,opacity:.1,depthWrite:false}));beam.position.y=.9;beacon.add(beam);
         scene.add(beacon);chapterObjects.push(beacon);
       });updateChapterUI();
     }
@@ -546,7 +557,7 @@
       pitch=clamp(pitch-e.movementY*.0022,-1.25,1.25);
     });
     document.addEventListener('keydown',e=>{
-      if(['KeyW','KeyA','KeyS','KeyD','ShiftLeft','ShiftRight','Space','KeyR','KeyE'].includes(e.code))e.preventDefault();
+      if(['KeyW','KeyA','KeyS','KeyD','ShiftLeft','ShiftRight','Space','KeyR','KeyE','KeyF'].includes(e.code))e.preventDefault();
       keys.add(e.code);
       if(e.code==='Space' && locked && !e.repeat && camera.position.y <= groundY + 0.001){
         verticalVelocity = jumpVelocity;
@@ -637,9 +648,9 @@
           e.limbs.leftArm.rotation.z=-.035-.025*walk*stride;e.limbs.rightArm.rotation.z=.035-.025*walk*stride;
         }else if(hasFacilityLineOfSight(e.root.position.x,e.root.position.z,camera.position.x,camera.position.z)){
           e.root.position.y=0;e.root.rotation.z=0;
-          if(e.type==='ranged'&&now-e.lastAttack>1800){
+          if(e.type==='spitter'&&now-e.lastAttack>1800){
             e.lastAttack=now;
-            const mesh=new THREE.Mesh(new THREE.SphereGeometry(.12,10,8),new THREE.MeshBasicMaterial({color:0x68a8d2}));
+            const mesh=new THREE.Mesh(new THREE.SphereGeometry(.12,10,8),new THREE.MeshBasicMaterial({color:0x9bc46c}));
             mesh.position.copy(e.root.position);mesh.position.y=1.35;scene.add(mesh);
             activeEnemyOrbs.push({mesh,life:0});
           }
