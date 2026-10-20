@@ -189,6 +189,7 @@
     function buildFacilityMap(){
       const w=currentRoom.w,d=currentRoom.d;
       const floor=mat(0x454b49,.96),tileDark=mat(0x292f30,.95),wallMat=mat(0x626967,.9),wallTrim=mat(0x252b2c,.75,.15);
+      const ceilingMat=mat(0x343b3b,.92),ceilingSeam=mat(0x242b2c,.9);
       box(w,.36,d,floor,0,-.2,0,false,true);
       for(let x=-w/2+1;x<w/2;x+=2)box(.025,.008,d-.8,tileDark,x,.005,0,false,false);
       for(let z=-d/2+1;z<d/2;z+=2)box(w-.8,.008,.025,tileDark,0,.006,z,false,false);
@@ -196,7 +197,29 @@
         box(ww,4.2,dd,wallMat,x,1.9,z);
         box(ww,.16,dd+.06,wallTrim,x,4.02,z,false,false);
       }
-      // Sinais de emergência, luminárias e mobiliário ajudam a identificar setores do complexo.
+      // Teto contínuo e fechado cobrindo toda a planta do complexo.
+      box(w,.3,d,ceilingMat,0,4.22,0,false,true);
+      for(let x=-w/2+2;x<w/2;x+=4)box(.035,.012,d-.5,ceilingSeam,x,4.065,0,false,false);
+      // Luminárias industriais no alto das paredes, com difusor emissivo e luz local.
+      const lampHousing=mat(0x252d2d,.55,.25);
+      const lampGlow=new THREE.MeshStandardMaterial({color:0xe8f0d4,emissive:0xc4dda0,emissiveIntensity:2.4,roughness:.35});
+      const wallLamps=[
+        [-20,-21.48,0],[-7,-21.48,0],[7,-21.48,0],[20,-21.48,0],
+        [-27.48,-12,Math.PI/2],[-27.48,0,Math.PI/2],[-27.48,12,Math.PI/2],
+        [27.48,-12,-Math.PI/2],[27.48,0,-Math.PI/2],[27.48,12,-Math.PI/2],
+        [-20,21.48,Math.PI],[0,21.48,Math.PI],[20,21.48,Math.PI],
+        [-19,-8.8,Math.PI/2],[19,-8.8,-Math.PI/2],[0,10,Math.PI/2]
+      ];
+      wallLamps.forEach(([x,z,rotation])=>{
+        const housing=box(.72,.18,.22,lampHousing,x,3.55,z,false,false);
+        housing.rotation.y=rotation;
+        const diffuser=box(.54,.055,.07,lampGlow,x,3.53,z,false,false);
+        diffuser.rotation.y=rotation;
+        const glow=new THREE.PointLight(0xd7e8b2,2.1,8,2);
+        glow.position.set(x+(Math.abs(x)>25?(x<0?.45:-.45):0),3.35,z+(Math.abs(z)>20?(z<0?.45:-.45):0));
+        scene.add(glow);roomObjects.push(glow);
+      });
+      // Sinais de emergência ajudam a identificar os setores do complexo.
       const signMat=mat(0x9c3d31,.55,.1),lightMat=new THREE.MeshStandardMaterial({color:0xe5a15a,emissive:0x8c3e16,emissiveIntensity:1.1});
       for(const [x,z,label] of [[-19,-17,'RECEPÇÃO'],[18,-17,'LABORATÓRIO'],[-21,8,'ENFERMARIA'],[20,9,'ARQUIVO']]){
         box(3.2,.12,.12,signMat,x,3.2,z,false,false);
