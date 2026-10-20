@@ -76,7 +76,7 @@
     <div id="intro">
       <div class="tag"><span class="dot"></span> PROTÓTIPO JOGÁVEL · BUILD 0.1</div>
       <h1>Teste de combate<br>em primeira pessoa.</h1>
-      <p>Sobreviva à investida de quatro inimigos que perseguem você e atacam corpo a corpo. Mire, dispare, recarregue e mantenha distância.</p>
+      <p>Explore um complexo de contenção abandonado, atravesse corredores e setores de pesquisa e sobreviva a oito inimigos. Mire, dispare, recarregue e mantenha distância.</p>
       <div class="tips">
         <div class="tip"><b>01 / MOVIMENTO</b>WASD + mouse</div>
         <div class="tip"><b>02 / COMBATE</b>Clique para disparar</div>
@@ -825,14 +825,22 @@
         if(keys.has('KeyA'))move.sub(right);
         if(move.lengthSq()>0){
           move.normalize().multiplyScalar(speed*dt);
-          camera.position.x+=move.x;camera.position.z+=move.z;
-          camera.position.x=clamp(camera.position.x,-currentRoom.w/2+1,currentRoom.w/2-1);
-          camera.position.z=clamp(camera.position.z,-currentRoom.d/2+1,currentRoom.d/2-1);
+          const nextX=clamp(camera.position.x+move.x,-currentRoom.w/2+1,currentRoom.w/2-1);
+          const nextZ=clamp(camera.position.z+move.z,-currentRoom.d/2+1,currentRoom.d/2-1);
+          if(!blockedByFacilityWall(nextX,camera.position.z))camera.position.x=nextX;
+          if(!blockedByFacilityWall(camera.position.x,nextZ))camera.position.z=nextZ;
         }
       }
     }
     const minimapCanvas=document.getElementById('minimap');
     const minimapCtx=minimapCanvas.getContext('2d');
+    function blockedByFacilityWall(x,z){
+      const radius=.38;
+      for(const [wx,wz,ww,wd] of facilityWalls){
+        if(x+radius>wx-ww/2&&x-radius<wx+ww/2&&z+radius>wz-wd/2&&z-radius<wz+wd/2)return true;
+      }
+      return false;
+    }
     function drawMinimap(){
       const ctx=minimapCtx,W=minimapCanvas.width,H=minimapCanvas.height;
       ctx.clearRect(0,0,W,H);ctx.fillStyle='#171d20';ctx.fillRect(0,0,W,H);
