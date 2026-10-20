@@ -1180,23 +1180,15 @@
       ctx.fillStyle='#8dffb0';ctx.strokeStyle='#eaffef';ctx.lineWidth=1.2;
       ctx.beginPath();ctx.moveTo(0,-7);ctx.lineTo(5,5);ctx.lineTo(0,3);ctx.lineTo(-5,5);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
       ctx.restore();
-      // Bússola fixa no minimapa: norte fica para cima, sul para baixo.
-      const cx=W-27,cy=27,r=17;
+      // Abreviações dos pontos cardeais nas bordas do minimapa.
       ctx.save();
-      ctx.fillStyle='rgba(8,12,15,.78)';
-      ctx.beginPath();ctx.arc(cx,cy,r+5,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle='rgba(220,230,225,.48)';ctx.lineWidth=1;
-      ctx.beginPath();ctx.arc(cx,cy,r+5,0,Math.PI*2);ctx.stroke();
-      ctx.strokeStyle='rgba(220,230,225,.45)';ctx.beginPath();ctx.moveTo(cx,cy-r+4);ctx.lineTo(cx,cy+r-4);ctx.moveTo(cx-r+4,cy);ctx.lineTo(cx+r-4,cy);ctx.stroke();
-      ctx.fillStyle='#e5a15a';ctx.beginPath();ctx.moveTo(cx,cy-r+2);ctx.lineTo(cx-4,cy+1);ctx.lineTo(cx,cy-2);ctx.lineTo(cx+4,cy+1);ctx.closePath();ctx.fill();
-      ctx.fillStyle='#c4d0d2';ctx.beginPath();ctx.moveTo(cx,cy+r-2);ctx.lineTo(cx-4,cy-1);ctx.lineTo(cx,cy+2);ctx.lineTo(cx+4,cy-1);ctx.closePath();ctx.fill();
-      ctx.font='bold 8px system-ui,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.fillStyle='#f3c38e';ctx.fillText('N',cx,cy-r-2);
-      ctx.fillStyle='#e1e7e8';ctx.fillText('S',cx,cy+r+2);
-      ctx.fillText('L',cx+r+2,cy);ctx.fillText('O',cx-r-2,cy);
-      ctx.font='bold 6px system-ui,sans-serif';ctx.fillStyle='#d6dddf';
-      ctx.fillText('NE',cx+12,cy-12);ctx.fillText('SE',cx+12,cy+12);
-      ctx.fillText('SO',cx-12,cy+12);ctx.fillText('NO',cx-12,cy-12);
+      ctx.font='bold 10px system-ui,sans-serif';
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.lineWidth=3;ctx.strokeStyle='rgba(8,12,15,.9)';
+      ctx.fillStyle='#f3c38e';
+      const directions=[['N',W/2,9],['S',W/2,H-9],['L',W-9,H/2],['O',9,H/2],
+        ['NE',W-17,17],['SE',W-17,H-17],['SO',17,H-17],['NO',17,17]];
+      for(const [label,x,y] of directions){ctx.strokeText(label,x,y);ctx.fillText(label,x,y);}
       ctx.restore();
     }
     function animate(){
