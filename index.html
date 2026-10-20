@@ -114,7 +114,7 @@
     // A câmera precisa pertencer à cena para que seus filhos (arma e braço) sejam renderizados.
     scene.add(camera);
     // Aura de luz muito fraca, presa à câmera para acompanhar o jogador sem iluminar demais o cenário.
-    const playerAuraLight = new THREE.PointLight(0xc8d9b9, 0.42, 6.5, 2);
+    const playerAuraLight = new THREE.PointLight(0xc8d9b9, 6.6, 8, 2); // visão sem lanterna: cerca de 30% da intensidade da lanterna (22).
     playerAuraLight.position.set(0, -0.12, -0.08);
     camera.add(playerAuraLight);
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
@@ -514,7 +514,7 @@
       const gunMount=new THREE.Mesh(new THREE.BoxGeometry(.56,.88,.075),wood);wallGunObject.add(gunMount);
       const mountEdge=new THREE.Mesh(new THREE.BoxGeometry(.6,.035,.09),woodLight);mountEdge.position.y=-.42;wallGunObject.add(mountEdge);
       // Sem lâmpadas nem iluminação artificial na casa; apenas luz ambiente mínima e a lanterna do jogador.
-      const homeFill=new THREE.HemisphereLight(0x626b72,0x17130f,.13);scene.add(homeFill);roomObjects.push(homeFill);
+      const homeFill=new THREE.HemisphereLight(0x626b72,0x17130f,.09);scene.add(homeFill);roomObjects.push(homeFill);
       // Linhas do mapa usadas pela colisão e pela visão dos inimigos durante a abertura.
       enemiesWakeAt=performance.now()+2500;
       // Posição inicial livre, fora da divisória em z=0.
