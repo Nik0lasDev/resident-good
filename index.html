@@ -338,7 +338,7 @@
       // Paredes exteriores e divisórias baixas mantêm o percurso conectado dentro do mesmo mapa.
       const walls=[[0,-9,24,.3],[.8,9,1.6,.3],[8.2,9,7.6,.3],[-12,-3.325,.3,11.35],[-6,2.5,12,.3],[0,5.5,.3,7],[12,0,.3,18],[.1,-8,.3,2],[.1,497.5,.3,1005],[2.8,0,5.6,.3],[9.6,0,4.8,.3]];
       for(const [x,z,w,d] of walls){
-        box(w,3.7,d,wall,x,1.65,z);
+        box(w,1000,d,wall,x,499.8,z);
         box(w,.12,d+.05,trim,x,3.18,z,false,false);
         box(w,.16,d+.055,wallDark,x,.02,z,false,false);
         introWalls.push([x,z,w,d]);
