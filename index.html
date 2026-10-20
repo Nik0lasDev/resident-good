@@ -479,7 +479,7 @@
       for(let finger=0;finger<4;finger++){const digit=new THREE.Mesh(new THREE.CapsuleGeometry(.018,.09,3,5),armSkin);digit.rotation.x=Math.PI/2;digit.position.set((finger-1.5)*.035,-.025,-.65);armProp.add(digit);}
       const woundEnd=new THREE.Mesh(new THREE.CylinderGeometry(.065,.08,.035,10),armBlood);woundEnd.rotation.x=Math.PI/2;woundEnd.position.z=.06;armProp.add(woundEnd);
       const poolMat=mat(0x3d0909,.35),splashMat=mat(0x64120e,.4);
-      for(const [bx,bz,sx,sz] of [[7.15,-4.85,1.35,.9],[6.3,-4.4,.5,.3],[7.9,-5.2,.42,.26],[7.55,-4.15,.28,.2]]){const pool=new THREE.Mesh(new THREE.CircleGeometry(1,28),bx===5.3&&bz===0?poolMat:splashMat);pool.rotation.x=-Math.PI/2;pool.scale.set(sx,sz,1);pool.position.set(bx,.012,bz);pool.receiveShadow=true;scene.add(pool);roomObjects.push(pool);e.bloodPuddles.push(pool);}
+      for(const [bx,bz,sx,sz] of [[7.15,-4.85,1.35,.9],[6.3,-4.4,.5,.3],[7.9,-5.2,.42,.26],[7.55,-4.15,.28,.2]]){const pool=new THREE.Mesh(new THREE.CircleGeometry(1,28),bx===7.15&&bz===-4.85?poolMat:splashMat);pool.rotation.x=-Math.PI/2;pool.scale.set(sx,sz,1);pool.position.set(bx,.012,bz);pool.receiveShadow=true;scene.add(pool);roomObjects.push(pool);e.bloodPuddles.push(pool);}
       const droppedArm=new THREE.Group();droppedArm.visible=false;scene.add(droppedArm);roomObjects.push(droppedArm);e.droppedArm=droppedArm;
       // Cópia do braço para o chão, revelada e animada quando o infectado desperta.
       const droppedUpper=new THREE.Mesh(new THREE.CapsuleGeometry(.09,.28,4,8),armSkin);droppedUpper.rotation.x=Math.PI/2;droppedUpper.position.z=-.1;droppedArm.add(droppedUpper);
