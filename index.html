@@ -137,6 +137,8 @@
     }
     const enemies=[];
     const activeEnemyOrbs=[];
+    // Dá ao jogador alguns segundos para se orientar antes de os infectados reagirem.
+    let enemiesWakeAt=0;
     const enemyMaterials={skin:mat(0x8d8976,.98),shirt:mat(0x454a42,.99),pants:mat(0x343632,.99),armor:mat(0x252a28,.9),accent:mat(0x5b211d,.95),eyes:mat(0x9e2e22,.45)};
     function makeEnemy(x,z,index){
       const root=new THREE.Group();root.position.set(x,0,z);scene.add(root);
@@ -283,7 +285,7 @@
     }
     function spawnFacilityEnemies(){
       const placements=[
-        [-20,-11],[-3,-10],[16,-10],[23,7],[-20,12],[-6,17],[8,17],[20,19]
+        [-20,-11],[-7,-12],[16,-10],[23,7],[-20,12],[-6,17],[8,17],[20,19]
       ];
       const types=['walker','runner','walker','brute','walker','walker','runner','brute'];
       for(let i=0;i<placements.length;i++){
@@ -299,6 +301,7 @@
     }
     function initFacility(){
       clearRoom();camera.position.set(0,groundY,0);
+      enemiesWakeAt=performance.now()+8000;
       buildFacilityMap();spawnFacilityEnemies();createChapterObjects();
       showToast('CAPÍTULO 1 · SINAL DE CONTENÇÃO',1800);
     }
@@ -745,6 +748,11 @@
     function updateEnemies(dt,now){
       for(const e of enemies){
         if(!e.alive)continue;
+        if(now<enemiesWakeAt){
+          // Os inimigos permanecem inativos no início; não detectam nem perseguem o jogador.
+          e.root.position.y=0;
+          continue;
+        }
         const playerX=camera.position.x,playerZ=camera.position.z;
         let dx=playerX-e.root.position.x,dz=playerZ-e.root.position.z;
         let distance=Math.hypot(dx,dz);
