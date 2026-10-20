@@ -426,7 +426,7 @@
             addPart(new THREE.BoxGeometry(.09,.22,.05),ironMat,.13,py,-.095,false);
             addPart(new THREE.CylinderGeometry(.028,.028,.23,10),doorMetal,.13,py,-.13,false);
           }
-          homeDoors.push({name,pivot,closedRotation:rotation,openRotation,open:false,blockX,blockZ,blockW,blockD});
+          homeDoors.push({name,pivot,closedRotation:rotation,openRotation,open:false,currentRotation:rotation,targetRotation:rotation,blockX,blockZ,blockW,blockD});
           return;
         }
         // Modelo atual das outras portas: painel de madeira envelhecida.
@@ -556,7 +556,7 @@
       const px=camera.position.x,pz=camera.position.z;
       for(const door of homeDoors){
         if(Math.hypot(px-door.blockX,pz-door.blockZ)<1.65){
-          door.open=!door.open;door.pivot.rotation.y=door.open?door.openRotation:door.closedRotation;
+          door.open=!door.open;door.targetRotation=door.open?door.openRotation:door.closedRotation;
           showToast((door.open?'ABRIU: ':'FECHOU: ')+door.name.toUpperCase(),1000);return;
         }
       }
@@ -843,7 +843,7 @@
             target.healthFill.position.x=-.38+.38*ratio;
             ui.hitmarker.style.opacity='1';hitEnd=performance.now()+110;
             if(target.hp===0){
-              target.alive=false;target.root.visible=false;target.respawnAt=performance.now()+5000;
+              target.alive=false;target.dying=true;target.deathAt=performance.now();target.deathDirection=target.attackSide||1;target.respawnAt=target.deathAt+900;
               if(introActive){introTransitionAt=0;ui.objectiveTitle.textContent='A ameaça foi eliminada';ui.objectiveDetail.textContent='A casa ficou em silêncio. Você sobreviveu ao invasor.';ui.objectivePrompt.textContent='CASA CONCLUÍDA';showToast('INVASOR ELIMINADO · VOCÊ SOBREVIVEU',1800);}
               updateHealth();showToast(isHeadshot?'HEADSHOT · ELIMINAÇÃO':'INIMIGO ELIMINADO');
             }else showToast(isHeadshot?'HEADSHOT · -'+Math.round(appliedDamage)+' HP':'ACERTO · '+Math.ceil(target.hp)+' HP');
@@ -1146,6 +1146,30 @@
         e.healthBg.lookAt(camera.position);e.healthFill.lookAt(camera.position);
       }
     }
+    function updateHomeDoorAnimations(dt){
+      // Portas giram gradualmente sobre a dobradiça, em vez de mudarem de posição instantaneamente.
+      for(const door of homeDoors){
+        const delta=door.targetRotation-door.currentRotation;
+        if(Math.abs(delta)<.002){door.currentRotation=door.targetRotation;}else door.currentRotation+=delta*Math.min(1,dt*4.5);
+        door.pivot.rotation.y=door.currentRotation;
+      }
+    }
+    function updateEnemyDeathAnimations(now){
+      // O infectado perde o equilíbrio, cai para o lado e só então desaparece.
+      for(const e of enemies){
+        if(!e.dying)continue;
+        const t=Math.min(1,(now-e.deathAt)/850),smooth=t*t*(3-2*t);
+        e.root.rotation.z=e.deathDirection*smooth*1.38;
+        e.root.rotation.x=-.12*smooth;
+        e.root.position.y=-.32*smooth;
+        e.torso.rotation.x=-.13-.48*smooth;
+        e.head.rotation.x=.12*smooth;
+        e.limbs.leftArm.rotation.z=-.12-e.deathDirection*.8*smooth;
+        e.limbs.rightArm.rotation.z=.12+e.deathDirection*.8*smooth;
+        e.limbs.leftLeg.rotation.x=.35*smooth;e.limbs.rightLeg.rotation.x=-.25*smooth;
+        if(t>=1){e.root.visible=false;e.dying=false;}
+      }
+    }
     function update(dt,now){
       if(locked&&weaponIndex===flashlightIndex&&flashlightBattery>0){
         flashlightBattery=Math.max(0,flashlightBattery-flashlightBatteryDrain*dt);
@@ -1158,6 +1182,7 @@
       }
       if(now>muzzleEnd)muzzleFlash.visible=false;
       updateBullets(dt);
+      updateHomeDoorAnimations(dt);updateEnemyDeathAnimations(now);
       if(locked){updateEnemies(dt,now);updateEnemyOrbs(dt);if(!introActive)updateChapterUI();}
       
       if(now>hitEnd)ui.hitmarker.style.opacity='0';
