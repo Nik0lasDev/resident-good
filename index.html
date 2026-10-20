@@ -42,6 +42,7 @@
     #minimap-wrap{position:absolute;right:22px;top:86px;width:190px;padding:7px;border:1px solid rgba(220,230,238,.22);border-radius:9px;background:rgba(12,17,21,.82);box-shadow:0 8px 28px #0004;backdrop-filter:blur(5px)}
     #minimap-title{display:flex;justify-content:space-between;gap:8px;margin:0 2px 5px;color:#d6dde2;font-size:9px;font-weight:900;letter-spacing:.13em}
     #minimap-title span{color:#e5a15a}
+    #day-clock{position:fixed;left:12px;top:12px;z-index:2;padding:9px 12px;border:1px solid #ffffff25;border-radius:8px;background:rgba(9,13,17,.78);color:#f1e6c9;font-size:12px;font-weight:800;letter-spacing:.06em;box-shadow:0 4px 18px #0005;pointer-events:none}#day-clock small{display:block;margin-top:3px;color:#b9c2c5;font-size:9px;font-weight:600;letter-spacing:.12em}@media(max-width:650px){#day-clock{left:8px;top:8px;padding:7px 9px;font-size:10px}#day-clock small{font-size:8px}}
     #minimap{display:block;width:100%;height:auto;aspect-ratio:11/9;border-radius:4px;background:#20272b}
     @media(max-width:650px){#minimap-wrap{right:10px;top:68px;width:130px;padding:5px}#minimap-title{font-size:8px;margin-bottom:3px}}
     #crosshair{position:absolute;left:50%;top:50%;width:22px;height:22px;transform:translate(-50%,-50%);transition:transform .08s}
@@ -68,6 +69,7 @@
 </head>
 <body>
   <div id="hud">
+    <div id="day-clock" aria-live="off"><span id="game-time">08:00</span><small id="day-phase">DIA</small></div>
     <div id="minimap-wrap"><div id="minimap-title">MAPA DO COMPLEXO <span id="minimap-room">ARKLAY</span></div><canvas id="minimap" width="220" height="180" aria-label="Minimapa da sala atual"></canvas></div>
     <div id="brand" class="panel">RESIDENT <span>GOOD</span> <span style="color:#89949c">/ CAPÍTULO 01</span></div>
     <div id="chapter-objective" class="panel"><div class="chapter-kicker">EXPLORAÇÃO</div><div id="objective-title">Explore o ambiente</div><div id="objective-detail">Investigue os arredores e sobreviva.</div><div id="objective-prompt">SEM OBJETIVO FIXO</div></div>
@@ -128,7 +130,32 @@
     document.body.prepend(renderer.domElement);
 
     // A instalação não recebe luz solar: a iluminação ambiente é mínima e as luminárias fazem o trabalho.
-    scene.add(new THREE.HemisphereLight(0x77858a, 0x29251f, 0.48));
+    const worldAmbientLight = new THREE.HemisphereLight(0x77858a, 0x29251f, 0.48);
+    scene.add(worldAmbientLight);
+    // O relógio avança 2 minutos do jogo por segundo real: um ciclo completo dura 12 minutos.
+    let gameMinutes = 8 * 60;
+    let homeAmbientLight = null;
+    function updateDayNight(dt){
+      gameMinutes = (gameMinutes + dt * 2) % 1440;
+      const hour = Math.floor(gameMinutes / 60);
+      const minute = Math.floor(gameMinutes % 60);
+      const pad = n => String(n).padStart(2, '0');
+      const timeLabel = document.getElementById('game-time');
+      const phaseLabel = document.getElementById('day-phase');
+      if(timeLabel)timeLabel.textContent = pad(hour) + ':' + pad(minute);
+      const daylight = Math.max(0, Math.sin(((gameMinutes / 60) - 6) / 12 * Math.PI));
+      const phase = hour >= 5 && hour < 7 ? 'AMANHECER' : hour >= 7 && hour < 17 ? 'DIA' : hour >= 17 && hour < 20 ? 'ENTARDECER' : 'NOITE';
+      if(phaseLabel)phaseLabel.textContent = phase;
+      worldAmbientLight.intensity = 0.07 + daylight * 0.41;
+      const nightSky = new THREE.Color(0x080d17);
+      const daySky = new THREE.Color(introActive ? 0x777064 : 0x9aa5a8);
+      const dawnSky = new THREE.Color(0x625650);
+      const dawn = Math.max(0, 1 - Math.abs((gameMinutes / 60) - 6) / 2, 1 - Math.abs((gameMinutes / 60) - 18) / 2);
+      const sky = nightSky.clone().lerp(daySky, daylight).lerp(dawnSky, Math.min(0.55, dawn * 0.45));
+      scene.background.copy(sky);
+      scene.fog.color.copy(sky);
+      if(homeAmbientLight)homeAmbientLight.intensity = 0.025 + daylight * 0.14;
+    }
 
     const mat = (color, roughness = 0.85, metalness = 0) => new THREE.MeshStandardMaterial({ color, roughness, metalness });
     const concrete = mat(0x737c7c), floorMat = mat(0x515b59), trim = mat(0x333b3c), orange = mat(0xc77b42), dark = mat(0x202629, 0.42, 0.6);
@@ -545,7 +572,7 @@
       // As dimensões maiores permitem caminhar da entrada até a rua durante o teste.
       currentRoom.w=44;currentRoom.d=60;
       // Luz ambiente geral da casa permanece baixa; o quarto recebe iluminação local adicional para ficar aproximadamente duas vezes mais claro.
-      const homeFill=new THREE.HemisphereLight(0x87949a,0x211b16,.12);scene.add(homeFill);roomObjects.push(homeFill);
+      const homeFill=new THREE.HemisphereLight(0x87949a,0x211b16,.12);scene.add(homeFill);roomObjects.push(homeFill);homeAmbientLight=homeFill;
       const bedroomFill=new THREE.PointLight(0xd9d1b8,2.0,9,2);bedroomFill.position.set(-9.5,2.55,-6.2);bedroomFill.castShadow=true;bedroomFill.shadow.mapSize.set(512,512);bedroomFill.shadow.bias=-.0005;scene.add(bedroomFill);roomObjects.push(bedroomFill);
       // Linhas do mapa usadas pela colisão e pela visão dos inimigos durante a abertura.
       enemiesWakeAt=performance.now()+2500;
@@ -1428,6 +1455,7 @@
     function animate(){
       requestAnimationFrame(animate);
       const dt=Math.min(clock.getDelta(),.05),now=performance.now();
+      updateDayNight(dt);
       update(dt,now);
       drawMinimap();
       renderer.render(scene,camera);
