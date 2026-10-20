@@ -348,8 +348,34 @@
       const doorMat=mat(0x30241d,.94),doorInset=mat(0x4a3426,.92),doorEdge=mat(0x75563b,.9),doorMetal=mat(0x858078,.42,.72),doorDark=mat(0x211b17,.96);
       function addHomeDoor({name,x,z,width,rotation=0,openRotation,blockX,blockZ,blockW,blockD}){
         const pivot=new THREE.Group();pivot.position.set(x,0,z);pivot.rotation.y=rotation;scene.add(pivot);roomObjects.push(pivot);
-        // Porta de madeira envelhecida: núcleo sólido, aro elevado, três painéis com relevo e ferragens metálicas.
         const addPart=(geometry,material,px,py,pz,cast=true)=>{const m=new THREE.Mesh(geometry,material);m.position.set(px,py,pz);m.castShadow=cast;m.receiveShadow=true;pivot.add(m);return m;};
+        // Modelo exclusivo da porta do quarto; as demais portas permanecem inalteradas.
+        if(name==='porta do quarto'){
+          const plankMats=[mat(0x30231b,.96),mat(0x3b2a20,.96),mat(0x453126,.96),mat(0x33251d,.96)];
+          const seamMat=mat(0x1d1713,1),ironMat=mat(0x292a29,.65,.35),rustMat=mat(0x584334,.88);
+          const doorW=width-.12,plankW=doorW/6;
+          for(let i=0;i<6;i++){
+            const px=.06+plankW*(i+.5);
+            addPart(new THREE.BoxGeometry(plankW-.018,2.2,.13),plankMats[i%plankMats.length],px,1.12,0);
+            addPart(new THREE.BoxGeometry(.012,2.12,.012),seamMat,.06+plankW*i,1.12,-.073,false);
+            for(let g=0;g<3;g++)addPart(new THREE.BoxGeometry(plankW*.58,.012,.014),rustMat,px,.48+g*.61,-.078,false);
+          }
+          for(const py of [.16,2.08]){
+            addPart(new THREE.BoxGeometry(width-.08,.16,.055),ironMat,width/2,py,-.09);
+            for(let i=0;i<5;i++)addPart(new THREE.SphereGeometry(.025,8,6),rustMat,.14+i*(width-.28)/4,py,-.125,false);
+          }
+          for(const px of [.08,width-.08])addPart(new THREE.BoxGeometry(.13,2.28,.06),doorEdge,px,1.12,-.085);
+          addPart(new THREE.BoxGeometry(.14,.34,.035),doorDark,width*.79,1.02,-.115,false);
+          addPart(new THREE.CylinderGeometry(.065,.065,.03,12),doorMetal,width*.79,1.04,-.14,false).rotation.x=Math.PI/2;
+          const lever=addPart(new THREE.CylinderGeometry(.022,.022,.16,10),doorMetal,width*.79-.06,1.04,-.17,false);lever.rotation.z=Math.PI/2;
+          for(const py of [.25,1.12,1.99]){
+            addPart(new THREE.BoxGeometry(.09,.22,.05),ironMat,.13,py,-.095,false);
+            addPart(new THREE.CylinderGeometry(.028,.028,.23,10),doorMetal,.13,py,-.13,false);
+          }
+          homeDoors.push({name,pivot,closedRotation:rotation,openRotation,open:false,blockX,blockZ,blockW,blockD});
+          return;
+        }
+        // Modelo atual das outras portas: painel de madeira envelhecida.
         addPart(new THREE.BoxGeometry(width-.1,2.22,.13),doorMat,width/2,1.12,0);
         // Travessas e montantes formam uma moldura de madeira espessa, em vez de linhas planas.
         for(const [px,pw] of [[.09,.14],[width/2,.09],[width-.09,.14]])addPart(new THREE.BoxGeometry(pw,2.18,.055),doorEdge,px,1.12,-.083);
