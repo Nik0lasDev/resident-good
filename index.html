@@ -142,7 +142,7 @@
     // A abertura começa em casa; o complexo passa a ser carregado após o primeiro confronto.
     let introActive=true,introPhase=0,introFlashlightTaken=false,introGunPicked=false,introTransitionAt=0;
     let introWalls=[];
-    let lightSwitchObject=null,wallGunObject=null;
+    let lightSwitchObject=null,wallGunObject=null,homeFlashlightPickup=null;
     // Dá ao jogador alguns segundos para se orientar antes de os infectados reagirem.
     let enemiesWakeAt=0;
     const enemyMaterials={skin:mat(0x8d8976,.98),shirt:mat(0x454a42,.99),pants:mat(0x343632,.99),armor:mat(0x252a28,.9),accent:mat(0x5b211d,.95),eyes:mat(0x9e2e22,.45)};
@@ -348,8 +348,15 @@
       // Interruptor montado na parede, com placa, tecla e pequeno parafuso.
       lightSwitchObject=new THREE.Group();lightSwitchObject.position.set(-11.82,1.35,-4.6);lightSwitchObject.rotation.y=Math.PI/2;scene.add(lightSwitchObject);roomObjects.push(lightSwitchObject);
       const switchPlate=new THREE.Mesh(new THREE.BoxGeometry(.22,.32,.055),mat(0xd4d0bf,.8));switchPlate.position.z=-.03;lightSwitchObject.add(switchPlate);
-      const switchToggle=new THREE.Mesh(new THREE.BoxGeometry(.07,.12,.035),mat(0x77766c,.65));switchToggle.position.set(0,0,-.065);lightSwitchObject.add(switchToggle);
+      const switchToggle=new THREE.Mesh(new THREE.BoxGeometry(.07,.12,.035),new THREE.MeshStandardMaterial({color:0xaaa991,roughness:.65,emissive:0x8d9b62,emissiveIntensity:.22}));switchToggle.position.set(0,0,-.065);lightSwitchObject.add(switchToggle);
       const switchScrew=new THREE.Mesh(new THREE.SphereGeometry(.012,8,6),metal);switchScrew.position.set(.07,.11,-.067);lightSwitchObject.add(switchScrew);
+      const switchGlow=new THREE.PointLight(0xc8e7a0,.16,1.35,2);switchGlow.position.set(0,0,-.16);lightSwitchObject.add(switchGlow);
+      // Lanterna física sobre o colchão: o jogador precisa chegar perto e pressionar F.
+      homeFlashlightPickup=new THREE.Group();homeFlashlightPickup.position.set(-9.5,.49,-6.35);homeFlashlightPickup.rotation.x=Math.PI/2;scene.add(homeFlashlightPickup);roomObjects.push(homeFlashlightPickup);
+      const pickupBody=new THREE.Mesh(new THREE.CylinderGeometry(.045,.052,.25,12),mat(0x252d30,.35,.72));pickupBody.rotation.x=Math.PI/2;homeFlashlightPickup.add(pickupBody);
+      const pickupHead=new THREE.Mesh(new THREE.CylinderGeometry(.062,.05,.075,12),mat(0x586267,.28,.8));pickupHead.rotation.x=Math.PI/2;pickupHead.position.z=-.145;homeFlashlightPickup.add(pickupHead);
+      const pickupLens=new THREE.Mesh(new THREE.CircleGeometry(.043,12),new THREE.MeshStandardMaterial({color:0xdce9bf,emissive:0xb9d78b,emissiveIntensity:.65,roughness:.3}));pickupLens.position.z=-.185;homeFlashlightPickup.add(pickupLens);
+      const pickupGlow=new THREE.PointLight(0xdce9bf,.22,1.8,2);pickupGlow.position.set(0,.02,-.1);homeFlashlightPickup.add(pickupGlow);
       // Cozinha: armários inferiores, bancada, pia, torneira e geladeira.
       box(3.8,.95,.85,wood,6.7,.35,-6.7);box(3.9,.08,.92,metal,6.7,.86,-6.7,false,false);
       for(let x=5.55;x<8.3;x+=1.05){box(.035,.68,.035,trim,x,.36,-6.25,false,false);box(.25,.035,.045,metal,x,.53,-6.19,false,false);}
@@ -424,7 +431,8 @@
         showToast('O INTERRUPTOR NÃO RESPONDE',1100);return;
       }
       if(introPhase===1){
-        introPhase=2;introFlashlightTaken=true;weaponIndex=flashlightIndex;weapons.forEach(w=>w.model.visible=false);flashlightModel.visible=true;updateFlashlightUI();ui.weapon.textContent='LANTERNA';ui.status.textContent='LANTERNA EQUIPADA';document.getElementById('story-text').textContent='Pego a lanterna no criado-mudo. Preciso descobrir de onde veio aquele barulho.';document.getElementById('story-hint').textContent='';setTimeout(()=>{document.getElementById('story-box').style.display='none';},2600);ui.objectiveTitle.textContent='Vá até a cozinha';ui.objectiveDetail.textContent='Saia do quarto e investigue o estrondo.';ui.objectivePrompt.textContent='SIGA PARA A COZINHA';return;
+        if(Math.hypot(px+9.5,pz+6.35)>1.75){showToast('A LANTERNA ESTÁ EM CIMA DA CAMA · APROXIME-SE E PRESSIONE F',1500);return;}
+        introPhase=2;introFlashlightTaken=true;if(homeFlashlightPickup)homeFlashlightPickup.visible=false;weaponIndex=flashlightIndex;weapons.forEach(w=>w.model.visible=false);flashlightModel.visible=true;updateFlashlightUI();ui.weapon.textContent='LANTERNA';ui.status.textContent='LANTERNA EQUIPADA';document.getElementById('story-text').textContent='Pego a lanterna em cima da cama. Preciso descobrir de onde veio aquele barulho.';document.getElementById('story-hint').textContent='';setTimeout(()=>{document.getElementById('story-box').style.display='none';},2600);ui.objectiveTitle.textContent='Vá até a cozinha';ui.objectiveDetail.textContent='Saia do quarto e investigue o estrondo.';ui.objectivePrompt.textContent='SIGA PARA A COZINHA';return;
       }
       if(introPhase>=2&&!introGunPicked&&Math.hypot(px-10.8,pz+2.2)<2.1){
         introGunPicked=true;wallGunObject.visible=false;weaponIndex=0;weapons[0].magazine=6;weapons[0].reserve=0;magazine=6;reserve=0;weapons.forEach((w,i)=>w.model.visible=i===0);flashlightModel.visible=false;flashlightSpot.intensity=0;updateAmmo();updateFlashlightUI();ui.weapon.textContent=weapons[0].name;ui.status.textContent='6 MUNIÇÕES · SEM RESERVA';ui.objectiveTitle.textContent='Defenda-se do invasor';ui.objectiveDetail.textContent='Use as 6 munições para eliminar o inimigo na cozinha.';ui.objectivePrompt.textContent='CLIQUE PARA ATIRAR';showToast('PISTOLA RECOLHIDA · 6 MUNIÇÕES',1700);return;
