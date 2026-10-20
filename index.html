@@ -1065,7 +1065,8 @@
       pitch=clamp(pitch-e.movementY*.0022,-1.25,1.25);
     });
     document.addEventListener('keydown',e=>{
-      if(['KeyW','KeyA','KeyS','KeyD','ShiftLeft','ShiftRight','Space','KeyR','KeyE'].includes(e.code))e.preventDefault();
+      if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowLeft','ArrowDown','ArrowRight','ShiftLeft','ShiftRight','Space','KeyR','KeyE'].includes(e.code))e.preventDefault();
+      if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowLeft','ArrowDown','ArrowRight'].includes(e.code) && !locked && window.__residentStartFallback)locked=true;
       keys.add(e.code);
       if(e.code==='Space' && locked && !e.repeat && camera.position.y <= groundY + 0.001){
         verticalVelocity = jumpVelocity;
@@ -1309,7 +1310,7 @@
       shotgun.position.y=gun.position.y; rifle.position.y=gun.position.y;
       gun.rotation.x=-recoil*1.5; shotgun.rotation.x=-recoil*1.5; rifle.rotation.x=-recoil*1.5;
       camera.rotation.order='YXZ';camera.rotation.set(pitch-recoil*.45,yaw,0);
-      if(locked){
+      if(locked || window.__residentStartFallback){
         // Gravidade e salto: o jogador só pode iniciar outro salto ao tocar o chão.
         verticalVelocity -= gravity * dt;
         camera.position.y += verticalVelocity * dt;
@@ -1321,10 +1322,10 @@
         const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
         const right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
         const move=new THREE.Vector3();
-        if(keys.has('KeyW'))move.add(forward);
-        if(keys.has('KeyS'))move.sub(forward);
-        if(keys.has('KeyD'))move.add(right);
-        if(keys.has('KeyA'))move.sub(right);
+        if(keys.has('KeyW')||keys.has('ArrowUp'))move.add(forward);
+        if(keys.has('KeyS')||keys.has('ArrowDown'))move.sub(forward);
+        if(keys.has('KeyD')||keys.has('ArrowRight'))move.add(right);
+        if(keys.has('KeyA')||keys.has('ArrowLeft'))move.sub(right);
         if(move.lengthSq()>0){
           move.normalize().multiplyScalar(speed*dt);
           const nextX=clamp(camera.position.x+move.x,-currentRoom.w/2+1,currentRoom.w/2-1);
