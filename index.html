@@ -308,6 +308,7 @@
       updateHealth();
     }
     function initFacility(){
+      scene.background.set(0x9aa5a8);scene.fog.color.set(0x9aa5a8);
       introActive=false;
       currentRoom={name:'COMPLEXO ARKLAY',w:56,d:44,doors:[],decor:0};roomIndex=1;
       document.getElementById('story-box').style.display='none';
@@ -318,6 +319,8 @@
       showToast('EXPLORE O COMPLEXO E SOBREVIVA',1800);
     }
     function buildHome(){
+      // O céu visível fora da casa usa a mesma cor base das paredes.
+      scene.background.set(0x777064);scene.fog.color.set(0x777064);
       // Casa reconstruída como uma única planta explorável, com leitura visual de survival horror.
       currentRoom={name:'CASA',w:24,d:18,doors:[],decor:0};roomIndex=0;introWalls=[];
       const floor=mat(0x403c36,.96),wall=mat(0x777064,.96),wallDark=mat(0x514d45,.98),trim=mat(0x292a26,.9),ceiling=mat(0x252724,.98),wood=mat(0x514033,.9),woodLight=mat(0x725941,.92),fabric=mat(0x45484a,.99),metal=mat(0x555b59,.55,.35),glass=mat(0x202b2d,.3,.25);
