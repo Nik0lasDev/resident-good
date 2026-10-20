@@ -618,7 +618,7 @@
     // Clona somente as peças da pistola original, antes de adicionar os braços do jogador.
     // Assim a arma da parede usa exatamente a mesma geometria e os mesmos materiais.
     const wallPistolModel=gun.clone(true);
-    wallPistolModel.position.set(0,.02,-.12);
+    wallPistolModel.position.set(0,.02,-.19);
     wallPistolModel.rotation.set(0,0,0);
     wallPistolModel.scale.set(2.25,2.25,2.25);
     wallPistolModel.traverse(part=>{if(part.isMesh){part.castShadow=true;part.receiveShadow=true;part.renderOrder=2;part.frustumCulled=false;}});
