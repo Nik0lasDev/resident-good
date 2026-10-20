@@ -142,6 +142,7 @@
     // A abertura começa em casa; o complexo passa a ser carregado após o primeiro confronto.
     let introActive=true,introPhase=0,introFlashlightTaken=false,introGunPicked=false,introTransitionAt=0;
     let introWalls=[];
+    let homeDoors=[];
     let lightSwitchObject=null,wallGunObject=null,homeFlashlightPickup=null;
     // Dá ao jogador alguns segundos para se orientar antes de os infectados reagirem.
     let enemiesWakeAt=0;
@@ -210,6 +211,7 @@
     function clearRoom(){
       for(const object of roomObjects)scene.remove(object);
       roomObjects.length=0;
+      homeDoors=[];
       for(const e of enemies)scene.remove(e.root);
       enemies.length=0;
       for(const orb of activeEnemyOrbs)scene.remove(orb.mesh);
@@ -326,13 +328,29 @@
       for(let x=-11.2;x<11.5;x+=3.8){for(let z=-8.3;z<8.4;z+=2.3)box(.018,.013,1.12,floorSeam,x,.003,z,false,false);}
       for(const [x,z,w,d] of [[-7,-7,1.3,.035],[1.5,-3.5,.8,.025],[3.2,5.2,1.1,.025],[9,-2,.65,.025],[-3,7,.9,.025]])box(w,.008,d,floorWear,x,.004,z,false,false);
       // Paredes exteriores e divisórias baixas mantêm o percurso conectado dentro do mesmo mapa.
-      const walls=[[0,-9,24,.3],[-6.8,9,10.4,.3],[6.8,9,10.4,.3],[-12,0,.3,18],[12,0,.3,18],[-.1,-5, .3,8],[-.1,5,.3,8],[2.8,0,5.6,.3],[9.6,0,4.8,.3]];
+      const walls=[[-3,-9,18,.3],[9,-9,6,.3],[-4.8,9,6.4,.3],[6.8,9,10.4,.3],[-12,-3,.3,12],[-10,3,4,.3],[-8,6,.3,6],[12,0,.3,18],[-.1,-5,.3,8],[-.1,5,.3,8],[2.8,0,5.6,.3],[9.6,0,4.8,.3]];
       for(const [x,z,w,d] of walls){
         box(w,3.4,d,wall,x,1.5,z);
         box(w,.12,d+.05,trim,x,3.18,z,false,false);
         box(w,.16,d+.055,wallDark,x,.02,z,false,false);
         introWalls.push([x,z,w,d]);
       }
+      // Portas com dobradiças visíveis: entrada, quarto e passagem entre cozinha e sala.
+      homeDoors=[];
+      const doorMat=mat(0x382b22,.88),doorInset=mat(0x594333,.9),doorMetal=mat(0x77736a,.48,.55);
+      function addHomeDoor({name,x,z,width,rotation=0,openRotation,blockX,blockZ,blockW,blockD}){
+        const pivot=new THREE.Group();pivot.position.set(x,0,z);pivot.rotation.y=rotation;scene.add(pivot);roomObjects.push(pivot);
+        const panel=new THREE.Mesh(new THREE.BoxGeometry(width,2.25,.13),doorMat);panel.position.set(width/2,1.12,0);panel.castShadow=true;panel.receiveShadow=true;pivot.add(panel);
+        for(const y of [.48,1.75]){const inset=new THREE.Mesh(new THREE.BoxGeometry(width*.72,.42,.025),doorInset);inset.position.set(width/2,y,-.078);pivot.add(inset);}
+        const handle=new THREE.Mesh(new THREE.SphereGeometry(.055,10,8),doorMetal);handle.position.set(width*.82,1.05,-.105);pivot.add(handle);
+        for(const y of [.28,1.92]){const hinge=new THREE.Mesh(new THREE.BoxGeometry(.055,.16,.18),doorMetal);hinge.position.set(.035,y,0);pivot.add(hinge);}
+        homeDoors.push({name,pivot,closedRotation:rotation,openRotation,open:false,blockX,blockZ,blockW,blockD});
+      }
+      addHomeDoor({name:'porta de entrada',x:-1.4,z:8.84,width:2.8,rotation:0,openRotation:-Math.PI/2,blockX:0,blockZ:8.84,blockW:2.8,blockD:.24});
+      addHomeDoor({name:'porta do quarto',x:-.1,z:-1,width:2,rotation:-Math.PI/2,openRotation:0,blockX:-.1,blockZ:0,blockW:.24,blockD:2});
+      addHomeDoor({name:'porta da cozinha',x:5.6,z:0,width:1.6,rotation:0,openRotation:-Math.PI/2,blockX:6.4,blockZ:0,blockW:1.6,blockD:.24});
+      // O canto inferior esquerdo recuado dá à casa uma planta em L, em vez de um retângulo simples.
+      box(.32,3.4,6,wallDark,-8,1.5,6);box(4,.08,.32,wallDark,-10,3,3);
       // Teto contínuo e fechado; moldura e juntas reforçam a altura e a leitura arquitetónica.
       box(24,.3,18,ceiling,0,3.35,0,false,true);
       const ceilingSeam=mat(0x343631,.98);
@@ -378,7 +396,7 @@
       box(1.45,2.1,.12,doorWood,.72,1.0,8.55,false,false);box(.07,.18,.05,handleMat,.18,1.0,8.46,false,false);
       for(const y of [.45,1.65])box(.035,.12,.035,metal,1.38,y,8.48,false,false);
       box(.16,2.35,.16,doorTrim,4.55,1.1,0,false,false);box(.16,2.35,.16,doorTrim,7.95,1.1,0,false,false);box(3.55,.16,.16,doorTrim,6.25,2.28,0,false,false);
-      box(.12,2.05,1.05,doorWood,4.95,1.0,.32,false,false);box(.05,.16,.08,handleMat,4.9,1.0,-.22,false,false);
+      // A antiga porta decorativa desalinhada foi substituída pelas portas funcionais acima.
       // Arma de parede na cozinha, destacada por um suporte gasto.
       wallGunObject=new THREE.Group();wallGunObject.position.set(10.8,1.5,-2.2);scene.add(wallGunObject);roomObjects.push(wallGunObject);
       const gunMount=new THREE.Mesh(new THREE.BoxGeometry(.48,.72,.08),wood);wallGunObject.add(gunMount);
@@ -426,6 +444,12 @@
     }
     function interactIntro(){
       const px=camera.position.x,pz=camera.position.z;
+      for(const door of homeDoors){
+        if(Math.hypot(px-door.blockX,pz-door.blockZ)<1.65){
+          door.open=!door.open;door.pivot.rotation.y=door.open?door.openRotation:door.closedRotation;
+          showToast((door.open?'ABRIU: ':'FECHOU: ')+door.name.toUpperCase(),1000);return;
+        }
+      }
       if(introPhase===0&&Math.hypot(px+11.2,pz+4.6)<2.0){
         introPhase=1;document.getElementById('story-title').textContent='PENSAMENTO';document.getElementById('story-text').textContent='Que estranho, acho melhor conferir a bateria lá fora...';document.getElementById('story-hint').textContent='[F] PEGAR A LANTERNA';document.getElementById('story-box').style.display='block';
         showToast('O INTERRUPTOR NÃO RESPONDE',1100);return;
@@ -1045,6 +1069,9 @@
     const minimapCanvas=document.getElementById('minimap');
     const minimapCtx=minimapCanvas.getContext('2d');
     function blockedByFacilityWall(x,z,radius=.38){
+      if(introActive){
+        for(const door of homeDoors){if(!door.open&&x+radius>door.blockX-door.blockW/2&&x-radius<door.blockX+door.blockW/2&&z+radius>door.blockZ-door.blockD/2&&z-radius<door.blockZ+door.blockD/2)return true;}
+      }
       const activeWalls=introActive?introWalls:facilityWalls;
       for(const [wx,wz,ww,wd] of activeWalls){
         if(x+radius>wx-ww/2&&x-radius<wx+ww/2&&z+radius>wz-wd/2&&z-radius<wz+wd/2)return true;
