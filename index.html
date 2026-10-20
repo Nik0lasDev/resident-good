@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <meta name="theme-color" content="#101419">
-  <title>Resident Good — FPS Teste</title>
+  <title>Resident Good — Capítulo 1: Sinal de Contenção</title>
   <style>
     :root{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
     *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101419;color:#f4f6f8}
@@ -13,6 +13,11 @@
     .panel{background:linear-gradient(135deg,rgba(15,20,25,.9),rgba(15,20,25,.65));border:1px solid rgba(220,230,238,.15);box-shadow:0 8px 28px #0003;backdrop-filter:blur(8px);border-radius:10px}
     #brand{position:absolute;left:22px;top:20px;padding:11px 14px;letter-spacing:.12em;font-size:11px;font-weight:800;color:#c8d1d8}
     #brand span{color:#e5a15a}
+    #chapter-objective{position:absolute;left:22px;top:92px;width:min(300px,45vw);padding:11px 13px;border-left:3px solid #c64a3c;pointer-events:none}
+    .chapter-kicker{font-size:9px;letter-spacing:.16em;color:#e5a15a;font-weight:900;margin-bottom:7px}
+    #objective-title{font-size:13px;font-weight:900;color:#f3f1eb;margin-bottom:4px}
+    #objective-detail{font-size:11px;line-height:1.45;color:#b8c0c3}
+    #objective-prompt{font-size:10px;color:#e5a15a;font-weight:800;margin-top:7px;min-height:12px}
     #target{position:absolute;top:20px;left:50%;transform:translateX(-50%);width:min(310px,55vw);padding:12px 15px}
     #player-vitals{position:absolute;right:22px;top:20px;width:170px;padding:11px 13px}
     #player-fill{height:100%;width:100%;background:linear-gradient(90deg,#3d9b67,#8acb77);transition:width .15s}
@@ -51,13 +56,14 @@
     .tip b{color:#f5f6f7;display:block;margin-bottom:4px}
     #toast{position:absolute;left:50%;top:68%;transform:translate(-50%,-50%);font-size:11px;letter-spacing:.13em;font-weight:900;color:#e5a15a;text-shadow:0 2px 10px #000;opacity:0;transition:opacity .15s}
     #mobile-note{display:none}
-    @media(max-width:650px){#brand{left:10px;top:10px;padding:8px;font-size:9px}#target{top:10px;width:48vw;padding:9px 10px}.target-row{font-size:10px}#player-vitals{right:10px;top:10px;width:105px;padding:8px}#bottom-left{left:10px;bottom:10px;padding:10px;min-width:110px}#ammo{font-size:21px}#help{right:10px;bottom:10px;padding:9px;font-size:9px}#mobile-note{display:block;font-size:10px;color:#e5a15a;margin-top:8px}}
+    @media(max-width:650px){#chapter-objective{left:10px;top:58px;width:min(210px,48vw);padding:8px 9px}#objective-title{font-size:11px}#objective-detail{font-size:9px}.chapter-kicker{font-size:7px}#brand{left:10px;top:10px;padding:8px;font-size:9px}#target{top:10px;width:48vw;padding:9px 10px}.target-row{font-size:10px}#player-vitals{right:10px;top:10px;width:105px;padding:8px}#bottom-left{left:10px;bottom:10px;padding:10px;min-width:110px}#ammo{font-size:21px}#help{right:10px;bottom:10px;padding:9px;font-size:9px}#mobile-note{display:block;font-size:10px;color:#e5a15a;margin-top:8px}}
   </style>
 </head>
 <body>
   <div id="hud">
     <div id="minimap-wrap"><div id="minimap-title">MAPA DO COMPLEXO <span id="minimap-room">ARKLAY</span></div><canvas id="minimap" width="220" height="180" aria-label="Minimapa da sala atual"></canvas></div>
-    <div id="brand" class="panel">RESIDENT <span>GOOD</span> <span style="color:#89949c">/ FPS TEST</span></div>
+    <div id="brand" class="panel">RESIDENT <span>GOOD</span> <span style="color:#89949c">/ CAPÍTULO 01</span></div>
+    <div id="chapter-objective" class="panel"><div class="chapter-kicker">CAPÍTULO 01 · SINAL DE CONTENÇÃO</div><div id="objective-title">Encontre o cartão de acesso</div><div id="objective-detail">Procure na recepção por um cartão que libere os setores internos.</div><div id="objective-prompt">OBJETIVO ATIVO</div></div>
     <div id="target" class="panel">
       <div class="target-row"><span>AMEAÇAS HOSTIS</span><span id="health-label" class="muted">4 ATIVOS</span></div>
       <div class="bar"><div id="health-fill"></div></div>
@@ -74,16 +80,16 @@
   </div>
   <div id="overlay">
     <div id="intro">
-      <div class="tag"><span class="dot"></span> PROTÓTIPO JOGÁVEL · BUILD 0.1</div>
-      <h1>Teste de combate<br>em primeira pessoa.</h1>
-      <p>Explore um complexo de contenção abandonado, atravesse corredores e setores de pesquisa e sobreviva a oito inimigos. Mire, dispare, recarregue e mantenha distância.</p>
+      <div class="tag"><span class="dot"></span> RESIDENT GOOD · CAMPANHA</div>
+      <h1>Capítulo 1<br><span style="color:#e5a15a">Sinal de Contenção</span></h1>
+      <p>03:17 da madrugada. Uma chamada de emergência levou você ao Complexo Arklay. A equipe de segurança não responde, as portas estão travadas e algo se move nos corredores. Encontre o cartão de acesso, restaure a energia do laboratório e chegue à doca de evacuação.</p>
       <div class="tips">
-        <div class="tip"><b>01 / MOVIMENTO</b>WASD + mouse</div>
-        <div class="tip"><b>02 / COMBATE</b>Clique para disparar</div>
-        <div class="tip"><b>03 / MUNIÇÃO</b>12 tiros por carregador</div>
-        <div class="tip"><b>04 / AMEAÇAS</b>4 inimigos · ataques corpo a corpo</div>
+        <div class="tip"><b>01 / MOVIMENTO</b>WASD · Shift corre</div>
+        <div class="tip"><b>02 / COMBATE</b>Mire na cabeça · clique atira</div>
+        <div class="tip"><b>03 / SOBREVIVÊNCIA</b>R recarrega · E troca arma</div>
+        <div class="tip"><b>04 / OBJETIVOS</b>F interage com itens e terminais</div>
       </div>
-      <button id="start">ENTRAR NO TESTE</button>
+      <button id="start">INICIAR CAPÍTULO</button>
       <div id="mobile-note">Para este teste, use teclado e mouse em um computador.</div>
     </div>
   </div>
@@ -373,28 +379,26 @@
       const placements=[
         [-20,-11],[-3,-10],[16,-10],[23,7],[-20,12],[-6,17],[8,17],[20,19]
       ];
-      const types=['soldier','runner','ranged','brute','soldier','ranged','runner','brute'];
+      const types=['walker','runner','spitter','brute','walker','spitter','runner','brute'];
       for(let i=0;i<placements.length;i++){
         const [x,z]=placements[i],e=makeEnemy(x,z,i%4);
         e.type=types[i];
-        e.maxHp=e.type==='brute'?180:e.type==='runner'?65:e.type==='ranged'?80:100;e.hp=e.maxHp;
-        e.speed=e.type==='runner'?2.8:e.type==='brute'?.72:e.type==='ranged'?1.05:1.45;
-        e.attackDamage=e.type==='brute'?16:e.type==='runner'?5:e.type==='ranged'?4:8;
-        e.attackRange=e.type==='ranged'?5:1.28;
-        e.healthFill.material.color.set(e.type==='brute'?0xb84c39:e.type==='runner'?0xe0bd59:e.type==='ranged'?0x68a8d2:0xc84b40);
-        if(e.type==='brute')e.root.scale.setScalar(1.28);
-        if(e.type==='runner')e.root.scale.set(.82,1,.82);
-        if(e.type==='ranged'){
-          const glow=new THREE.Mesh(new THREE.SphereGeometry(.09,8,6),new THREE.MeshBasicMaterial({color:0x68a8d2}));
-          glow.position.set(0,1.6,-.23);e.root.add(glow);e.parts.push(glow);
+        e.maxHp=e.type==='brute'?190:e.type==='runner'?62:e.type==='spitter'?86:105;e.hp=e.maxHp;
+        e.speed=e.type==='runner'?2.8:e.type==='brute'?.72:e.type==='spitter'?1.05:1.2;
+        e.attackDamage=e.type==='brute'?16:e.type==='runner'?5:e.type==='spitter'?7:9;
+        e.attackRange=e.type==='spitter'?5:1.28;
+        e.healthFill.material.color.set(e.type==='brute'?0x8e3028:e.type==='runner'?0xd8a64c:e.type==='spitter'?0x7e9c5b:0xa63b30);
+        if(e.type==='spitter'){
+          const glow=new THREE.Mesh(new THREE.SphereGeometry(.07,8,6),new THREE.MeshBasicMaterial({color:0x9bc46c}));
+          glow.position.set(0,1.5,-.22);e.root.add(glow);e.parts.push(glow);
         }
       }
       updateHealth();
     }
     function initFacility(){
       clearRoom();camera.position.set(0,groundY,0);
-      buildFacilityMap();spawnFacilityEnemies();
-      showToast('COMPLEXO ARKLAY · SETOR DE CONTENÇÃO',1800);
+      buildFacilityMap();spawnFacilityEnemies();createChapterObjects();
+      showToast('CAPÍTULO 1 · SINAL DE CONTENÇÃO',1800);
     }
     function tryRoomExit(){return false;}
     // Inicialização adiada até HUD e física estarem prontos.
@@ -613,6 +617,7 @@
     }
     const ui = {
       overlay:document.getElementById('overlay'), start:document.getElementById('start'),
+      objectiveTitle:document.getElementById('objective-title'), objectiveDetail:document.getElementById('objective-detail'), objectivePrompt:document.getElementById('objective-prompt'),
       ammo:document.getElementById('ammo'), status:document.getElementById('status'),
       health:document.getElementById('health-fill'), healthLabel:document.getElementById('health-label'),
       playerHealth:document.getElementById('player-fill'), playerHealthLabel:document.getElementById('player-health-label'),
@@ -620,6 +625,38 @@
       toast:document.getElementById('toast'), weapon:document.getElementById('weapon-name')
     };
     let hp=100, playerHp=100, magazine=12, reserve=48, reloading=false, reloadEnd=0, lastShot=0, locked=false, yaw=0, pitch=0, recoil=0, muzzleEnd=0, hitEnd=0, toastEnd=0;
+    let chapterStage=0, chapterComplete=false, chapterObjects=[];
+    const chapterSteps=[
+      {title:'Encontre o cartão de acesso',detail:'Procure na recepção por um cartão que libere os setores internos.',position:new THREE.Vector3(-20,0,-17)},
+      {title:'Restaure a energia',detail:'Ative o terminal auxiliar no laboratório para destravar a doca.',position:new THREE.Vector3(18,0,-17)},
+      {title:'Chegue à doca de evacuação',detail:'A saída de serviço fica no extremo leste do complexo. Não pare agora.',position:new THREE.Vector3(24,0,18)}
+    ];
+    function updateChapterUI(){
+      if(chapterComplete){ui.objectiveTitle.textContent='CAPÍTULO CONCLUÍDO';ui.objectiveDetail.textContent='Você escapou do Complexo Arklay. Fim do Capítulo 1.';ui.objectivePrompt.textContent='CAMPANHA · 01 / 01';return;}
+      const step=chapterSteps[chapterStage];ui.objectiveTitle.textContent=step.title;ui.objectiveDetail.textContent=step.detail;
+      const d=Math.hypot(camera.position.x-step.position.x,camera.position.z-step.position.z);
+      ui.objectivePrompt.textContent=d<2.4?'[F] INTERAGIR':'OBJETIVO ATIVO';
+    }
+    function createChapterObjects(){
+      chapterObjects.forEach(o=>scene.remove(o));chapterObjects=[];
+      const colors=[0xe5a15a,0x5bba8b,0xc94a3d];
+      chapterSteps.forEach((step,i)=>{
+        const beacon=new THREE.Group();beacon.position.copy(step.position);
+        const base=new THREE.Mesh(new THREE.CylinderGeometry(.34,.42,.08,16),mat(0x292f30,.55,.25));base.position.y=.04;beacon.add(base);
+        const crystal=new THREE.Mesh(new THREE.OctahedronGeometry(.18,0),new THREE.MeshStandardMaterial({color:colors[i],emissive:colors[i],emissiveIntensity:.8,roughness:.35}));crystal.position.y=.72;beacon.add(crystal);
+        const beam=new THREE.Mesh(new THREE.CylinderGeometry(.035,.12,1.2,8,1,true),new THREE.MeshBasicMaterial({color:colors[i],transparent:true,opacity:.16,depthWrite:false}));beam.position.y=.65;beacon.add(beam);
+        scene.add(beacon);chapterObjects.push(beacon);
+      });updateChapterUI();
+    }
+    function interactChapter(){
+      if(chapterComplete)return;
+      const step=chapterSteps[chapterStage],d=Math.hypot(camera.position.x-step.position.x,camera.position.z-step.position.z);
+      if(d>2.4){showToast('CHEGUE PERTO DO MARCADOR DO OBJETIVO',800);return;}
+      if(chapterStage===0)showToast('CARTÃO ENCONTRADO · ACESSO PARCIAL LIBERADO',1500);
+      else if(chapterStage===1)showToast('ENERGIA RESTAURADA · DOCA DESTRAVADA',1500);
+      else{chapterComplete=true;chapterObjects[chapterStage].visible=false;updateChapterUI();showToast('CAPÍTULO 1 CONCLUÍDO · SINAL DE CONTENÇÃO',2600);return;}
+      chapterObjects[chapterStage].visible=false;chapterStage++;updateChapterUI();
+    }
     const keys = new Set();
     // Física vertical simples para o salto em primeira pessoa.
     const groundY = 1.68;
@@ -677,6 +714,7 @@
       }
       if(e.code==='KeyR'&&!e.repeat)reload();
       if(e.code==='KeyE'&&!e.repeat && locked)switchWeapon();
+      if(e.code==='KeyF'&&!e.repeat && locked)interactChapter();
     });
     document.addEventListener('keyup',e=>keys.delete(e.code));
     document.addEventListener('mousedown',e=>{
@@ -796,7 +834,7 @@
       }
       if(now>muzzleEnd)muzzleFlash.visible=false;
       updateBullets(dt);
-      if(locked){updateEnemies(dt,now);updateEnemyOrbs(dt);}
+      if(locked){updateEnemies(dt,now);updateEnemyOrbs(dt);updateChapterUI();}
       if(now>hitEnd)ui.hitmarker.style.opacity='0';
       if(now>toastEnd)ui.toast.style.opacity='0';
       recoil=Math.max(0,recoil-dt*.7);
@@ -863,7 +901,7 @@
       }
       for(const enemy of enemies){
         if(!enemy.alive)continue;
-        ctx.fillStyle=enemy.type==='brute'?'#ff704d':enemy.type==='ranged'?'#68c5ff':enemy.type==='runner'?'#f4d35e':'#ff5b55';
+        ctx.fillStyle=enemy.type==='brute'?'#ff704d':enemy.type==='spitter'?'#9bc46c':enemy.type==='runner'?'#f4d35e':'#ff5b55';
         ctx.beginPath();ctx.arc(px(enemy.root.position.x),pz(enemy.root.position.z),3.2,0,Math.PI*2);ctx.fill();
       }
       const x=px(camera.position.x),y=pz(camera.position.z);
