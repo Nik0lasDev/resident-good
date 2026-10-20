@@ -320,7 +320,7 @@
       const floor=mat(0x49443d,.95),wall=mat(0x777064,.95),trim=mat(0x393831,.85),ceiling=mat(0x292a27,.95),wood=mat(0x554337,.88),fabric=mat(0x494c50,.98),metal=mat(0x555b59,.55,.35);
       box(24,.35,18,floor,0,-.2,0,false,true);
       // Paredes externas e uma divisória com vão aberto entre quarto e cozinha.
-      const walls=[ [0, -9,24,.3],[0,9,24,.3],[-12,0,.3,18],[12,0,.3,18],[-.1,-5.65,.3,6.7],[-.1,5.65,.3,6.7] ];
+      const walls=[ [0,-9,24,.3],[-6.8,9,10.4,.3],[6.8,9,10.4,.3],[-12,0,.3,18],[12,0,.3,18],[-.1,-5.65,.3,6.7],[-.1,5.65,.3,6.7],[2.25,0,4.5,.3],[10,0,4,.3] ];
       for(const [x,z,w,d] of walls){box(w,3.4,d,wall,x,1.5,z);box(w,.12,d+.04,trim,x,3.18,z,false,false);introWalls.push([x,z,w,d]);}
       box(24,.3,18,ceiling,0,3.35,0,false,true);
       // Quarto: cama, cabeceira, criado-mudo e interruptor visível na parede.
@@ -329,10 +329,19 @@
       lightSwitchObject=new THREE.Group();lightSwitchObject.position.set(-10.8,1.35,-3.5);scene.add(lightSwitchObject);roomObjects.push(lightSwitchObject);
       const switchPlate=new THREE.Mesh(new THREE.BoxGeometry(.22,.32,.055),mat(0xd4d0bf,.8),);switchPlate.position.z=-.03;lightSwitchObject.add(switchPlate);
       const switchToggle=new THREE.Mesh(new THREE.BoxGeometry(.07,.12,.035),mat(0x77766c,.65));switchToggle.position.set(0,0,-.065);lightSwitchObject.add(switchToggle);
-      // Cozinha: balcão, pia e geladeira para marcar claramente a segunda área.
+      // Cozinha: balcão, pia e geladeira na parte superior direita da casa.
       box(3.8,.95,.85,wood,6.7,.35,-6.7);box(3.9,.08,.92,metal,6.7,.86,-6.7,false,false);
       box(1.15,2.3,.95,mat(0xb6b5aa,.82),10.1,1.0,-6.7);box(.8,.12,.08,metal,10.1,1.8,-6.2,false,false);
-      box(2.8,.9,.7,wood,7.2,.3,6.5);box(1.1,.08,.55,metal,7.2,.8,6.5,false,false);
+      // Sala de estar na parte inferior direita: sofá, mesa baixa e televisão.
+      box(3.0,.72,.95,fabric,8.8,.36,5.9);box(3.0,.3,.28,fabric,8.8,.82,5.48);box(.22,.65,.95,fabric,7.35,.45,5.9);box(.22,.65,.95,fabric,10.25,.45,5.9);
+      box(1.8,.28,.85,wood,8.4,.25,3.65);box(2.2,1.25,.18,mat(0x242625,.35,.3),8.8,1.05,1.2);box(.9,.12,.35,wood,8.8,.06,1.2);
+      // Porta de entrada: vão real na parede externa e folha aberta junto à parede.
+      const doorWood=mat(0x39291f,.9),doorTrim=mat(0x241d18,.85),handleMat=mat(0xb0a17d,.4,.65);
+      box(.16,2.45,.16,doorTrim,-.9,1.12,8.86,false,false);box(.16,2.45,.16,doorTrim,.9,1.12,8.86,false,false);box(1.95,.16,.16,doorTrim,0,2.38,8.86,false,false);
+      box(1.45,2.1,.12,doorWood,.72,1.0,8.55,false,false);box(.07,.18,.05,handleMat,.18,1.0,8.46,false,false);
+      // Segunda porta entre cozinha e sala de estar, colocada no vão da divisória.
+      box(.16,2.35,.16,doorTrim,4.55,1.1,0,false,false);box(.16,2.35,.16,doorTrim,7.95,1.1,0,false,false);box(3.55,.16,.16,doorTrim,6.25,2.28,0,false,false);
+      box(.12,2.05,1.05,doorWood,4.95,1.0,.32,false,false);box(.05,.16,.08,handleMat,4.9,1.0,-.22,false,false);
       // Arma montada na parede da cozinha; será recolhida com F.
       wallGunObject=new THREE.Group();wallGunObject.position.set(10.8,1.5,-2.2);scene.add(wallGunObject);roomObjects.push(wallGunObject);
       const gunMount=new THREE.Mesh(new THREE.BoxGeometry(.48,.72,.08),wood);wallGunObject.add(gunMount);
