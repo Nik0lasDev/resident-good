@@ -1022,8 +1022,8 @@
             e.torso.rotation.x=.28+Math.sin(now*.006)*.025;
             e.head.rotation.x=.32+Math.max(0,Math.sin(now*.012))*.14;
             e.jaw.rotation.x=.55+Math.max(0,Math.sin(now*.018+e.phase))*.2;
-            e.limbs.leftArm.rotation.x=1.05+Math.sin(now*.009)*.06;
-            e.limbs.rightArm.rotation.x=.92+Math.sin(now*.01+1)*.06;
+            e.limbs.leftArm.rotation.x=(e.isPaleStalker?.76:1.05)+Math.sin(now*.009)*.035;
+            e.limbs.rightArm.rotation.x=(e.isPaleStalker?.68:.92)+Math.sin(now*.01+1)*.035;
             e.limbs.leftLeg.rotation.x=.48;e.limbs.rightLeg.rotation.x=.62;
             continue;
           }
@@ -1035,8 +1035,8 @@
           e.torso.rotation.x=.28*(1-smooth)-.13*smooth;
           e.head.rotation.x=.32*(1-smooth);
           e.limbs.leftLeg.rotation.x=.48*(1-smooth);e.limbs.rightLeg.rotation.x=.62*(1-smooth);
-          e.limbs.leftArm.rotation.x=1.05*(1-smooth)-.16*smooth;
-          e.limbs.rightArm.rotation.x=.92*(1-smooth)-.16*smooth;
+          e.limbs.leftArm.rotation.x=(e.isPaleStalker?.76:1.05)*(1-smooth)-.12*smooth;
+          e.limbs.rightArm.rotation.x=(e.isPaleStalker?.68:.92)*(1-smooth)-.18*smooth;
           e.jaw.rotation.x=.55*(1-smooth)+.28*smooth+Math.max(0,Math.sin(now*.009+e.phase))*.12;
           // O braço sai da boca, voa por um instante e cai ao lado do infectado.
           if(t<.28){e.armProp.visible=true;e.droppedArm.visible=false;}
@@ -1088,19 +1088,20 @@
           e.gaitPhase+=dt*gaitRate*(speed/1.6);
           const walk=Math.sin(e.gaitPhase),opposite=Math.sin(e.gaitPhase+Math.PI);
           const stride=Math.min(1,distance/2.2);
-          e.root.position.y=Math.max(0,Math.sin(e.gaitPhase*2))*(e.type==='brute'?.035:.026)*stride;
-          e.root.rotation.z=Math.sin(e.gaitPhase)*.045*stride;
-          e.root.rotation.x=-.035-Math.max(0,walk)*.035*stride;
-          e.torso.rotation.x=-.13+Math.sin(e.gaitPhase)*.055*stride;
-          e.torso.rotation.z=Math.sin(e.gaitPhase+Math.PI/2)*.035*stride;
-          e.limbs.leftLeg.rotation.x=walk*(e.type==='runner'?.72:.56)*stride;
-          e.limbs.rightLeg.rotation.x=opposite*(e.type==='runner'?.72:.56)*stride;
-          e.limbs.leftArm.rotation.x=-.16-walk*(e.type==='brute'?.2:.38)*stride;
-          e.limbs.rightArm.rotation.x=-.16+walk*(e.type==='brute'?.2:.38)*stride;
+          e.root.position.y=Math.max(0,Math.sin(e.gaitPhase*2))*(e.isPaleStalker?.012:(e.type==='brute'?.035:.026))*stride;
+          e.root.rotation.z=Math.sin(e.gaitPhase)*(e.isPaleStalker?.025:.045)*stride;
+          e.root.rotation.x=(e.isPaleStalker?-.018:-.035)-Math.max(0,walk)*(e.isPaleStalker?.018:.035)*stride;
+          e.torso.rotation.x=-.13+Math.sin(e.gaitPhase)*(e.isPaleStalker?.035:.055)*stride;
+          e.torso.rotation.z=Math.sin(e.gaitPhase+Math.PI/2)*(e.isPaleStalker?.055:.035)*stride;
+          e.limbs.leftLeg.rotation.x=walk*(e.type==='runner'?.72:.56)*(e.isPaleStalker?.78:1)*stride;
+          e.limbs.rightLeg.rotation.x=opposite*(e.type==='runner'?.72:.56)*(e.isPaleStalker?.78:1)*stride;
+          const armSwing=e.isPaleStalker?.2:(e.type==='brute'?.2:.38);
+          e.limbs.leftArm.rotation.x=(e.isPaleStalker?-.08:-.16)-walk*armSwing*stride;
+          e.limbs.rightArm.rotation.x=(e.isPaleStalker?-.18:-.16)+walk*armSwing*stride;
           e.limbs.leftArm.rotation.z=-.055-.035*walk*stride;
           e.limbs.rightArm.rotation.z=.055-.035*walk*stride;
-          e.head.rotation.x=Math.sin(e.gaitPhase+0.7)*.07*stride;
-          e.head.rotation.z=Math.sin(e.gaitPhase*.5+e.phase)*.045;
+          e.head.rotation.x=Math.sin(e.gaitPhase+0.7)*(e.isPaleStalker?.11:.07)*stride;
+          e.head.rotation.z=Math.sin(e.gaitPhase*.5+e.phase)*(e.isPaleStalker?.075:.045);
           e.jaw.rotation.x=.28+Math.max(0,Math.sin(now*.009+e.phase))*(e.isPaleStalker?.2:.12);
           if(e.isPaleStalker){e.limbs.leftArm.rotation.z=-.1-Math.sin(e.gaitPhase*.5)*.06;e.limbs.rightArm.rotation.z=.1+Math.sin(e.gaitPhase*.5+1)*.06;}
         }else{
@@ -1120,8 +1121,9 @@
             const attackProgress=(now-e.attackStarted)/520;
             const punch=Math.max(0,Math.sin(Math.min(1,Math.max(0,attackProgress))*Math.PI));
             const strikingLeft=e.attackSide<0;
-            e.limbs.leftArm.rotation.x=strikingLeft?-.78+punch*1.95:-.24;
-            e.limbs.rightArm.rotation.x=strikingLeft?-.24:-.78+punch*1.95;
+            const strikeBase=e.isPaleStalker?-.58:-.78,strikeRange=e.isPaleStalker?1.55:1.95;
+            e.limbs.leftArm.rotation.x=strikingLeft?strikeBase+punch*strikeRange:(e.isPaleStalker?-.12:-.24);
+            e.limbs.rightArm.rotation.x=strikingLeft?(e.isPaleStalker?-.12:-.24):strikeBase+punch*strikeRange;
             if(now-e.lastAttack>(e.type==='runner'?780:e.type==='brute'?1450:1050)){
               e.lastAttack=now;e.attackStarted=now;e.attackSide*=-1;
               const damage=e.attackDamage||8;playerHp=Math.max(0,playerHp-damage);
