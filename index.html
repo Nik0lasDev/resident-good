@@ -124,13 +124,6 @@
       const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), material);
       m.position.set(x,y,z); m.castShadow=cast; m.receiveShadow=receive; scene.add(m); roomObjects.push(m); return m;
     }
-    // Inimigos humanoides que perseguem o jogador e atacam corpo a corpo.
-    const enemies=[];
-    const activeEnemyOrbs=[];
-    const enemyMaterials={
-      skin:mat(0x9d765d,.9),shirt:mat(0x555d58,.95),pants:mat(0x343b40,.96),
-      armor:mat(0x252d30,.75),accent:mat(0x9e4939,.72),eyes:mat(0x171819,.55)
-    };
     function makeEnemy(x,z,index){
       const root=new THREE.Group();root.position.set(x,0,z);scene.add(root);
       const parts=[],limbs={},protectedParts=new Set(),headParts=new Set();
