@@ -160,20 +160,45 @@
       function sculptedSphere(rx,ry,rz,seed=0){const g=new THREE.SphereGeometry(1,32,24);const p=g.attributes.position;for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i);const n=1+.025*Math.sin(x*13+seed)*Math.cos(y*11-seed)+.014*Math.sin(z*19+x*7+seed);p.setXYZ(i,x*rx*n,y*ry*n,z*rz*n);}g.computeVertexNormals();return g;}
       function torsoGeometry(){const rings=[[-.48,.17,.12],[-.36,.235,.145],[-.16,.29,.17],[.04,.34,.18],[.20,.30,.16],[.34,.205,.13],[.43,.14,.11]],verts=[],indices=[],seg=32;for(let r=0;r<rings.length;r++){const [y,rx,rz]=rings[r];for(let j=0;j<seg;j++){const a=j/seg*Math.PI*2,n=1+.035*Math.sin(a*3+r*.8)+.018*Math.cos(a*7-r);verts.push(Math.cos(a)*rx*n,y,Math.sin(a)*rz*n);}}for(let r=0;r<rings.length-1;r++)for(let j=0;j<seg;j++){const a=r*seg+j,b=r*seg+(j+1)%seg,c=(r+1)*seg+(j+1)%seg,d=(r+1)*seg+j;indices.push(a,d,b,b,d,c);}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));g.setIndex(indices);g.computeVertexNormals();return g;}
       const torso=part(torsoGeometry(),cloth,root,0,1.22,.035);torso.rotation.x=-.13;
+      // Rasgos de horror: camiseta arrancada y caja torácica parcialmente expuesta.
+      const flesh=mat(0x625047,.98),oldBlood=mat(0x260807,.98),boneDark=mat(0x8e8875,.94);
+      part(sculptedSphere(.17,.23,.035,81),flesh,root,0,1.12,-.145);
+      for(let r=0;r<4;r++){
+        const y=.91+r*.105,span=.16-r*.018;
+        for(const side of [-1,1]){
+          const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(side*.025,y+.07,-.18),new THREE.Vector3(side*span*.55,y+.025,-.205),new THREE.Vector3(side*span,y-.045,-.17)]);
+          part(new THREE.TubeGeometry(curve,10,.018,6,false),boneDark,root,0,0,0);
+        }
+      }
+      for(let k=0;k<5;k++){
+        const tear=part(new THREE.ConeGeometry(.035,.13,5),cloth,root,-.18+k*.085,.94+(k%2)*.07,-.19);
+        tear.rotation.z=Math.PI+(k%2)*.5;
+      }
       part(sculptedSphere(.115,.16,.105,2),skin,root,0,1.61,-.015).rotation.x=-.25;
       const skull=part(sculptedSphere(.205,.245,.185,4),skin,root,0,1.83,-.045,true);skull.scale.set(.94,1.12,.88);
-      const socketMat=mat(0x292a25,.98);
-      for(const side of [-1,1]){part(sculptedSphere(.071,.052,.035,side),socketMat,root,side*.075,1.855,-.201,true);part(sculptedSphere(.078,.028,.042,side+3),skin,root,side*.075,1.918,-.204,true).rotation.z=side*-.12;part(sculptedSphere(.071,.046,.055,side+7),skin,root,side*.135,1.79,-.16,true);}
+      const socketMat=mat(0x100e0d,1),bruise=mat(0x30201d,.98);
+      // Olhos afundados e desiguais, um quase perdido na órbita; brilho vermelho muito discreto.
+      for(const side of [-1,1]){
+        part(sculptedSphere(.083,.068,.04,side),socketMat,root,side*.075,1.855,-.201,true);
+        part(sculptedSphere(.078,.028,.042,side+3),skin,root,side*.075,1.918,-.204,true).rotation.z=side*-.12;
+        part(sculptedSphere(.071,.046,.055,side+7),skin,root,side*.135,1.79,-.16,true);
+        part(sculptedSphere(.026,.024,.016,side+12),eye,root,side*.075,1.852,-.236,true);
+      }
       part(sculptedSphere(.042,.085,.052,9),skin,root,0,1.805,-.211,true).rotation.x=-.22;
       part(sculptedSphere(.052,.025,.025,10),wound,root,0,1.758,-.244,true);
+      // Ferida aberta atravessa a bochecha e desce em marcas de sangue seco.
+      const cheek=part(sculptedSphere(.048,.105,.022,90),oldBlood,root,-.145,1.77,-.205,true);cheek.rotation.z=-.3;
+      for(let streak=0;streak<3;streak++){const mark=part(sculptedSphere(.012,.075+streak*.012,.009,streak+91),oldBlood,root,-.16+streak*.027,1.68-streak*.015,-.211,true);mark.rotation.z=-.16;}
       for(const side of [-1,1]){
         part(new THREE.SphereGeometry(.022,8,6),eye,root,side*.075,1.86,-.222,true);
         part(new THREE.SphereGeometry(.055,9,7),skin,root,side*.205,1.82,-.035,true);
         part(new THREE.SphereGeometry(.065,9,7),wound,root,side*.205,1.82,-.075,true).scale.set(.75,1,.6);
       }
       // Mandíbula aberta, dentes irregulares e cabelo empastado.
-      const jaw=part(sculptedSphere(.105,.065,.075,11),skin,root,0,1.665,-.19,true);jaw.rotation.x=.24;
-      const teeth=mat(0xc9c0a4,.72),hair=mat(0x292b28,.99);
+      const mouth=part(sculptedSphere(.092,.07,.026,93),oldBlood,root,0,1.704,-.253,true);mouth.scale.set(1.08,1.18,1);
+      const jaw=part(sculptedSphere(.105,.052,.068,11),skin,root,0,1.646,-.205,true);jaw.rotation.x=.32;
+      const teeth=mat(0xb9ad91,.88),hair=mat(0x171816,.99);
+      for(let tooth=0;tooth<7;tooth++){const sideX=-.066+tooth*.022;const fang=part(new THREE.ConeGeometry(.012,.042+(tooth%3)*.012,5),teeth,root,sideX,1.71,-.278,true);fang.rotation.x=Math.PI;fang.rotation.z=(tooth%2?-.18:.16);}
       const scalp=part(sculptedSphere(.19,.09,.17,12),hair,root,0,2.015,-.005,true);scalp.rotation.x=-.12;
       for(let t=0;t<9;t++){const tuft=part(sculptedSphere(.035,.095,.045,t+20),hair,root,-.16+t*.04,1.99-(t%3)*.025,-.025,true);tuft.rotation.z=(t-4)*.12;tuft.rotation.x=-.25+(t%2)*.18;}
       for(let t=0;t<5;t++)part(sculptedSphere(.013,.045,.012,t+30),teeth,root,-.065+t*.032,1.686,-.264,true);
