@@ -124,7 +124,7 @@
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.2;
+    renderer.toneMappingExposure = 0.6; // Reduz a exposição global em 50%, escurecendo o jogo inteiro.
     document.body.prepend(renderer.domElement);
 
     // A instalação não recebe luz solar: a iluminação ambiente é mínima e as luminárias fazem o trabalho.
