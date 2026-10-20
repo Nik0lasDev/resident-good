@@ -346,7 +346,7 @@
         for(const y of [.28,1.92]){const hinge=new THREE.Mesh(new THREE.BoxGeometry(.055,.16,.18),doorMetal);hinge.position.set(.035,y,0);pivot.add(hinge);}
         homeDoors.push({name,pivot,closedRotation:rotation,openRotation,open:false,blockX,blockZ,blockW,blockD});
       }
-      addHomeDoor({name:'porta de entrada',x:-1.4,z:8.84,width:2.8,rotation:0,openRotation:-Math.PI/2,blockX:0,blockZ:8.84,blockW:2.8,blockD:.24});
+      addHomeDoor({name:'porta de entrada',x:-1.4,z:8.84,width:2.8,rotation:0,openRotation:Math.PI/2,blockX:0,blockZ:8.84,blockW:2.8,blockD:.24});
       addHomeDoor({name:'porta do quarto',x:-.1,z:-1,width:2,rotation:-Math.PI/2,openRotation:0,blockX:-.1,blockZ:0,blockW:.24,blockD:2});
       addHomeDoor({name:'porta da cozinha',x:5.6,z:0,width:1.6,rotation:0,openRotation:-Math.PI/2,blockX:6.4,blockZ:0,blockW:1.6,blockD:.24});
       // O canto inferior esquerdo recuado dá à casa uma planta em L, em vez de um retângulo simples.
@@ -390,13 +390,14 @@
       box(1.8,.28,.85,wood,8.4,.25,3.65);box(1.84,.06,.89,woodLight,8.4,.42,3.65,false,false);
       box(2.2,1.25,.18,mat(0x171b1c,.35,.35),8.8,1.05,1.2);box(1.98,1.03,.025,glass,8.8,1.07,1.095,false,false);box(.9,.12,.35,wood,8.8,.06,1.2);
       box(.28,.035,.22,metal,8.05,.47,3.6,false,false);box(.18,.04,.14,mat(0x272b2b,.6,.3),8.72,.48,3.6,false,false);
-      // Porta de entrada e passagem interna: guarnições espessas, dobradiças e maçanetas legíveis.
-      const doorWood=mat(0x39291f,.9),doorTrim=mat(0x241d18,.85),handleMat=mat(0xb0a17d,.4,.65);
-      box(.16,2.45,.16,doorTrim,-.9,1.12,8.86,false,false);box(.16,2.45,.16,doorTrim,.9,1.12,8.86,false,false);box(1.95,.16,.16,doorTrim,0,2.38,8.86,false,false);
-      box(1.45,2.1,.12,doorWood,.72,1.0,8.55,false,false);box(.07,.18,.05,handleMat,.18,1.0,8.46,false,false);
-      for(const y of [.45,1.65])box(.035,.12,.035,metal,1.38,y,8.48,false,false);
-      box(.16,2.35,.16,doorTrim,4.55,1.1,0,false,false);box(.16,2.35,.16,doorTrim,7.95,1.1,0,false,false);box(3.55,.16,.16,doorTrim,6.25,2.28,0,false,false);
-      // A antiga porta decorativa desalinhada foi substituída pelas portas funcionais acima.
+      // Guarnições alinhadas com as três portas funcionais.
+      const doorTrim=mat(0x241d18,.85);
+      for(const x of [-1.4,1.4])box(.16,2.45,.16,doorTrim,x,1.12,8.86,false,false);
+      box(2.95,.16,.16,doorTrim,0,2.38,8.86,false,false);
+      for(const z of [-1,1])box(.16,2.4,.16,doorTrim,-.1,1.12,z,false,false);
+      box(.16,2.4,.16,doorTrim,-.1,2.38,0,false,false);
+      for(const x of [5.6,7.2])box(.16,2.4,.16,doorTrim,x,1.12,0,false,false);
+      box(1.75,.16,.16,doorTrim,6.4,2.38,0,false,false);
       // Arma de parede na cozinha, destacada por um suporte gasto.
       wallGunObject=new THREE.Group();wallGunObject.position.set(10.8,1.5,-2.2);scene.add(wallGunObject);roomObjects.push(wallGunObject);
       const gunMount=new THREE.Mesh(new THREE.BoxGeometry(.48,.72,.08),wood);wallGunObject.add(gunMount);
