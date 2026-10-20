@@ -578,11 +578,13 @@
       enemiesWakeAt=performance.now()+2500;
       // Posição inicial livre, fora da divisória em z=0.
       const e=makeEnemy(5.1,6.7,5);e.type='walker';e.maxHp=300;e.hp=300;e.speed=1.15;e.attackDamage=8;e.attackRange=1.28;e.feedingIntro=true;
-      // O invasor começa agachado, consumindo um braço humano sobre o chão ensanguentado.
-      e.root.scale.set(1,.72,1);e.root.position.y=-.2;e.torso.rotation.x=.28;e.head.rotation.x=.32;
-      e.limbs.leftArm.rotation.x=1.05;e.limbs.rightArm.rotation.x=.92;e.limbs.leftLeg.rotation.x=.48;e.limbs.rightLeg.rotation.x=.62;
+      // Pose inicial sentada no chão, com o braço humano apoiado nas duas mãos junto à boca.
+      e.root.scale.set(1,1,1);e.root.position.y=-.36;e.torso.rotation.x=-.24;e.head.rotation.x=.3;
+      e.limbs.leftArm.rotation.x=1.22;e.limbs.rightArm.rotation.x=1.08;
+      e.limbs.leftArm.rotation.z=-.18;e.limbs.rightArm.rotation.z=.2;
+      e.limbs.leftLeg.rotation.x=1.18;e.limbs.rightLeg.rotation.x=1.08;
       const armSkin=mat(0x9b8172,.98),armBlood=mat(0x501916,.9);
-      const armProp=new THREE.Group();armProp.position.set(-.12,1.06,-.58);armProp.rotation.x=-.35;e.root.add(armProp);e.armProp=armProp;
+      const armProp=new THREE.Group();armProp.position.set(-.12,1.72,-.31);armProp.rotation.set(-.18,0,-.08);e.root.add(armProp);e.armProp=armProp;
       const upperArm=new THREE.Mesh(new THREE.CapsuleGeometry(.09,.28,4,8),armSkin);upperArm.rotation.x=Math.PI/2;upperArm.position.z=-.1;armProp.add(upperArm);
       const forearm=new THREE.Mesh(new THREE.CapsuleGeometry(.075,.25,4,8),armSkin);forearm.rotation.x=Math.PI/2;forearm.position.z=-.38;armProp.add(forearm);
       const hand=new THREE.SphereGeometry(.09,10,8);const palm=new THREE.Mesh(hand,armSkin);palm.position.z=-.56;armProp.add(palm);
@@ -1171,14 +1173,20 @@
           const sprinting=keys.has('ShiftLeft')||keys.has('ShiftRight');
           if(closeDistance<1.35||(sprinting&&closeDistance<3.4))awakenIntroFeeder(e,now);
           else{
-            // Mantém a pose de alimentação: respiração curta, cabeça baixa e mordidas no braço.
-            e.root.scale.set(e.baseScale,e.baseScaleY*.72,e.baseScale);e.root.position.y=-.2;
-            e.torso.rotation.x=.28+Math.sin(now*.006)*.025;
-            e.head.rotation.x=.32+Math.max(0,Math.sin(now*.012))*.14;
+            // Mantém o infectado sentado: mãos firmes no braço, sempre junto à boca.
+            const feedingBreath=Math.sin(now*.003+e.phase);
+            e.root.scale.set(e.baseScale,e.baseScaleY,e.baseScale);e.root.position.y=-.36+Math.max(0,feedingBreath)*.008;
+            e.torso.rotation.x=-.24+feedingBreath*.018;
+            e.torso.rotation.z=Math.sin(now*.002+e.phase)*.012;
+            e.head.rotation.x=.3+Math.max(0,Math.sin(now*.012+e.phase))*.12;
+            e.head.rotation.z=Math.sin(now*.0025+e.phase)*.025;
             e.jaw.rotation.x=.55+Math.max(0,Math.sin(now*.018+e.phase))*.2;
-            e.limbs.leftArm.rotation.x=(e.isPaleStalker?.76:1.05)+Math.sin(now*.009)*.035;
-            e.limbs.rightArm.rotation.x=(e.isPaleStalker?.68:.92)+Math.sin(now*.01+1)*.035;
-            e.limbs.leftLeg.rotation.x=.48;e.limbs.rightLeg.rotation.x=.62;
+            e.limbs.leftArm.rotation.x=1.22+Math.sin(now*.006+e.phase)*.025;
+            e.limbs.rightArm.rotation.x=1.08+Math.sin(now*.006+e.phase+1)*.025;
+            e.limbs.leftArm.rotation.z=-.18;e.limbs.rightArm.rotation.z=.2;
+            e.limbs.leftLeg.rotation.x=1.18+Math.sin(now*.0015+e.phase)*.012;
+            e.limbs.rightLeg.rotation.x=1.08-Math.sin(now*.0015+e.phase)*.012;
+            if(e.armProp){e.armProp.position.set(-.12,1.72,-.31);e.armProp.rotation.set(-.18+Math.sin(now*.006+e.phase)*.025,0,-.08);}
             continue;
           }
         }
