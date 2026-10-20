@@ -775,6 +775,7 @@
     }
     function shoot(){
       const now=performance.now();
+      if(introActive&&!introGunPicked){showToast('VOCÊ AINDA NÃO PEGOU UMA ARMA',800);return;}
       if(weaponIndex===flashlightIndex){ui.status.textContent='LANTERNA EQUIPADA · NÃO É POSSÍVEL ATIRAR';return;}
       const w=weapons[weaponIndex];
       if(reloading||now-lastShot<w.fireDelay)return;
