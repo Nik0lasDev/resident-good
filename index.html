@@ -345,20 +345,35 @@
       }
       // Portas com dobradiças visíveis: entrada, quarto e passagem entre cozinha e sala.
       homeDoors=[];
-      const doorMat=mat(0x382b22,.88),doorInset=mat(0x594333,.9),doorMetal=mat(0x77736a,.48,.55);
+      const doorMat=mat(0x30241d,.94),doorInset=mat(0x4a3426,.92),doorEdge=mat(0x75563b,.9),doorMetal=mat(0x858078,.42,.72),doorDark=mat(0x211b17,.96);
       function addHomeDoor({name,x,z,width,rotation=0,openRotation,blockX,blockZ,blockW,blockD}){
         const pivot=new THREE.Group();pivot.position.set(x,0,z);pivot.rotation.y=rotation;scene.add(pivot);roomObjects.push(pivot);
-        // Folha com moldura e painéis rebaixados; dobradiças no lado do pivô.
-        const panel=new THREE.Mesh(new THREE.BoxGeometry(width-.12,2.22,.12),doorMat);panel.position.set(width/2,1.12,0);panel.castShadow=true;panel.receiveShadow=true;pivot.add(panel);
-        for(const x of [.12,width/2,width-.12]){
-          const stile=new THREE.Mesh(new THREE.BoxGeometry(x===width/2?.055:.075,2.12,.035),doorInset);stile.position.set(x,1.12,-.078);pivot.add(stile);
+        // Porta de madeira envelhecida: núcleo sólido, aro elevado, três painéis com relevo e ferragens metálicas.
+        const addPart=(geometry,material,px,py,pz,cast=true)=>{const m=new THREE.Mesh(geometry,material);m.position.set(px,py,pz);m.castShadow=cast;m.receiveShadow=true;pivot.add(m);return m;};
+        addPart(new THREE.BoxGeometry(width-.1,2.22,.13),doorMat,width/2,1.12,0);
+        // Travessas e montantes formam uma moldura de madeira espessa, em vez de linhas planas.
+        for(const [px,pw] of [[.09,.14],[width/2,.09],[width-.09,.14]])addPart(new THREE.BoxGeometry(pw,2.18,.055),doorEdge,px,1.12,-.083);
+        for(const py of [.12,2.12])addPart(new THREE.BoxGeometry(width-.12,.13,.055),doorEdge,width/2,py,-.083);
+        for(const py of [.48,1.12,1.76]){
+          const ph=.48,pw=width*.62,px=width/2,pz=-.094;
+          addPart(new THREE.BoxGeometry(pw,.045,.035),doorEdge,px,py+ph/2,pz);
+          addPart(new THREE.BoxGeometry(pw,.045,.035),doorEdge,px,py-ph/2,pz);
+          addPart(new THREE.BoxGeometry(.045,ph,.035),doorEdge,px-pw/2,py,pz);
+          addPart(new THREE.BoxGeometry(.045,ph,.035),doorEdge,px+pw/2,py,pz);
+          addPart(new THREE.BoxGeometry(pw-.09,ph-.09,.018),doorInset,px,py,pz-.012,false);
         }
-        for(const y of [.42,1.12,1.82]){
-          const inset=new THREE.Mesh(new THREE.BoxGeometry(width*.68,.48,.025),doorInset);inset.position.set(width/2,y,-.085);pivot.add(inset);
-        }
-        const handle=new THREE.Mesh(new THREE.SphereGeometry(.055,12,8),doorMetal);handle.position.set(width*.82,1.02,-.12);pivot.add(handle);
-        for(const y of [.28,1.92]){
-          const hinge=new THREE.Mesh(new THREE.BoxGeometry(.07,.18,.16),doorMetal);hinge.position.set(.04,y,0);pivot.add(hinge);
+        // Veios discretos e desgastados na madeira.
+        for(let i=0;i<5;i++){const gx=.28+i*(width-.56)/4;addPart(new THREE.BoxGeometry(.018,1.72,.012),doorEdge,gx,1.12,-.105,false);}
+        // Maçaneta de alavanca com placa escura e roseta metálica.
+        const handleX=width*.82;
+        addPart(new THREE.BoxGeometry(.16,.3,.025),doorDark,handleX,1.02,-.116,false);
+        addPart(new THREE.CylinderGeometry(.075,.075,.025,16),doorMetal,handleX,1.04,-.14,false).rotation.x=Math.PI/2;
+        const lever=addPart(new THREE.CylinderGeometry(.025,.025,.19,10),doorMetal,handleX-.07,1.04,-.18,false);lever.rotation.z=Math.PI/2;
+        addPart(new THREE.SphereGeometry(.035,10,8),doorMetal,handleX-.16,1.04,-.18,false);
+        // Três dobradiças articuladas aparentes no lado da dobradiça.
+        for(const py of [.22,1.12,2.02]){
+          addPart(new THREE.BoxGeometry(.075,.2,.045),doorDark,.12,py,-.09,false);
+          addPart(new THREE.CylinderGeometry(.027,.027,.22,10),doorMetal,.12,py,-.125,false);
         }
         homeDoors.push({name,pivot,closedRotation:rotation,openRotation,open:false,blockX,blockZ,blockW,blockD});
       }
