@@ -515,8 +515,8 @@
       const gunMount=new THREE.Mesh(new THREE.BoxGeometry(.56,.88,.075),wood);wallGunObject.add(gunMount);
       const mountEdge=new THREE.Mesh(new THREE.BoxGeometry(.6,.035,.09),woodLight);mountEdge.position.y=-.42;wallGunObject.add(mountEdge);
       // Área externa provisória para teste: calçada, rua, lixeira e casas em blocos simples.
-      const outdoorGround=mat(0x565650,.98),sidewalkMat=mat(0x858078,.96),roadMat=mat(0x303432,.98);
-      const roadMarkMat=mat(0xbab49b,.9),binMat=mat(0x343f3a,.92),binLidMat=mat(0x242b28,.9);
+      const outdoorGround=mat(0x343530,.98),sidewalkMat=mat(0x55534d,.96),roadMat=mat(0x1b1e1d,.98);
+      const roadMarkMat=mat(0x777363,.9),binMat=mat(0x252c28,.92),binLidMat=mat(0x191e1c,.9);
       box(48,.22,38,outdoorGround,0,-.24,25,false,true);
       box(48,.08,2.2,sidewalkMat,0,-.075,11.1,false,true);
       box(48,.08,1.8,sidewalkMat,0,-.075,24.1,false,true);
@@ -528,8 +528,8 @@
       const binLid=new THREE.Mesh(new THREE.BoxGeometry(.82,.13,.76),binLidMat);binLid.position.set(0,1.1,0);binLid.castShadow=true;trashBin.add(binLid);
       const binFront=new THREE.Mesh(new THREE.BoxGeometry(.34,.22,.025),mat(0x66716a,.85));binFront.position.set(0,.63,-.353);trashBin.add(binFront);
       // Casas vizinhas deliberadamente simples: volumes provisórios para testar escala e percurso.
-      const neighborWallMats=[mat(0x8a8275,.96),mat(0x777c78,.96),mat(0x9a8b7b,.96),mat(0x666d70,.96)];
-      const neighborRoofMats=[mat(0x403a36,.96),mat(0x4a4540,.96),mat(0x343b3d,.96)];
+      const neighborWallMats=[mat(0x514b43,.96),mat(0x484c49,.96),mat(0x5b5147,.96),mat(0x3d4244,.96)];
+      const neighborRoofMats=[mat(0x292522,.96),mat(0x302c28,.96),mat(0x24292a,.96)];
       const neighborDoorMat=mat(0x3d3028,.94),neighborWindowMat=mat(0x35434a,.42,.15);
       const neighborHouses=[[-13,28,0],[-3,30,1],[8,28,2],[18,31,3]];
       for(let i=0;i<neighborHouses.length;i++){
