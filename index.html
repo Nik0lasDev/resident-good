@@ -1078,7 +1078,8 @@
     function blockedByFacilityWall(x,z,radius=.38){
       if(introActive){
         // Limites da planta em L: impede atravessar o vazio onde a ala foi removida.
-        if(x < -12+radius || x > 12-radius || z < -9+radius || z > 9-radius)return true;
+        const entryGapOpen=homeDoors.some(d=>d.name==='porta de entrada'&&d.open&&x+radius>d.blockX-d.blockW/2&&x-radius<d.blockX+d.blockW/2);
+        if(x < -12+radius || x > 12-radius || z < -9+radius || (z > 9-radius && !entryGapOpen))return true;
         if(z > 2+radius && x < 0+radius)return true;
         for(const door of homeDoors){if(!door.open&&x+radius>door.blockX-door.blockW/2&&x-radius<door.blockX+door.blockW/2&&z+radius>door.blockZ-door.blockD/2&&z-radius<door.blockZ+door.blockD/2)return true;}
       }
