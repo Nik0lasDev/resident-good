@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <meta name="theme-color" content="#101419">
-  <title>Resident Good — Capítulo 1: Sinal de Contenção</title>
+  <title>Resident Good</title>
   <style>
     :root{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
     *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101419;color:#f4f6f8}
@@ -70,7 +70,7 @@
   <div id="hud">
     <div id="minimap-wrap"><div id="minimap-title">MAPA DO COMPLEXO <span id="minimap-room">ARKLAY</span></div><canvas id="minimap" width="220" height="180" aria-label="Minimapa da sala atual"></canvas></div>
     <div id="brand" class="panel">RESIDENT <span>GOOD</span> <span style="color:#89949c">/ CAPÍTULO 01</span></div>
-    <div id="chapter-objective" class="panel"><div class="chapter-kicker">CAPÍTULO 01 · SINAL DE CONTENÇÃO</div><div id="objective-title">Encontre o cartão de acesso</div><div id="objective-detail">Procure na recepção por um cartão que libere os setores internos.</div><div id="objective-prompt">OBJETIVO ATIVO</div></div>
+    <div id="chapter-objective" class="panel"><div class="chapter-kicker">EXPLORAÇÃO</div><div id="objective-title">Explore o ambiente</div><div id="objective-detail">Investigue os arredores e sobreviva.</div><div id="objective-prompt">SEM OBJETIVO FIXO</div></div>
     <div id="story-box"><div id="story-title">PENSAMENTO</div><div id="story-text"></div><div id="story-hint">[F] CONTINUAR</div></div>
     <div id="target" class="panel">
       <div class="target-row"><span>AMEAÇAS HOSTIS</span><span id="health-label" class="muted">4 ATIVOS</span></div>
@@ -90,15 +90,15 @@
   <div id="overlay">
     <div id="intro">
       <div class="tag"><span class="dot"></span> RESIDENT GOOD · CAMPANHA</div>
-      <h1>Capítulo 1<br><span style="color:#e5a15a">Sinal de Contenção</span></h1>
-      <p>03:17 da madrugada. Uma chamada de emergência levou você ao Complexo Arklay. A equipe de segurança não responde, as portas estão travadas e algo se move nos corredores. Encontre o cartão de acesso, restaure a energia do laboratório e chegue à doca de evacuação.</p>
+      <h1>Resident Good<br><span style="color:#e5a15a">Sobreviva à madrugada</span></h1>
+      <p>Você acordou em casa após ouvir um estrondo. A energia não funciona. Pegue a lanterna, investigue a cozinha e descubra o que está acontecendo.</p>
       <div class="tips">
         <div class="tip"><b>01 / MOVIMENTO</b>WASD · Shift corre</div>
         <div class="tip"><b>02 / COMBATE</b>Mire na cabeça · clique atira</div>
         <div class="tip"><b>03 / SOBREVIVÊNCIA</b>R recarrega · E troca arma</div>
-        <div class="tip"><b>04 / OBJETIVOS</b>F interage com itens e terminais</div>
+        <div class="tip"><b>04 / INTERAÇÃO</b>F examina e recolhe objetos</div>
       </div>
-      <button id="start">INICIAR CAPÍTULO</button>
+      <button id="start">INICIAR JOGO</button>
       <div id="mobile-note">Para este teste, use teclado e mouse em um computador.</div>
     </div>
   </div>
@@ -311,9 +311,9 @@
       document.getElementById('story-box').style.display='none';
       clearRoom();camera.position.set(0,groundY,0);yaw=0;pitch=0;
       enemiesWakeAt=performance.now()+8000;
-      buildFacilityMap();spawnFacilityEnemies();createChapterObjects();
+      buildFacilityMap();spawnFacilityEnemies();
       updateHealth();updateAmmo();
-      showToast('CAPÍTULO 1 · SINAL DE CONTENÇÃO',1800);
+      showToast('EXPLORE O COMPLEXO E SOBREVIVA',1800);
     }
     function buildHome(){
       currentRoom={name:'CASA',w:24,d:18,doors:[],decor:0};roomIndex=0;introWalls=[];
@@ -649,16 +649,9 @@
     };
     let hp=100, playerHp=100, magazine=12, reserve=48, reloading=false, reloadEnd=0, lastShot=0, locked=false, yaw=0, pitch=0, recoil=0, muzzleEnd=0, hitEnd=0, toastEnd=0;
     let chapterStage=0, chapterComplete=false, chapterObjects=[];
-    const chapterSteps=[
-      {title:'Encontre o cartão de acesso',detail:'Entre na recepção e pegue o cartão junto à parede oeste.',position:new THREE.Vector3(-24,0,-18)},
-      {title:'Restaure a energia',detail:'Entre no laboratório e ative o terminal auxiliar para destravar a doca.',position:new THREE.Vector3(24,0,-18)},
-      {title:'Chegue à doca de evacuação',detail:'Siga até a saída de serviço no lado leste e acione o painel de evacuação.',position:new THREE.Vector3(24,0,15)}
-    ];
+    const chapterSteps=[];
     function updateChapterUI(){
-      if(chapterComplete){ui.objectiveTitle.textContent='CAPÍTULO CONCLUÍDO';ui.objectiveDetail.textContent='Você escapou do Complexo Arklay. Fim do Capítulo 1.';ui.objectivePrompt.textContent='CAMPANHA · 01 / 01';return;}
-      const step=chapterSteps[chapterStage];ui.objectiveTitle.textContent=step.title;ui.objectiveDetail.textContent=step.detail;
-      const d=Math.hypot(camera.position.x-step.position.x,camera.position.z-step.position.z);
-      ui.objectivePrompt.textContent=d<2.8?'[F] INTERAGIR':'SIGA O MARCADOR · '+Math.round(d)+' m';
+      ui.objectiveTitle.textContent='Explore o ambiente';ui.objectiveDetail.textContent='Investigue os arredores e sobreviva aos perigos.';ui.objectivePrompt.textContent='SEM OBJETIVO FIXO';
     }
     function createChapterObjects(){
       chapterObjects.forEach(o=>scene.remove(o));chapterObjects=[];
@@ -683,13 +676,7 @@
       });updateChapterUI();
     }
     function interactChapter(){
-      if(chapterComplete)return;
-      const step=chapterSteps[chapterStage],d=Math.hypot(camera.position.x-step.position.x,camera.position.z-step.position.z);
-      if(d>2.8){showToast('APROXIME-SE DO OBJETIVO · '+Math.round(d)+' m',900);return;}
-      if(chapterStage===0)showToast('CARTÃO ENCONTRADO · ACESSO PARCIAL LIBERADO',1500);
-      else if(chapterStage===1)showToast('ENERGIA RESTAURADA · DOCA DESTRAVADA',1500);
-      else{chapterComplete=true;chapterObjects[chapterStage].visible=false;updateChapterUI();showToast('CAPÍTULO 1 CONCLUÍDO · SINAL DE CONTENÇÃO',2600);return;}
-      chapterObjects[chapterStage].visible=false;chapterStage++;updateChapterUI();
+      showToast('NÃO HÁ OBJETIVO FIXO · EXPLORE O AMBIENTE',1100);
     }
     const keys = new Set();
     // Física vertical simples para o salto em primeira pessoa.
