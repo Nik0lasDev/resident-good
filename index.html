@@ -307,6 +307,7 @@
     }
     function initFacility(){
       introActive=false;
+      currentRoom={name:'COMPLEXO ARKLAY',w:56,d:44,doors:[],decor:0};roomIndex=1;
       document.getElementById('story-box').style.display='none';
       clearRoom();camera.position.set(0,groundY,0);yaw=0;pitch=0;
       enemiesWakeAt=performance.now()+8000;
