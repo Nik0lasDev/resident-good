@@ -323,8 +323,8 @@
       const floor=mat(0x403c36,.96),wall=mat(0x777064,.96),wallDark=mat(0x514d45,.98),trim=mat(0x292a26,.9),ceiling=mat(0x252724,.98),wood=mat(0x514033,.9),woodLight=mat(0x725941,.92),fabric=mat(0x45484a,.99),metal=mat(0x555b59,.55,.35),glass=mat(0x202b2d,.3,.25);
       // Planta em L bem marcada: toda a ala inferior esquerda foi removida (12 x 7 unidades).
       // A ala superior permanece larga; a ala inferior existe somente à direita.
-      box(24,.35,11,floor,0,-3.5,0,false,true);
-      box(12,.35,7,floor,6,5.5,0,false,true);
+      box(24,.35,11,floor,0,-.2,-3.5,false,true);
+      box(12,.35,7,floor,6,-.2,5.5,false,true);
       // Piso gasto em tábuas largas: juntas discretas e marcas de uso, sem aparência de blocos soltos.
       const floorSeam=mat(0x292a27,.98),floorWear=mat(0x50483e,.98);
       for(let z=-8.2;z<2;z+=1.15){box(23.7,.012,.018,floorSeam,0,.002,z,false,false);}
@@ -355,7 +355,7 @@
       addHomeDoor({name:'porta do quarto',x:-.1,z:-1,width:2,rotation:-Math.PI/2,openRotation:0,blockX:-.1,blockZ:0,blockW:.24,blockD:2});
       addHomeDoor({name:'porta da cozinha',x:5.6,z:0,width:1.6,rotation:0,openRotation:-Math.PI/2,blockX:6.4,blockZ:0,blockW:1.6,blockD:.24});
       // O teto repete exatamente a planta em L: a grande ala inferior esquerda fica totalmente aberta.
-      box(24,.3,11,ceiling,0,3.35,0,false,true);
+      box(24,.3,11,ceiling,0,3.35,-3.5,false,true);
       box(12,.3,7,ceiling,6,3.35,5.5,false,true);
       const ceilingSeam=mat(0x343631,.98);
       for(let x=-10;x<=10;x+=4)box(.025,.012,10.5,ceilingSeam,x,3.19,-3.5,false,false);
