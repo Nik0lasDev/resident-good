@@ -69,7 +69,7 @@
 </head>
 <body>
   <div id="hud">
-    <div id="day-clock" aria-live="off"><span id="game-time">08:00</span><small id="day-phase">DIA</small></div>
+    <div id="day-clock" aria-live="off"><span id="game-time">01:00</span><small id="day-phase">NOITE</small></div>
     <div id="minimap-wrap"><div id="minimap-title">MAPA DO COMPLEXO <span id="minimap-room">ARKLAY</span></div><canvas id="minimap" width="220" height="180" aria-label="Minimapa da sala atual"></canvas></div>
     <div id="brand" class="panel">RESIDENT <span>GOOD</span> <span style="color:#89949c">/ CAPÍTULO 01</span></div>
     <div id="chapter-objective" class="panel"><div class="chapter-kicker">EXPLORAÇÃO</div><div id="objective-title">Explore o ambiente</div><div id="objective-detail">Investigue os arredores e sobreviva.</div><div id="objective-prompt">SEM OBJETIVO FIXO</div></div>
@@ -133,7 +133,7 @@
     const worldAmbientLight = new THREE.HemisphereLight(0x77858a, 0x29251f, 0.48);
     scene.add(worldAmbientLight);
     // O relógio avança 2 minutos do jogo por segundo real: um ciclo completo dura 12 minutos.
-    let gameMinutes = 8 * 60;
+    let gameMinutes = 1 * 60;
     let homeAmbientLight = null;
     function updateDayNight(dt){
       gameMinutes = (gameMinutes + dt * 2) % 1440;
