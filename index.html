@@ -607,7 +607,7 @@
     function interactIntro(){
       const px=camera.position.x,pz=camera.position.z;
       for(const door of homeDoors){
-        if(Math.hypot(px-door.blockX,pz-door.blockZ)<1.65){
+        if(Math.hypot(px-door.blockX,pz-door.blockZ)<(door.name==='porta do quarto'?2.8:1.65)){
           door.open=!door.open;door.targetRotation=door.open?door.openRotation:door.closedRotation;
           showToast((door.open?'ABRIU: ':'FECHOU: ')+door.name.toUpperCase(),1000);return;
         }
@@ -949,7 +949,7 @@
       const px=camera.position.x,pz=camera.position.z;
       // As portas continuam interativas depois da sequência inicial.
       for(const door of homeDoors){
-        if(Math.hypot(px-door.blockX,pz-door.blockZ)<1.8){
+        if(Math.hypot(px-door.blockX,pz-door.blockZ)<(door.name==='porta do quarto'?2.8:1.8)){
           door.open=!door.open;door.targetRotation=door.open?door.openRotation:door.closedRotation;
           showToast((door.open?'ABRIU: ':'FECHOU: ')+door.name.toUpperCase(),1000);return;
         }
