@@ -1609,7 +1609,7 @@ procBox(root,w+.12,.22,.14,procMats.wood,0,.22,d/2+.06,false);procBox(root,w+.12
 for(const side of [-1,1]){procBox(root,.14,.22,d+.12,procMats.wood,side*(w/2+.02),.22,0,false);procBox(root,.14,.16,d+.12,procMats.wood,side*(w/2+.02),3.22,0,false);}
 procBox(root,.24,.2,d+.6,procMats.roof,0,h+.58,0);for(const side of [-1,1]){const rp=procBox(root,5.8,.22,d+.7,procMats.roof,side*2.05,h+.38,0);rp.rotation.z=side*-.32;}
 procBox(root,1.48,.14,.24,procMats.wood,0,2.52,-d/2-.16,false);procBox(root,.13,2.55,.22,procMats.wood,-.72,1.28,-d/2-.16,false);procBox(root,.13,2.55,.22,procMats.wood,.72,1.28,-d/2-.16,false);procBox(root,1.55,.12,.5,procMats.wood,0,.06,-d/2-.36,false);
-      for(const side of [-1,1]){const rp=procBox(root,5.8,.2,d+.45,procMats.roof,side*2.05,h+.63,0);rp.rotation.z=side*-.32;procBox(root,1.25,1.05,.12,procMats.window,side*2.55,2.1,-d/2-.15);for(const dx of [-.68,.68])procBox(root,.1,1.22,.16,procMats.wood,side*2.55+dx,2.1,-d/2-.18);for(const yy of [1.5,2.7])procBox(root,1.48,.1,.16,procMats.wood,side*2.55,yy,-d/2-.18);}
+      for(const side of [-1,1]){procBox(root,1.25,1.05,.12,procMats.window,side*2.55,2.1,-d/2-.15);for(const dx of [-.68,.68])procBox(root,.1,1.22,.16,procMats.wood,side*2.55+dx,2.1,-d/2-.18);for(const yy of [1.5,2.7])procBox(root,1.48,.1,.16,procMats.wood,side*2.55,yy,-d/2-.18);}
       procBox(root,1.25,2.45,.18,procMats.door,0,1.23,-d/2-.15);procBox(root,.08,.08,.1,procMats.lamp,.45,1.25,-d/2-.28,false);
       // Casca interna com entrada larga; as divisórias formam quatro cômodos conectados.
       procBox(interior,w-.35,.16,d-.35,procMats.wood,0,.02,0);
