@@ -1489,7 +1489,7 @@
         if(z > 2-radius && z <= 9.65 && x < radius)return true;
         for(const door of homeDoors){if(!door.open&&x+radius>door.blockX-door.blockW/2&&x-radius<door.blockX+door.blockW/2&&z+radius>door.blockZ-door.blockD/2&&z-radius<door.blockZ+door.blockD/2)return true;}
       }
-      if(z>12&&insideProceduralHouse===null){for(const c of proceduralChunks.values())for(const h of c.houses){if(h.destroyed)continue;if(x+radius>h.x-3.3&&x-radius<h.x+3.3&&z+radius>h.z-3.6&&z-radius<h.z+3.6)return true;}return false;}
+      if(z>12&&insideProceduralHouse===null){for(const c of proceduralChunks.values())for(const h of c.houses){if(h.destroyed)continue;if(x+radius>h.x-(h.width||6.6)/2&&x-radius<h.x+(h.width||6.6)/2&&z+radius>h.z-(h.depth||7.2)/2&&z-radius<h.z+(h.depth||7.2)/2)return true;}return false;}
       const activeWalls=introActive?introWalls:facilityWalls;
       for(const [wx,wz,ww,wd] of activeWalls){
         if(x+radius>wx-ww/2&&x-radius<wx+ww/2&&z+radius>wz-wd/2&&z-radius<wz+wd/2)return true;
