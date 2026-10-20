@@ -750,8 +750,12 @@
         e.root.rotation.y=Math.atan2(-dx,-dz);
         if(distance>(e.attackRange||1.28)){
           const speed=e.speed||(distance>5?1.65:1.05);
-          e.root.position.x+=dx/distance*speed*dt;
-          e.root.position.z+=dz/distance*speed*dt;
+          const stepX=dx/distance*speed*dt,stepZ=dz/distance*speed*dt;
+          const nextX=e.root.position.x+stepX,nextZ=e.root.position.z+stepZ;
+          // Inimigos usam a mesma colisão do cenário que o jogador, eixo por eixo.
+          // Isso permite contornar cantos sem atravessar paredes diagonais ou finas.
+          if(!blockedByFacilityWall(nextX,e.root.position.z,.42))e.root.position.x=nextX;
+          if(!blockedByFacilityWall(e.root.position.x,nextZ,.42))e.root.position.z=nextZ;
           // O ciclo acompanha o deslocamento para reduzir o efeito de pés deslizando.
           e.gaitPhase+=dt*speed*3.6;
           const walk=Math.sin(e.gaitPhase);
@@ -761,7 +765,7 @@
           e.limbs.leftLeg.rotation.x=walk*.48*stride;e.limbs.rightLeg.rotation.x=-walk*.48*stride;
           e.limbs.leftArm.rotation.x=-.12-walk*.30*stride;e.limbs.rightArm.rotation.x=-.12+walk*.30*stride;
           e.limbs.leftArm.rotation.z=-.035-.025*walk*stride;e.limbs.rightArm.rotation.z=.035-.025*walk*stride;
-        }else{
+        }else if(hasFacilityLineOfSight(e.root.position.x,e.root.position.z,camera.position.x,camera.position.z)){
           e.root.position.y=0;e.root.rotation.z=0;
           if(e.type==='ranged'&&now-e.lastAttack>1800){
             e.lastAttack=now;
@@ -834,12 +838,19 @@
     }
     const minimapCanvas=document.getElementById('minimap');
     const minimapCtx=minimapCanvas.getContext('2d');
-    function blockedByFacilityWall(x,z){
-      const radius=.38;
+    function blockedByFacilityWall(x,z,radius=.38){
       for(const [wx,wz,ww,wd] of facilityWalls){
         if(x+radius>wx-ww/2&&x-radius<wx+ww/2&&z+radius>wz-wd/2&&z-radius<wz+wd/2)return true;
       }
       return false;
+    }
+    function hasFacilityLineOfSight(x1,z1,x2,z2){
+      const distance=Math.hypot(x2-x1,z2-z1),steps=Math.ceil(distance/.2);
+      for(let i=1;i<steps;i++){
+        const t=i/steps;
+        if(blockedByFacilityWall(x1+(x2-x1)*t,z1+(z2-z1)*t,.04))return false;
+      }
+      return true;
     }
     function drawMinimap(){
       const ctx=minimapCtx,W=minimapCanvas.width,H=minimapCanvas.height;
