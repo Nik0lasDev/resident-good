@@ -87,7 +87,7 @@
     <div id="help" class="panel"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> mover<br><kbd>SHIFT</kbd> correr · <kbd>ESPAÇO</kbd> pular · <kbd>R</kbd> recarregar · <kbd>E</kbd> trocar arma<br><kbd>CLIQUE</kbd> atirar · <kbd>ESC</kbd> liberar mouse</div>
     <div id="toast">ACERTO</div>
   </div>
-  <div id="overlay">
+  <div id="overlay" class="hidden">
     <div id="intro">
       <div class="tag"><span class="dot"></span> RESIDENT GOOD · CAMPANHA</div>
       <h1>Resident Good<br><span style="color:#e5a15a">Sobreviva à madrugada</span></h1>
@@ -862,7 +862,9 @@
       hitmarker:document.getElementById('hitmarker'), crosshair:document.getElementById('crosshair'),
       toast:document.getElementById('toast'), weapon:document.getElementById('weapon-name')
     };
-    let hp=100, playerHp=100, magazine=12, reserve=48, reloading=false, reloadEnd=0, lastShot=0, locked=false, yaw=0, pitch=0, recoil=0, muzzleEnd=0, hitEnd=0, toastEnd=0;
+    let hp=100, playerHp=100, magazine=12, reserve=48, reloading=false, reloadEnd=0, lastShot=0, locked=true, yaw=0, pitch=0, recoil=0, muzzleEnd=0, hitEnd=0, toastEnd=0;
+    // O jogo começa diretamente; o clique no cenário captura o mouse quando o navegador permitir.
+    window.__residentStartFallback=true;
     let chapterStage=0, chapterComplete=false, chapterObjects=[];
     const chapterSteps=[];
     function updateChapterUI(){
@@ -934,6 +936,11 @@
       }
     }
     ui.start.addEventListener('click',enterGame);
+    renderer.domElement.addEventListener('click',()=>{
+      if(document.pointerLockElement!==renderer.domElement){
+        try{const request=renderer.domElement.requestPointerLock?.();if(request&&typeof request.catch==='function')request.catch(()=>{});}catch(error){console.warn('Não foi possível capturar o mouse:',error);}
+      }
+    });
     document.addEventListener('pointerlockchange',()=>{
       const hasPointerLock=document.pointerLockElement===renderer.domElement;
       if(hasPointerLock){locked=true;window.__residentStartFallback=false;}
