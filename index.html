@@ -324,9 +324,9 @@
       for(const [x,z,w,d] of walls){box(w,3.4,d,wall,x,1.5,z);box(w,.12,d+.04,trim,x,3.18,z,false,false);introWalls.push([x,z,w,d]);}
       box(24,.3,18,ceiling,0,3.35,0,false,true);
       // Quarto: cama, cabeceira, criado-mudo e interruptor visível na parede.
-      box(2.2,.28,3.1,wood,-7,-.01,1.5);box(2.05,.22,2.45,fabric,-7,.2,1.35);box(2.08,.16,.65,mat(0xb6b3a7,.98),-7,.36,.42);
-      box(1.0,.65,.85,wood,-4.9,.25,-.05);box(.22,.12,.12,metal,-4.75,.65,-.32,false,false);
-      lightSwitchObject=new THREE.Group();lightSwitchObject.position.set(-4.55,1.35,-1.2);scene.add(lightSwitchObject);roomObjects.push(lightSwitchObject);
+      box(2.2,.28,3.1,wood,-9.5,-.01,-6.2);box(2.05,.22,2.45,fabric,-9.5,.2,-6.35);box(2.08,.16,.65,mat(0xb6b3a7,.98),-9.5,.36,-5.25);
+      box(1.0,.65,.85,wood,-8.0,.25,-4.55);box(.22,.12,.12,metal,-7.85,.65,-4.82,false,false);
+      lightSwitchObject=new THREE.Group();lightSwitchObject.position.set(-10.8,1.35,-3.5);scene.add(lightSwitchObject);roomObjects.push(lightSwitchObject);
       const switchPlate=new THREE.Mesh(new THREE.BoxGeometry(.22,.32,.055),mat(0xd4d0bf,.8),);switchPlate.position.z=-.03;lightSwitchObject.add(switchPlate);
       const switchToggle=new THREE.Mesh(new THREE.BoxGeometry(.07,.12,.035),mat(0x77766c,.65));switchToggle.position.set(0,0,-.065);lightSwitchObject.add(switchToggle);
       // Cozinha: balcão, pia e geladeira para marcar claramente a segunda área.
@@ -347,7 +347,7 @@
       enemiesWakeAt=performance.now()+2500;
       const e=makeEnemy(5.3,0,0);e.type='walker';e.maxHp=105;e.hp=105;e.speed=1.15;e.attackDamage=8;e.attackRange=1.28;
       e.root.rotation.y=Math.PI/2;
-      camera.position.set(-6,groundY,0);yaw=-Math.PI/2;pitch=0;
+      camera.position.set(-9.2,groundY,-2.65);yaw=-Math.PI/2;pitch=0;
       weapons[0].magazine=6;weapons[0].reserve=0;magazine=6;reserve=0;weaponIndex=0;
       weapons.forEach(w=>w.model.visible=false);flashlightModel.visible=false;flashlightSpot.intensity=0;
       ui.weapon.textContent='SEM ARMA';ui.ammo.innerHTML='—';ui.status.textContent='SEM ENERGIA';
@@ -356,7 +356,7 @@
     }
     function interactIntro(){
       const px=camera.position.x,pz=camera.position.z;
-      if(introPhase===0&&Math.hypot(px+4.55,pz+1.2)<2.0){
+      if(introPhase===0&&Math.hypot(px+10.8,pz+3.5)<2.0){
         introPhase=1;document.getElementById('story-title').textContent='PENSAMENTO';document.getElementById('story-text').textContent='Que estranho, acho melhor conferir a bateria lá fora...';document.getElementById('story-hint').textContent='[F] PEGAR A LANTERNA';document.getElementById('story-box').style.display='block';
         showToast('O INTERRUPTOR NÃO RESPONDE',1100);return;
       }
@@ -366,7 +366,7 @@
       if(introPhase>=2&&!introGunPicked&&Math.hypot(px-10.8,pz+2.2)<2.1){
         introGunPicked=true;wallGunObject.visible=false;weaponIndex=0;weapons[0].magazine=6;weapons[0].reserve=0;magazine=6;reserve=0;weapons.forEach((w,i)=>w.model.visible=i===0);flashlightModel.visible=false;flashlightSpot.intensity=0;updateAmmo();updateFlashlightUI();ui.weapon.textContent=weapons[0].name;ui.status.textContent='6 MUNIÇÕES · SEM RESERVA';ui.objectiveTitle.textContent='Defenda-se do invasor';ui.objectiveDetail.textContent='Use as 6 munições para eliminar o inimigo na cozinha.';ui.objectivePrompt.textContent='CLIQUE PARA ATIRAR';showToast('PISTOLA RECOLHIDA · 6 MUNIÇÕES',1700);return;
       }
-      if(introPhase===0)showToast('APROXIME-SE DO INTERRUPTOR AO LADO DA CAMA',1100);
+      if(introPhase===0)showToast('APROXIME-SE DO INTERRUPTOR NO CANTO DO QUARTO',1100);
       else if(!introGunPicked)showToast('PROCURE A ARMA MONTADA NA PAREDE DA COZINHA',1100);
     }
     function tryRoomExit(){return false;}
