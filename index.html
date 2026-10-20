@@ -920,7 +920,35 @@
       });updateChapterUI();
     }
     function interactChapter(){
-      showToast('NÃO HÁ OBJETIVO FIXO · EXPLORE O AMBIENTE',1100);
+      const px=camera.position.x,pz=camera.position.z;
+      // As portas continuam interativas depois da sequência inicial.
+      for(const door of homeDoors){
+        if(Math.hypot(px-door.blockX,pz-door.blockZ)<1.8){
+          door.open=!door.open;door.targetRotation=door.open?door.openRotation:door.closedRotation;
+          showToast((door.open?'ABRIU: ':'FECHOU: ')+door.name.toUpperCase(),1000);return;
+        }
+      }
+      // Procura objetos próximos na direção da câmera para não exigir coordenadas exatas.
+      raycaster.setFromCamera(new THREE.Vector2(0,0),camera);
+      const nearbyObjects=[homeFlashlightPickup,wallGunObject].filter(o=>o&&o.visible);
+      const hits=raycaster.intersectObjects(nearbyObjects,true);
+      if(hits.length&&hits[0].distance<2.6){
+        const target=hits[0].object;
+        if(homeFlashlightPickup&&homeFlashlightPickup.visible&&homeFlashlightPickup.getObjectById(target.id)){
+          homeFlashlightPickup.visible=false;introFlashlightTaken=true;weaponIndex=flashlightIndex;
+          weapons.forEach(w=>w.model.visible=false);flashlightModel.visible=true;updateFlashlightUI();
+          ui.weapon.textContent='LANTERNA';ui.status.textContent='LANTERNA EQUIPADA';
+          showToast('LANTERNA RECOLHIDA',1200);return;
+        }
+        if(wallGunObject&&wallGunObject.visible&&wallGunObject.getObjectById(target.id)){
+          wallGunObject.visible=false;introGunPicked=true;weaponIndex=0;
+          weapons[0].magazine=6;weapons[0].reserve=0;magazine=6;reserve=0;
+          weapons.forEach((w,i)=>w.model.visible=i===0);flashlightModel.visible=false;flashlightSpot.intensity=0;
+          updateAmmo();updateFlashlightUI();ui.weapon.textContent=weapons[0].name;ui.status.textContent='6 MUNIÇÕES · SEM RESERVA';
+          showToast('PISTOLA RECOLHIDA · 6 MUNIÇÕES',1500);return;
+        }
+      }
+      showToast('APROXIME-SE DE UMA PORTA OU OBJETO PARA INTERAGIR',1300);
     }
     const keys = new Set();
     // Física vertical simples para o salto em primeira pessoa.
