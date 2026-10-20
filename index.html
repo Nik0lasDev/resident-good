@@ -1352,12 +1352,28 @@
       gun.rotation.x=-recoil*1.5; shotgun.rotation.x=-recoil*1.5; rifle.rotation.x=-recoil*1.5;
       camera.rotation.order='YXZ';camera.rotation.set(pitch-recoil*.45,yaw,0);
       if(locked || window.__residentStartFallback){
-        // Gravidade e salto: o jogador só pode iniciar outro salto ao tocar o chão.
+        // Gravidade e salto com apoio no chão e no topo dos móveis baixos.
+        const previousFeetY=camera.position.y-groundY;
         verticalVelocity -= gravity * dt;
         camera.position.y += verticalVelocity * dt;
-        if(camera.position.y <= groundY){
-          camera.position.y = groundY;
-          verticalVelocity = 0;
+        let landedOnSurface=false;
+        if(introActive && verticalVelocity<=0){
+          const feetY=camera.position.y-groundY;
+          const px=camera.position.x,pz=camera.position.z;
+          for(const [fx,fz,fw,fd,fy,fh] of homeFurnitureColliders){
+            const topY=fy+fh;
+            const overlapsXZ=px+.28>fx-fw/2&&px-.28<fx+fw/2&&pz+.28>fz-fd/2&&pz-.28<fz+fd/2;
+            if(overlapsXZ&&previousFeetY>=topY-.06&&feetY<=topY){
+              camera.position.y=groundY+topY;
+              verticalVelocity=0;
+              landedOnSurface=true;
+              break;
+            }
+          }
+        }
+        if(!landedOnSurface&&camera.position.y<=groundY){
+          camera.position.y=groundY;
+          verticalVelocity=0;
         }
         const speed=(keys.has('ShiftLeft')||keys.has('ShiftRight'))?6.4:4.2;
         const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
@@ -1394,12 +1410,13 @@
     function blockedByFacilityWall(x,z,radius=.38){
       if(introActive){
         // Colisão 3D: só bloqueia se o corpo do jogador estiver na altura do móvel.
-        const playerBottom=Math.max(0,camera.position.y-groundY);
-        const playerTop=playerBottom+groundY;
+        const playerFeetY=camera.position.y-groundY;
         for(const [fx,fz,fw,fd,fy,fh] of homeFurnitureColliders){
           const overlapsXZ=x+radius>fx-fw/2&&x-radius<fx+fw/2&&z+radius>fz-fd/2&&z-radius<fz+fd/2;
-          const overlapsY=playerBottom<fy+fh&&playerTop>fy;
-          if(overlapsXZ&&overlapsY)return true;
+          const topY=fy+fh;
+          // Se os pés já estão no topo ou acima dele, o móvel não bloqueia o movimento horizontal.
+          const hitsSide=playerFeetY<topY-.04;
+          if(overlapsXZ&&hitsSide)return true;
         }
         // Limites da planta em L: impede atravessar o vazio onde a ala foi removida.
         const entryGapOpen=homeDoors.some(d=>d.name==='porta de entrada'&&d.open&&x+radius>d.blockX-d.blockW/2&&x-radius<d.blockX+d.blockW/2);
