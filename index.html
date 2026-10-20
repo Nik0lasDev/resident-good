@@ -193,7 +193,7 @@
       const healthBg=new THREE.Mesh(new THREE.PlaneGeometry(.8,.075),new THREE.MeshBasicMaterial({color:0x22201e,side:THREE.DoubleSide,depthTest:false}));healthBg.position.set(0,2.35,0);healthBg.visible=false;root.add(healthBg);
       const healthFill=new THREE.Mesh(new THREE.PlaneGeometry(.76,.045),new THREE.MeshBasicMaterial({color:0xa63b30,side:THREE.DoubleSide,depthTest:false}));healthFill.position.set(0,2.35,.006);healthFill.visible=false;root.add(healthFill);
       const maxHp=type==='brute'?190:type==='runner'?62:type==='spitter'?86:105;
-      const e={root,parts,limbs,torso,head:skull,jaw,protectedParts,headParts,hasVest:false,hasArmoredPants:false,hasHelmet:false,hp:maxHp,maxHp,spawn:new THREE.Vector3(x,0,z),lastAttack:0,respawnAt:0,healthFill,healthBg,phase:index*1.7,gaitPhase:0,attackStarted:-9999,attackSide:1,alive:true,type};
+      const e={root,parts,limbs,torso,head:skull,jaw,protectedParts,headParts,hasVest:false,hasArmoredPants:false,hasHelmet:false,hp:maxHp,maxHp,spawn:new THREE.Vector3(x,0,z),lastAttack:0,respawnAt:0,healthFill,healthBg,phase:index*1.7,gaitPhase:0,attackStarted:-9999,attackSide:1,alive:true,type,feedingIntro:false,awakened:false,awakeningAt:0,armProp:null,droppedArm:null,bloodPuddles:[]};
       enemies.push(e);return e;
     }
     // Mapa único e fixo: complexo policial/laboratório abandonado, sem transições entre salas.
@@ -354,7 +354,25 @@
       const homeFill=new THREE.HemisphereLight(0x8b98a1,0x24201b,.25);scene.add(homeFill);roomObjects.push(homeFill);
       // Linhas do mapa usadas pela colisão e pela visão dos inimigos durante a abertura.
       enemiesWakeAt=performance.now()+2500;
-      const e=makeEnemy(5.3,0,0);e.type='walker';e.maxHp=105;e.hp=105;e.speed=1.15;e.attackDamage=8;e.attackRange=1.28;
+      const e=makeEnemy(5.3,0,0);e.type='walker';e.maxHp=105;e.hp=105;e.speed=1.15;e.attackDamage=8;e.attackRange=1.28;e.feedingIntro=true;
+      // O invasor começa agachado, consumindo um braço humano sobre o chão ensanguentado.
+      e.root.scale.set(1,.72,1);e.root.position.y=-.2;e.torso.rotation.x=.28;e.head.rotation.x=.32;
+      e.limbs.leftArm.rotation.x=1.05;e.limbs.rightArm.rotation.x=.92;e.limbs.leftLeg.rotation.x=.48;e.limbs.rightLeg.rotation.x=.62;
+      const armSkin=mat(0x9b8172,.98),armBlood=mat(0x501916,.9);
+      const armProp=new THREE.Group();armProp.position.set(-.12,1.06,-.58);armProp.rotation.x=-.35;e.root.add(armProp);e.armProp=armProp;
+      const upperArm=new THREE.Mesh(new THREE.CapsuleGeometry(.09,.28,4,8),armSkin);upperArm.rotation.x=Math.PI/2;upperArm.position.z=-.1;armProp.add(upperArm);
+      const forearm=new THREE.Mesh(new THREE.CapsuleGeometry(.075,.25,4,8),armSkin);forearm.rotation.x=Math.PI/2;forearm.position.z=-.38;armProp.add(forearm);
+      const hand=new THREE.SphereGeometry(.09,10,8);const palm=new THREE.Mesh(hand,armSkin);palm.position.z=-.56;armProp.add(palm);
+      for(let finger=0;finger<4;finger++){const digit=new THREE.Mesh(new THREE.CapsuleGeometry(.018,.09,3,5),armSkin);digit.rotation.x=Math.PI/2;digit.position.set((finger-1.5)*.035,-.025,-.65);armProp.add(digit);}
+      const woundEnd=new THREE.Mesh(new THREE.CylinderGeometry(.065,.08,.035,10),armBlood);woundEnd.rotation.x=Math.PI/2;woundEnd.position.z=.06;armProp.add(woundEnd);
+      const poolMat=mat(0x3d0909,.35),splashMat=mat(0x64120e,.4);
+      for(const [bx,bz,sx,sz] of [[5.3,0,1.35,.9],[4.45,.45,.5,.3],[6.05,-.35,.42,.26],[5.7,.62,.28,.2]]){const pool=new THREE.Mesh(new THREE.CircleGeometry(1,28),bx===5.3&&bz===0?poolMat:splashMat);pool.rotation.x=-Math.PI/2;pool.scale.set(sx,sz,1);pool.position.set(bx,.012,bz);pool.receiveShadow=true;scene.add(pool);roomObjects.push(pool);e.bloodPuddles.push(pool);}
+      const droppedArm=new THREE.Group();droppedArm.visible=false;scene.add(droppedArm);roomObjects.push(droppedArm);e.droppedArm=droppedArm;
+      // Cópia do braço para o chão, revelada e animada quando o infectado desperta.
+      const droppedUpper=new THREE.Mesh(new THREE.CapsuleGeometry(.09,.28,4,8),armSkin);droppedUpper.rotation.x=Math.PI/2;droppedUpper.position.z=-.1;droppedArm.add(droppedUpper);
+      const droppedFore=new THREE.Mesh(new THREE.CapsuleGeometry(.075,.25,4,8),armSkin);droppedFore.rotation.x=Math.PI/2;droppedFore.position.z=-.38;droppedArm.add(droppedFore);
+      const droppedPalm=new THREE.Mesh(new THREE.SphereGeometry(.09,10,8),armSkin);droppedPalm.position.z=-.56;droppedArm.add(droppedPalm);
+      const droppedWound=new THREE.Mesh(new THREE.CylinderGeometry(.065,.08,.035,10),armBlood);droppedWound.rotation.x=Math.PI/2;droppedWound.position.z=.06;droppedArm.add(droppedWound);
       e.root.rotation.y=Math.PI/2;
       camera.position.set(-9.2,groundY,-2.65);yaw=-Math.PI/2;pitch=0;
       weapons[0].magazine=6;weapons[0].reserve=0;magazine=6;reserve=0;weaponIndex=0;
