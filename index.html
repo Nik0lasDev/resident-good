@@ -12,6 +12,7 @@
     #hud{position:fixed;inset:0;pointer-events:none;user-select:none}
     /* HUD limpo: mantém vida do jogador, munição, controles e minimapa. */
     #brand,#chapter-objective,#target,.tag{display:none!important}
+    #story-box{position:absolute;left:50%;bottom:clamp(95px,15vh,150px);transform:translateX(-50%);width:min(520px,calc(100vw - 32px));padding:17px 20px;background:rgba(12,16,17,.94);border:1px solid rgba(208,218,198,.35);border-left:3px solid #c8d9b9;border-radius:7px;color:#edf0e8;box-shadow:0 14px 45px #0009;display:none;z-index:8;pointer-events:none}#story-title{font-size:10px;letter-spacing:.16em;color:#b6c8a4;font-weight:900;margin-bottom:8px}#story-text{font-size:14px;line-height:1.55}#story-hint{font-size:10px;color:#c5a778;margin-top:10px;letter-spacing:.08em}@media(max-width:650px){#story-box{bottom:115px;padding:13px 14px}#story-text{font-size:12px}}
     .panel{background:linear-gradient(135deg,rgba(15,20,25,.9),rgba(15,20,25,.65));border:1px solid rgba(220,230,238,.15);box-shadow:0 8px 28px #0003;backdrop-filter:blur(8px);border-radius:10px}
     #brand{position:absolute;left:22px;top:20px;padding:11px 14px;letter-spacing:.12em;font-size:11px;font-weight:800;color:#c8d1d8}
     #brand span{color:#e5a15a}
@@ -70,6 +71,7 @@
     <div id="minimap-wrap"><div id="minimap-title">MAPA DO COMPLEXO <span id="minimap-room">ARKLAY</span></div><canvas id="minimap" width="220" height="180" aria-label="Minimapa da sala atual"></canvas></div>
     <div id="brand" class="panel">RESIDENT <span>GOOD</span> <span style="color:#89949c">/ CAPÍTULO 01</span></div>
     <div id="chapter-objective" class="panel"><div class="chapter-kicker">CAPÍTULO 01 · SINAL DE CONTENÇÃO</div><div id="objective-title">Encontre o cartão de acesso</div><div id="objective-detail">Procure na recepção por um cartão que libere os setores internos.</div><div id="objective-prompt">OBJETIVO ATIVO</div></div>
+    <div id="story-box"><div id="story-title">PENSAMENTO</div><div id="story-text"></div><div id="story-hint">[F] CONTINUAR</div></div>
     <div id="target" class="panel">
       <div class="target-row"><span>AMEAÇAS HOSTIS</span><span id="health-label" class="muted">4 ATIVOS</span></div>
       <div class="bar"><div id="health-fill"></div></div>
@@ -137,6 +139,10 @@
     }
     const enemies=[];
     const activeEnemyOrbs=[];
+    // A abertura começa em casa; o complexo passa a ser carregado após o primeiro confronto.
+    let introActive=true,introPhase=0,introFlashlightTaken=false,introGunPicked=false,introTransitionAt=0;
+    let introWalls=[];
+    let lightSwitchObject=null,wallGunObject=null;
     // Dá ao jogador alguns segundos para se orientar antes de os infectados reagirem.
     let enemiesWakeAt=0;
     const enemyMaterials={skin:mat(0x8d8976,.98),shirt:mat(0x454a42,.99),pants:mat(0x343632,.99),armor:mat(0x252a28,.9),accent:mat(0x5b211d,.95),eyes:mat(0x9e2e22,.45)};
@@ -300,10 +306,67 @@
       updateHealth();
     }
     function initFacility(){
-      clearRoom();camera.position.set(0,groundY,0);
+      introActive=false;
+      document.getElementById('story-box').style.display='none';
+      clearRoom();camera.position.set(0,groundY,0);yaw=0;pitch=0;
       enemiesWakeAt=performance.now()+8000;
       buildFacilityMap();spawnFacilityEnemies();createChapterObjects();
+      updateHealth();updateAmmo();
       showToast('CAPÍTULO 1 · SINAL DE CONTENÇÃO',1800);
+    }
+    function buildHome(){
+      currentRoom={name:'CASA',w:24,d:18,doors:[],decor:0};roomIndex=0;introWalls=[];
+      const floor=mat(0x49443d,.95),wall=mat(0x777064,.95),trim=mat(0x393831,.85),ceiling=mat(0x292a27,.95),wood=mat(0x554337,.88),fabric=mat(0x494c50,.98),metal=mat(0x555b59,.55,.35);
+      box(24,.35,18,floor,0,-.2,0,false,true);
+      // Paredes externas e uma divisória com vão aberto entre quarto e cozinha.
+      const walls=[ [0, -9,24,.3],[0,9,24,.3],[-12,0,.3,18],[12,0,.3,18],[-.1,-5.65,.3,6.7],[-.1,5.65,.3,6.7] ];
+      for(const [x,z,w,d] of walls){box(w,3.4,d,wall,x,1.5,z);box(w,.12,d+.04,trim,x,3.18,z,false,false);introWalls.push([x,z,w,d]);}
+      box(24,.3,18,ceiling,0,3.35,0,false,true);
+      // Quarto: cama, cabeceira, criado-mudo e interruptor visível na parede.
+      box(2.2,.28,3.1,wood,-7,-.01,1.5);box(2.05,.22,2.45,fabric,-7,.2,1.35);box(2.08,.16,.65,mat(0xb6b3a7,.98),-7,.36,.42);
+      box(1.0,.65,.85,wood,-4.9,.25,-.05);box(.22,.12,.12,metal,-4.75,.65,-.32,false,false);
+      lightSwitchObject=new THREE.Group();lightSwitchObject.position.set(-4.55,1.35,-1.2);scene.add(lightSwitchObject);roomObjects.push(lightSwitchObject);
+      const switchPlate=new THREE.Mesh(new THREE.BoxGeometry(.22,.32,.055),mat(0xd4d0bf,.8),);switchPlate.position.z=-.03;lightSwitchObject.add(switchPlate);
+      const switchToggle=new THREE.Mesh(new THREE.BoxGeometry(.07,.12,.035),mat(0x77766c,.65));switchToggle.position.set(0,0,-.065);lightSwitchObject.add(switchToggle);
+      // Cozinha: balcão, pia e geladeira para marcar claramente a segunda área.
+      box(3.8,.95,.85,wood,6.7,.35,-6.7);box(3.9,.08,.92,metal,6.7,.86,-6.7,false,false);
+      box(1.15,2.3,.95,mat(0xb6b5aa,.82),10.1,1.0,-6.7);box(.8,.12,.08,metal,10.1,1.8,-6.2,false,false);
+      box(2.8,.9,.7,wood,7.2,.3,6.5);box(1.1,.08,.55,metal,7.2,.8,6.5,false,false);
+      // Arma montada na parede da cozinha; será recolhida com F.
+      wallGunObject=new THREE.Group();wallGunObject.position.set(10.8,1.5,-2.2);scene.add(wallGunObject);roomObjects.push(wallGunObject);
+      const gunMount=new THREE.Mesh(new THREE.BoxGeometry(.48,.72,.08),wood);wallGunObject.add(gunMount);
+      const gunBarrel=new THREE.Mesh(new THREE.BoxGeometry(.09,.08,.8),metal);gunBarrel.position.set(0,.1,-.36);wallGunObject.add(gunBarrel);
+      const gunBody=new THREE.Mesh(new THREE.BoxGeometry(.15,.16,.42),mat(0x252a2b,.5,.55));gunBody.position.set(0,.04,-.12);wallGunObject.add(gunBody);
+      const gunGrip=new THREE.Mesh(new THREE.BoxGeometry(.12,.22,.12),mat(0x292c2b,.8));gunGrip.position.set(0,-.13,.04);wallGunObject.add(gunGrip);
+      // Lâmpadas fracas de emergência: o interruptor não acende as luzes da casa.
+      const bulbMat=new THREE.MeshStandardMaterial({color:0x756b53,emissive:0x30291c,emissiveIntensity:.3});
+      box(.3,.08,.3,bulbMat,-6,2.9,-2.8,false,false);box(.3,.08,.3,bulbMat,6,2.9,2.8,false,false);
+      const homeFill=new THREE.HemisphereLight(0x8b98a1,0x24201b,.25);scene.add(homeFill);roomObjects.push(homeFill);
+      // Linhas do mapa usadas pela colisão e pela visão dos inimigos durante a abertura.
+      enemiesWakeAt=performance.now()+2500;
+      const e=makeEnemy(5.3,0,0);e.type='walker';e.maxHp=105;e.hp=105;e.speed=1.15;e.attackDamage=8;e.attackRange=1.28;
+      e.root.rotation.y=Math.PI/2;
+      camera.position.set(-6,groundY,0);yaw=-Math.PI/2;pitch=0;
+      weapons[0].magazine=6;weapons[0].reserve=0;magazine=6;reserve=0;weaponIndex=0;
+      weapons.forEach(w=>w.model.visible=false);flashlightModel.visible=false;flashlightSpot.intensity=0;
+      ui.weapon.textContent='SEM ARMA';ui.ammo.innerHTML='—';ui.status.textContent='SEM ENERGIA';
+      updateHealth();showToast('MADRUGADA · UM ESTRONDO VEM DA CASA',2400);
+      ui.objectiveTitle.textContent='Descubra o que aconteceu';ui.objectiveDetail.textContent='A luz não funciona. Encontre uma lanterna e verifique a cozinha.';ui.objectivePrompt.textContent='[F] EXAMINAR INTERRUPTOR';
+    }
+    function interactIntro(){
+      const px=camera.position.x,pz=camera.position.z;
+      if(introPhase===0&&Math.hypot(px+4.55,pz+1.2)<2.0){
+        introPhase=1;document.getElementById('story-title').textContent='PENSAMENTO';document.getElementById('story-text').textContent='Que estranho, acho melhor conferir a bateria lá fora...';document.getElementById('story-hint').textContent='[F] PEGAR A LANTERNA';document.getElementById('story-box').style.display='block';
+        showToast('O INTERRUPTOR NÃO RESPONDE',1100);return;
+      }
+      if(introPhase===1){
+        introPhase=2;introFlashlightTaken=true;weaponIndex=flashlightIndex;weapons.forEach(w=>w.model.visible=false);flashlightModel.visible=true;updateFlashlightUI();ui.weapon.textContent='LANTERNA';ui.status.textContent='LANTERNA EQUIPADA';document.getElementById('story-text').textContent='Pego a lanterna no criado-mudo. Preciso descobrir de onde veio aquele barulho.';document.getElementById('story-hint').textContent='';setTimeout(()=>{document.getElementById('story-box').style.display='none';},2600);ui.objectiveTitle.textContent='Vá até a cozinha';ui.objectiveDetail.textContent='Saia do quarto e investigue o estrondo.';ui.objectivePrompt.textContent='SIGA PARA A COZINHA';return;
+      }
+      if(introPhase>=2&&!introGunPicked&&Math.hypot(px-10.8,pz+2.2)<2.1){
+        introGunPicked=true;wallGunObject.visible=false;weaponIndex=0;weapons[0].magazine=6;weapons[0].reserve=0;magazine=6;reserve=0;weapons.forEach((w,i)=>w.model.visible=i===0);flashlightModel.visible=false;flashlightSpot.intensity=0;updateAmmo();updateFlashlightUI();ui.weapon.textContent=weapons[0].name;ui.status.textContent='6 MUNIÇÕES · SEM RESERVA';ui.objectiveTitle.textContent='Defenda-se do invasor';ui.objectiveDetail.textContent='Use as 6 munições para eliminar o inimigo na cozinha.';ui.objectivePrompt.textContent='CLIQUE PARA ATIRAR';showToast('PISTOLA RECOLHIDA · 6 MUNIÇÕES',1700);return;
+      }
+      if(introPhase===0)showToast('APROXIME-SE DO INTERRUPTOR AO LADO DA CAMA',1100);
+      else if(!introGunPicked)showToast('PROCURE A ARMA MONTADA NA PAREDE DA COZINHA',1100);
     }
     function tryRoomExit(){return false;}
     // Inicialização adiada até HUD e física estarem prontos.
@@ -506,10 +569,11 @@
     function switchWeapon(){
       if(reloading)return;
       // Guarda munição somente quando uma arma de fogo está equipada.
+      if(introActive&&!introGunPicked&&!introFlashlightTaken){showToast('PRIMEIRO, PEGUE A LANTERNA',900);return;}
       if(weaponIndex<weapons.length){
         weapons[weaponIndex].magazine=magazine;weapons[weaponIndex].reserve=reserve;
       }
-      weaponIndex=(weaponIndex+1)%(weapons.length+1);
+      weaponIndex=introActive?(weaponIndex===flashlightIndex?0:flashlightIndex):(weaponIndex+1)%(weapons.length+1);
       const flashlightActive=weaponIndex===flashlightIndex;
       weapons.forEach((item,index)=>item.model.visible=!flashlightActive&&index===weaponIndex);
       flashlightModel.visible=flashlightActive;
@@ -563,6 +627,7 @@
             ui.hitmarker.style.opacity='1';hitEnd=performance.now()+110;
             if(target.hp===0){
               target.alive=false;target.root.visible=false;target.respawnAt=performance.now()+5000;
+              if(introActive){introTransitionAt=performance.now()+2300;ui.objectiveTitle.textContent='A ameaça foi eliminada';ui.objectiveDetail.textContent='O estrondo atraiu algo lá fora...';ui.objectivePrompt.textContent='PREPARE-SE';showToast('INVASOR ELIMINADO · A CASA FICOU EM SILÊNCIO',1800);}
               updateHealth();showToast(isHeadshot?'HEADSHOT · ELIMINAÇÃO':'INIMIGO ELIMINADO');
             }else showToast(isHeadshot?'HEADSHOT · -'+Math.round(appliedDamage)+' HP':'ACERTO · '+Math.ceil(target.hp)+' HP');
           }
@@ -631,7 +696,7 @@
     const jumpVelocity = 6.2;
     const gravity = 17;
     const clock = new THREE.Clock();
-    initFacility();
+    buildHome();
     const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
     function updateAmmo(){
       if(weaponIndex===flashlightIndex){updateFlashlightUI();return;}
@@ -684,7 +749,7 @@
       }
       if(e.code==='KeyR'&&!e.repeat)reload();
       if(e.code==='KeyE'&&!e.repeat && locked)switchWeapon();
-      if(e.code==='KeyF'&&!e.repeat && locked){e.preventDefault();interactChapter();}
+      if(e.code==='KeyF'&&!e.repeat && locked){e.preventDefault();if(introActive)interactIntro();else interactChapter();}
     });
     document.addEventListener('keyup',e=>keys.delete(e.code));
     document.addEventListener('mousedown',e=>{
@@ -749,9 +814,9 @@
       for(const e of enemies){
         if(!e.alive)continue;
         if(now<enemiesWakeAt){
-          // Os inimigos permanecem inativos no início; não detectam nem perseguem o jogador.
-          e.root.position.y=0;
-          continue;
+          // Durante a abertura, o invasor fica na cozinha até o jogador chegar perto.
+          if(introActive){const d0=Math.hypot(camera.position.x-e.root.position.x,camera.position.z-e.root.position.z);if(d0>5){e.root.position.y=0;continue;}}
+          else {e.root.position.y=0;continue;}
         }
         const playerX=camera.position.x,playerZ=camera.position.z;
         let dx=playerX-e.root.position.x,dz=playerZ-e.root.position.z;
@@ -837,7 +902,8 @@
       }
       if(now>muzzleEnd)muzzleFlash.visible=false;
       updateBullets(dt);
-      if(locked){updateEnemies(dt,now);updateEnemyOrbs(dt);updateChapterUI();}
+      if(locked){updateEnemies(dt,now);updateEnemyOrbs(dt);if(!introActive)updateChapterUI();}
+      if(introActive&&introTransitionAt>0&&now>=introTransitionAt){introTransitionAt=0;initFacility();showToast('VOCÊ PRECISA DESCOBRIR O QUE ESTÁ ACONTECENDO',2200);}
       if(now>hitEnd)ui.hitmarker.style.opacity='0';
       if(now>toastEnd)ui.toast.style.opacity='0';
       recoil=Math.max(0,recoil-dt*.7);
@@ -873,7 +939,8 @@
     const minimapCanvas=document.getElementById('minimap');
     const minimapCtx=minimapCanvas.getContext('2d');
     function blockedByFacilityWall(x,z,radius=.38){
-      for(const [wx,wz,ww,wd] of facilityWalls){
+      const activeWalls=introActive?introWalls:facilityWalls;
+      for(const [wx,wz,ww,wd] of activeWalls){
         if(x+radius>wx-ww/2&&x-radius<wx+ww/2&&z+radius>wz-wd/2&&z-radius<wz+wd/2)return true;
       }
       return false;
