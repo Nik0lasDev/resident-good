@@ -377,7 +377,7 @@
       // O céu visível fora da casa usa a mesma cor base das paredes.
       scene.background.set(0x777064);scene.fog.color.set(0x777064);
       // Casa reconstruída como uma única planta explorável, com leitura visual de survival horror.
-      currentRoom={name:'CASA',w:24,d:18,doors:[],decor:0};roomIndex=0;introWalls=[];
+      currentRoom={name:'CASA + RUA',w:44,d:60,doors:[],decor:0};roomIndex=0;introWalls=[];
       const floor=mat(0x403c36,.96),wall=mat(0x777064,.96),wallDark=mat(0x514d45,.98),trim=mat(0x292a26,.9),ceiling=mat(0x252724,.98),wood=mat(0x514033,.9),woodLight=mat(0x725941,.92),fabric=mat(0x45484a,.99),metal=mat(0x555b59,.55,.35),glass=mat(0x202b2d,.3,.25);
       // Planta em L bem marcada: toda a ala inferior esquerda foi removida (12 x 7 unidades).
       // A ala superior permanece larga; a ala inferior existe somente à direita.
@@ -514,6 +514,36 @@
       wallGunObject=new THREE.Group();wallGunObject.position.set(11.81,1.5,-2.2);wallGunObject.rotation.y=Math.PI/2;scene.add(wallGunObject);roomObjects.push(wallGunObject);
       const gunMount=new THREE.Mesh(new THREE.BoxGeometry(.56,.88,.075),wood);wallGunObject.add(gunMount);
       const mountEdge=new THREE.Mesh(new THREE.BoxGeometry(.6,.035,.09),woodLight);mountEdge.position.y=-.42;wallGunObject.add(mountEdge);
+      // Área externa provisória para teste: calçada, rua, lixeira e casas em blocos simples.
+      const outdoorGround=mat(0x565650,.98),sidewalkMat=mat(0x858078,.96),roadMat=mat(0x303432,.98);
+      const roadMarkMat=mat(0xbab49b,.9),binMat=mat(0x343f3a,.92),binLidMat=mat(0x242b28,.9);
+      box(48,.22,38,outdoorGround,0,-.24,25,false,true);
+      box(48,.08,2.2,sidewalkMat,0,-.075,11.1,false,true);
+      box(48,.08,1.8,sidewalkMat,0,-.075,24.1,false,true);
+      box(48,.06,6.8,roadMat,0,-.09,17.7,false,true);
+      for(let x=-22;x<=22;x+=5.5)box(2.5,.012,.12,roadMarkMat,x,-.052,17.7,false,false);
+      // Lixeira encostada ao lado direito da entrada, sem bloquear a passagem.
+      const trashBin=new THREE.Group();trashBin.position.set(4.85,0,10.25);scene.add(trashBin);roomObjects.push(trashBin);
+      const binBody=new THREE.Mesh(new THREE.BoxGeometry(.72,1.05,.68),binMat);binBody.position.y=.53;binBody.castShadow=true;binBody.receiveShadow=true;trashBin.add(binBody);
+      const binLid=new THREE.Mesh(new THREE.BoxGeometry(.82,.13,.76),binLidMat);binLid.position.set(0,1.1,0);binLid.castShadow=true;trashBin.add(binLid);
+      const binFront=new THREE.Mesh(new THREE.BoxGeometry(.34,.22,.025),mat(0x66716a,.85));binFront.position.set(0,.63,-.353);trashBin.add(binFront);
+      // Casas vizinhas deliberadamente simples: volumes provisórios para testar escala e percurso.
+      const neighborWallMats=[mat(0x8a8275,.96),mat(0x777c78,.96),mat(0x9a8b7b,.96),mat(0x666d70,.96)];
+      const neighborRoofMats=[mat(0x403a36,.96),mat(0x4a4540,.96),mat(0x343b3d,.96)];
+      const neighborDoorMat=mat(0x3d3028,.94),neighborWindowMat=mat(0x35434a,.42,.15);
+      const neighborHouses=[[-13,28,0],[-3,30,1],[8,28,2],[18,31,3]];
+      for(let i=0;i<neighborHouses.length;i++){
+        const [hx,hz,mi]=neighborHouses[i],hm=neighborWallMats[mi],rw=i%2?6.2:5.4,rd=i%2?5.2:5.8;
+        box(rw,3.5,rd,hm,hx,1.75,hz);
+        box(rw+.45,.28,rd+.45,neighborRoofMats[i%neighborRoofMats.length],hx,3.64,hz);
+        box(.9,1.8,.09,neighborDoorMat,hx,0.9,hz-rd/2-.052,false,true);
+        for(const wx of [hx-rw*.27,hx+rw*.27]){
+          box(.95,.85,.07,neighborWindowMat,wx,2.05,hz-rd/2-.06,false,true);
+          box(1.08,.08,.1,trim,wx,2.05,hz-rd/2-.11,false,false);
+        }
+      }
+      // As dimensões maiores permitem caminhar da entrada até a rua durante o teste.
+      currentRoom.w=44;currentRoom.d=60;
       // Sem lâmpadas nem iluminação artificial na casa; apenas luz ambiente mínima e a lanterna do jogador.
       const homeFill=new THREE.HemisphereLight(0x626b72,0x17130f,.09);scene.add(homeFill);roomObjects.push(homeFill);
       // Linhas do mapa usadas pela colisão e pela visão dos inimigos durante a abertura.
@@ -1310,8 +1340,12 @@
       if(introActive){
         // Limites da planta em L: impede atravessar o vazio onde a ala foi removida.
         const entryGapOpen=homeDoors.some(d=>d.name==='porta de entrada'&&d.open&&x+radius>d.blockX-d.blockW/2&&x-radius<d.blockX+d.blockW/2);
-        if(x < -12+radius || x > 12-radius || z < -9+radius || (z > 9-radius && !entryGapOpen))return true;
-        if(z > 2-radius && x < radius)return true;
+        // A parede da frente só bloqueia a passagem junto à porta; depois de sair, a rua fica livre.
+        if(z < -9+radius)return true;
+        if(z > 9-radius && z < 9.65 && !entryGapOpen)return true;
+        if(z <= 9.65 && (x < -12+radius || x > 12-radius))return true;
+        if(z > 9.65 && (x < -22+radius || x > 22-radius || z > 30-radius))return true;
+        if(z <= 2-radius && z > -9+radius && x < radius)return true;
         for(const door of homeDoors){if(!door.open&&x+radius>door.blockX-door.blockW/2&&x-radius<door.blockX+door.blockW/2&&z+radius>door.blockZ-door.blockD/2&&z-radius<door.blockZ+door.blockD/2)return true;}
       }
       const activeWalls=introActive?introWalls:facilityWalls;
