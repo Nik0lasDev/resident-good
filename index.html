@@ -1485,7 +1485,7 @@
         if(z > 9-radius && z < 9.65 && !entryGapOpen)return true;
         if(z <= 9.65 && (x < -12+radius || x > 12-radius))return true;
         if(z > 9.65 && (x < -22+radius || x > 22-radius))return true;
-        if(currentRoom?.name==='CASA + RUA'&&z>12&&insideProceduralHouse===null){for(const c of proceduralChunks.values())for(const h of c.houses){if(h.destroyed)continue;if(x+radius>h.x-3.3&&x-radius<h.x+3.3&&z+radius>h.z-3.6&&z-radius<h.z+3.6)return true;}}
+        if(currentRoom?.name==='CASA + RUA'&&z>12&&insideProceduralHouse===null){for(const c of proceduralChunks.values())for(const h of c.houses){if(h.destroyed)continue;if(x+radius>h.x-(h.width||6.6)/2&&x-radius<h.x+(h.width||6.6)/2&&z+radius>h.z-(h.depth||7.2)/2&&z-radius<h.z+(h.depth||7.2)/2)return true;}}
         if(z > 2-radius && z <= 9.65 && x < radius)return true;
         for(const door of homeDoors){if(!door.open&&x+radius>door.blockX-door.blockW/2&&x-radius<door.blockX+door.blockW/2&&z+radius>door.blockZ-door.blockD/2&&z-radius<door.blockZ+door.blockD/2)return true;}
       }
@@ -1579,28 +1579,46 @@
     function procBox(parent,w,h,d,material,x,y,z,cast=true){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);m.position.set(x,y,z);m.castShadow=cast;m.receiveShadow=true;parent.add(m);return m;}
     function makeProceduralHouse(x,z,seed){
       const root=new THREE.Group();root.position.set(x,0,z);scene.add(root);const interior=new THREE.Group();interior.position.set(x,0,z);scene.add(interior);
-      const wallMat=[procMats.brickA,procMats.brickB,procMats.brickC][seed%3],w=6.6,d=7.2,h=3.5;
-      procBox(root,w,h,d,wallMat,0,h/2,0);procBox(root,2.25,.18,d+.22,procMats.roof,0,h+.12,0);
-      for(const side of [-1,1]){const rp=procBox(root,4.1,.2,d+.45,procMats.roof,side*1.55,h+.63,0);rp.rotation.z=side*-.32;procBox(root,1.25,1.05,.12,procMats.window,side*1.72,2.1,-d/2-.15);for(const dx of [-.68,.68])procBox(root,.1,1.22,.16,procMats.wood,side*1.72+dx,2.1,-d/2-.18);for(const yy of [1.5,2.7])procBox(root,1.48,.1,.16,procMats.wood,side*1.72,yy,-d/2-.18);}
-      const door=procBox(root,1.05,2.45,.18,procMats.door,0,1.23,-d/2-.15);procBox(root,.08,.08,.1,procMats.lamp,.35,1.25,-d/2-.28,false);
-      procBox(interior,w-.35,.16,d-.35,procMats.wood,0,.02,0);procBox(interior,2.15,3.1,.18,wallMat,-2.2,1.55,-d/2+.08);procBox(interior,2.15,3.1,.18,wallMat,2.2,1.55,-d/2+.08);procBox(interior,2.3,.55,.18,wallMat,0,2.88,-d/2+.08);procBox(interior,.16,3.1,d-.35,wallMat,-(w-.35)/2,1.55,0);procBox(interior,.16,3.1,d-.35,wallMat,(w-.35)/2,1.55,0);procBox(interior,w-.35,.18,.16,wallMat,0,3.15,d/2-.08);
-      // Sala mobiliada: tapete, sofá, mesa, estante, cozinha e luzes quentes.
+      // Casas maiores: planta de 9,2 x 10,4 unidades, com sala, cozinha, quarto e banheiro.
+      const wallMat=[procMats.brickA,procMats.brickB,procMats.brickC][seed%3],w=9.2,d=10.4,h=3.5;
+      procBox(root,w,h,d,wallMat,0,h/2,0);procBox(root,2.8,.18,d+.22,procMats.roof,0,h+.12,0);
+      for(const side of [-1,1]){const rp=procBox(root,5.8,.2,d+.45,procMats.roof,side*2.05,h+.63,0);rp.rotation.z=side*-.32;procBox(root,1.25,1.05,.12,procMats.window,side*2.55,2.1,-d/2-.15);for(const dx of [-.68,.68])procBox(root,.1,1.22,.16,procMats.wood,side*2.55+dx,2.1,-d/2-.18);for(const yy of [1.5,2.7])procBox(root,1.48,.1,.16,procMats.wood,side*2.55,yy,-d/2-.18);}
+      procBox(root,1.25,2.45,.18,procMats.door,0,1.23,-d/2-.15);procBox(root,.08,.08,.1,procMats.lamp,.45,1.25,-d/2-.28,false);
+      // Casca interna com entrada larga; as divisórias formam quatro cômodos conectados.
+      procBox(interior,w-.35,.16,d-.35,procMats.wood,0,.02,0);
+      procBox(interior,2.8,3.1,.18,wallMat,-3.15,1.55,-d/2+.08);procBox(interior,2.8,3.1,.18,wallMat,3.15,1.55,-d/2+.08);procBox(interior,3.0,.55,.18,wallMat,0,2.88,-d/2+.08);
+      procBox(interior,.16,3.1,d-.35,wallMat,-(w-.35)/2,1.55,0);procBox(interior,.16,3.1,d-.35,wallMat,(w-.35)/2,1.55,0);procBox(interior,w-.35,.18,.16,wallMat,0,3.15,d/2-.08);
+      // Divisória transversal: três passagens mantêm acesso entre sala e cômodos dos fundos.
+      for(const [px,pw] of [[-2.95,2.1],[0,1.0],[2.95,2.1]])procBox(interior,pw,2.75,.16,wallMat,px,1.38,.25);
+      // Parede longitudinal separa quarto e banheiro da cozinha; abertura na frente permite entrar.
+      procBox(interior,.16,2.75,2.1,wallMat,.8,1.38,3.45);
+      procBox(interior,.16,2.75,1.0,wallMat,.8,1.38,5.0);
+      // Sala: tapete, sofá, mesa e estante.
       const rugMat=mat(seed%2?0x4c3931:0x39423e,.98),sofaMat=mat(seed%2?0x47494a:0x55463d,.97),cabinetMat=mat(0x584431,.94),whiteMat=mat(0x9a9486,.92);
-      procBox(interior,3.1,.035,2.25,rugMat,.15,.12,.65,false);procBox(interior,2.25,.48,.78,sofaMat,-1.35,.43,.7);procBox(interior,2.25,.62,.22,sofaMat,-1.35,.82,1.02);for(const sx of [-2.25,-.45])procBox(interior,.18,.48,.78,sofaMat,sx,.43,.7);
-      procBox(interior,1.55,.18,.95,procMats.wood,.45,.55,.85);for(const [tx,tz] of [[-.15,.5],[1.05,.5],[-.15,1.2],[1.05,1.2]])procBox(interior,.08,.42,.08,procMats.wood,tx,.29,tz);
-      procBox(interior,1.65,1.45,.5,cabinetMat,-2.72,.78,-1.7);for(let shelf=0;shelf<3;shelf++)procBox(interior,1.48,.045,.54,procMats.wood,-2.72,.3+shelf*.48,-1.42,false);
-      procBox(interior,2.05,.88,.68,whiteMat,1.9,.46,-2.75);procBox(interior,2.1,.12,.72,procMats.metal,1.9,.96,-2.75);procBox(interior,.78,.58,.55,procMats.metal,1.45,1.25,-2.75);procBox(interior,.75,.08,.52,procMats.wood,2.38,1.03,-2.75);
-      procBox(interior,.9,.65,.5,cabinetMat,2.65,.36,1.75);procBox(interior,.94,.09,.54,procMats.wood,2.65,.72,1.75);
-      for(const [wx,wz] of [[-2.72,-2.9],[2.72,-2.9]]){procBox(interior,.62,.52,.035,procMats.window,wx,2.1,wz,false);procBox(interior,.06,.58,.07,procMats.wood,wx,2.1,wz-.025,false);procBox(interior,.68,.06,.07,procMats.wood,wx,2.1,wz-.025,false);}
-      const ceilingLamp=procBox(interior,.42,.08,.42,procMats.lamp,0,3.02,0,false);const warmLight=new THREE.PointLight(0xffd39a,.8,8,2);warmLight.position.set(0,2.85,0);interior.add(warmLight);
-      // Saque espalhado nos cômodos para incentivar exploração.
-      // Itens coletáveis: mais saque dentro das casas, distribuído entre os móveis.
-      const house={x,z,root,interior,door,doorX:x,doorZ:z-d/2-.7,hp:220,destroyed:false,seed,items:[]};
+      procBox(interior,3.5,.035,2.5,rugMat,-.25,.12,-2.45,false);procBox(interior,2.5,.48,.78,sofaMat,-2.0,.43,-2.5);procBox(interior,2.5,.62,.22,sofaMat,-2.0,.82,-2.18);for(const sx of [-3.0,-1.0])procBox(interior,.18,.48,.78,sofaMat,sx,.43,-2.5);
+      procBox(interior,1.45,.18,.8,procMats.wood,.45,.55,-2.25);for(const [tx,tz] of [[-.1,-2.55],[1,-2.55],[-.1,-1.95],[1,-1.95]])procBox(interior,.08,.42,.08,procMats.wood,tx,.29,tz);
+      procBox(interior,1.5,1.5,.5,cabinetMat,-3.65,.8,-.7);for(let shelf=0;shelf<3;shelf++)procBox(interior,1.35,.045,.54,procMats.wood,-3.65,.32+shelf*.48,-.42,false);
+      // Cozinha no fundo à direita.
+      procBox(interior,2.1,.88,.68,whiteMat,2.8,.46,2.05);procBox(interior,2.15,.12,.72,procMats.metal,2.8,.96,2.05);procBox(interior,.78,.58,.55,procMats.metal,2.25,1.25,2.05);procBox(interior,.75,.08,.52,procMats.wood,3.3,1.03,2.05);
+      procBox(interior,.95,.65,.5,cabinetMat,3.45,.36,3.45);procBox(interior,.99,.09,.54,procMats.wood,3.45,.72,3.45);
+      // Quarto nos fundos à esquerda: cama, travesseiro e criado-mudo.
+      const bedMat=mat(seed%2?0x4c5558:0x5b4944,.96);
+      procBox(interior,2.35,.32,2.6,bedMat,-2.65,.28,3.35);procBox(interior,2.2,.12,2.35,whiteMat,-2.65,.49,3.35);procBox(interior,.75,.18,.42,procMats.window,-3.15,.62,2.45);
+      procBox(interior,.62,.65,.62,cabinetMat,-3.65,.36,1.45);procBox(interior,.66,.08,.66,procMats.wood,-3.65,.72,1.45);
+      // Banheiro pequeno ao fundo, com divisória baixa e peças sanitárias simples.
+      procBox(interior,2.1,2.35,.14,wallMat,-2.55,1.18,4.55);procBox(interior,.14,2.35,1.55,wallMat,-1.5,1.18,5.0);
+      procBox(interior,.72,.48,.72,whiteMat,-3.05,.26,4.95);procBox(interior,.5,.65,.5,whiteMat,-3.05,.78,4.95);procBox(interior,.72,.12,.5,procMats.metal,-3.05,1.12,4.95);
+      // Janelas internas, lâmpada e iluminação quente.
+      for(const [wx,wz] of [[-3.75,-3.0],[3.75,-3.0],[3.75,3.0],[-3.75,3.0]]){procBox(interior,.62,.52,.035,procMats.window,wx,2.1,wz,false);procBox(interior,.06,.58,.07,procMats.wood,wx,2.1,wz-.025,false);procBox(interior,.68,.06,.07,procMats.wood,wx,2.1,wz-.025,false);}
+      procBox(interior,.42,.08,.42,procMats.lamp,0,3.02,0,false);const warmLight=new THREE.PointLight(0xffd39a,1.05,12,2);warmLight.position.set(0,2.85,0);interior.add(warmLight);
+      const backLight=new THREE.PointLight(0xffd9a8,.45,7,2);backLight.position.set(-2.5,2.35,3.5);interior.add(backLight);
+      const house={x,z,root,interior,doorX:x,doorZ:z-d/2-.7,width:w,depth:d,hp:260,destroyed:false,seed,items:[]};
       const lootRand=n=>{const v=Math.sin(seed*91.7+n*173.3+z*12.1)*43758.5453;return v-Math.floor(v);};
-      const lootCount=2+Math.floor(lootRand(1)*3); // 2 a 4 itens por casa
+      const lootCount=3+Math.floor(lootRand(1)*4); // 3 a 6 itens por casa maior
       for(let i=0;i<lootCount;i++){
         const kindRoll=lootRand(i+4),kind=kindRoll<.48?'food':kindRoll<.8?'ammo':'battery';
-        const lx=(lootRand(i+20)-.5)*4.2,lz=(lootRand(i+40)-.5)*4.6;
+        const zones=[[-2.5,-2.2],[-2.5,3.3],[2.7,2.0],[2.7,-2.0],[0,1.6],[0,-2.8]];
+        const zone=zones[i%zones.length],lx=zone[0]+(lootRand(i+20)-.5)*1.15,lz=zone[1]+(lootRand(i+40)-.5)*1.15;
         const item=makeStreetItem(x+lx,z+lz,kind);item.group.visible=false;item.house=house;house.items.push(item);
       }
       interior.visible=false;root.traverse(o=>{if(o.isMesh){o.userData.house=house;destructibleMeshes.push(o);}});return house;
