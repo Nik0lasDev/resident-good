@@ -490,13 +490,13 @@
       addHomeDoor({name:'porta da cozinha',x:5.6,z:0,width:1.6,rotation:0,openRotation:-Math.PI/2,blockX:6.4,blockZ:0,blockW:1.6,blockD:.24});
       // Telhado externo em duas águas, separado do teto interno para dar silhueta real à casa.
       const exteriorRoofMat=mat(0x292724,.98),roofEdgeMat=mat(0x40382f,.96);
-      const mainRoof=new THREE.Group();mainRoof.position.set(0,3.58,-3.5);scene.add(mainRoof);roomObjects.push(mainRoof);
+      const mainRoof=new THREE.Group();mainRoof.position.set(0,5.4,-3.5);scene.add(mainRoof);roomObjects.push(mainRoof);
       for(const side of [-1,1]){
         const slope=new THREE.Mesh(new THREE.BoxGeometry(13.2,.2,12.0),exteriorRoofMat);
         slope.position.set(side*5.35,.45,0);slope.rotation.z=side*-0.38;slope.castShadow=true;slope.receiveShadow=true;mainRoof.add(slope);
       }
       const mainRidge=new THREE.Mesh(new THREE.BoxGeometry(.22,.24,12.2),roofEdgeMat);mainRidge.position.set(0,.88,0);mainRidge.castShadow=true;mainRoof.add(mainRidge);
-      const wingRoof=new THREE.Group();wingRoof.position.set(6,3.58,5.5);scene.add(wingRoof);roomObjects.push(wingRoof);
+      const wingRoof=new THREE.Group();wingRoof.position.set(6,5.0,5.5);scene.add(wingRoof);roomObjects.push(wingRoof);
       for(const side of [-1,1]){
         const slope=new THREE.Mesh(new THREE.BoxGeometry(10.0,.2,7.8),exteriorRoofMat);
         slope.position.set(side*4.0,.32,0);slope.rotation.z=side*-0.34;slope.castShadow=true;slope.receiveShadow=true;wingRoof.add(slope);
