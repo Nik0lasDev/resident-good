@@ -336,7 +336,7 @@
       for(let x=-1;x<14;x+=3.8){for(let z=2.5;z<8.4;z+=2.3)box(.018,.013,1.12,floorSeam,x,.003,z,false,false);}
       for(const [x,z,w,d] of [[-7,-7,1.3,.035],[1.5,-3.5,.8,.025],[3.2,5.2,1.1,.025],[9,-2,.65,.025]])box(w,.008,d,floorWear,x,.004,z,false,false);
       // Paredes exteriores e divisórias baixas mantêm o percurso conectado dentro do mesmo mapa.
-      const walls=[[0,-9,24,.3],[.8,9,1.6,.3],[8.2,9,7.6,.3],[-12,-3.325,.3,11.35],[-6,2.5,12,.3],[0,5.5,.3,7],[12,0,.3,18],[1,-8.5,.3,1],[1,-3,.3,6],[2.8,0,5.6,.3],[9.6,0,4.8,.3]];
+      const walls=[[0,-9,24,.3],[.8,9,1.6,.3],[8.2,9,7.6,.3],[-12,-3.325,.3,11.35],[-6,2.5,12,.3],[0,5.5,.3,7],[12,0,.3,18],[1.6,-8,.3,2],[1.6,-3,.3,4],[2.8,0,5.6,.3],[9.6,0,4.8,.3]];
       for(const [x,z,w,d] of walls){
         box(w,3.4,d,wall,x,1.5,z);
         box(w,.12,d+.05,trim,x,3.18,z,false,false);
@@ -378,7 +378,7 @@
         homeDoors.push({name,pivot,closedRotation:rotation,openRotation,open:false,blockX,blockZ,blockW,blockD});
       }
       addHomeDoor({name:'porta de entrada',x:1.6,z:8.84,width:2.8,rotation:0,openRotation:Math.PI/2,blockX:3,blockZ:8.84,blockW:2.8,blockD:.24});
-      addHomeDoor({name:'porta do quarto',x:1,z:-7,width:2,rotation:-Math.PI/2,openRotation:0,blockX:1,blockZ:-7,blockW:.24,blockD:2});
+      addHomeDoor({name:'porta do quarto',x:1.6,z:-7,width:2,rotation:-Math.PI/2,openRotation:0,blockX:1.6,blockZ:-7,blockW:.24,blockD:2});
       addHomeDoor({name:'porta da cozinha',x:5.6,z:0,width:1.6,rotation:0,openRotation:-Math.PI/2,blockX:6.4,blockZ:0,blockW:1.6,blockD:.24});
       // O teto repete exatamente a planta em L: a grande ala inferior esquerda fica totalmente aberta.
       box(1000,.3,11,ceiling,0,3.35,-3.5,false,true);
@@ -427,7 +427,7 @@
       for(const x of [1.6,4.4])box(.16,2.45,.16,doorTrim,x,1.12,8.86,false,false);
       box(2.95,.16,.16,doorTrim,3,2.38,8.86,false,false);
       for(const z of [-8,-6])box(.16,2.4,.16,doorTrim,1.3,1.12,z,false,false);
-      box(.16,.16,2.15,doorTrim,1,2.38,-7,false,false);
+      box(.16,.16,2.15,doorTrim,1.6,2.38,-7,false,false);
       for(const x of [5.6,7.2])box(.16,2.4,.16,doorTrim,x,1.12,0,false,false);
       box(1.75,.16,.16,doorTrim,6.4,2.38,0,false,false);
       // Arma de parede na cozinha, destacada por um suporte gasto.
