@@ -455,7 +455,7 @@
           addPart(new THREE.BoxGeometry(.075,.2,.045),doorDark,.12,py,-.09,false);
           addPart(new THREE.CylinderGeometry(.027,.027,.22,10),doorMetal,.12,py,-.125,false);
         }
-        homeDoors.push({name,pivot,closedRotation:rotation,openRotation,open:false,blockX,blockZ,blockW,blockD});
+        homeDoors.push({name,pivot,closedRotation:rotation,openRotation,open:false,currentRotation:rotation,targetRotation:rotation,blockX,blockZ,blockW,blockD});
       }
       addHomeDoor({name:'porta de entrada',x:1.6,z:8.84,width:2.8,rotation:0,openRotation:Math.PI/2,blockX:3,blockZ:8.84,blockW:2.8,blockD:.24});
       addHomeDoor({name:'porta do quarto',x:.1,z:-7,width:2,rotation:-Math.PI/2,openRotation:0,blockX:.1,blockZ:-7,blockW:.65,blockD:2.4});
