@@ -510,7 +510,7 @@
       for(const x of [5.6,7.2])box(.16,2.8,.16,doorTrim,x,1.4,0,false,false);
       box(1.75,.16,.16,doorTrim,6.4,2.78,0,false,false);
       // Suporte simples; o modelo exato da pistola será clonado da arma em primeira pessoa.
-      wallGunObject=new THREE.Group();wallGunObject.position.set(10.8,1.5,-2.2);scene.add(wallGunObject);roomObjects.push(wallGunObject);
+      wallGunObject=new THREE.Group();wallGunObject.position.set(11.81,1.5,-2.2);wallGunObject.rotation.y=Math.PI/2;scene.add(wallGunObject);roomObjects.push(wallGunObject);
       const gunMount=new THREE.Mesh(new THREE.BoxGeometry(.56,.88,.075),wood);wallGunObject.add(gunMount);
       const mountEdge=new THREE.Mesh(new THREE.BoxGeometry(.6,.035,.09),woodLight);mountEdge.position.y=-.42;wallGunObject.add(mountEdge);
       // Sem lâmpadas nem iluminação artificial na casa; apenas luz ambiente mínima e a lanterna do jogador.
@@ -617,8 +617,8 @@
     // Clona somente as peças da pistola original, antes de adicionar os braços do jogador.
     // Assim a arma da parede usa exatamente a mesma geometria e os mesmos materiais.
     const wallPistolModel=gun.clone(true);
-    wallPistolModel.position.set(0,.02,-.11);
-    wallPistolModel.rotation.set(0,Math.PI/2,0);
+    wallPistolModel.position.set(0,.02,-.12);
+    wallPistolModel.rotation.set(0,0,0);
     wallPistolModel.scale.set(2.25,2.25,2.25);
     wallPistolModel.traverse(part=>{if(part.isMesh){part.castShadow=true;part.receiveShadow=true;part.renderOrder=2;part.frustumCulled=false;}});
     // A arma é anexada ao suporte depois que buildHome() criar wallGunObject.
