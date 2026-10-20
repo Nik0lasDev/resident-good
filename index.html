@@ -1168,7 +1168,7 @@
     document.addEventListener('mousedown',e=>{
       if(!locked)return;
       if(e.button===2){e.preventDefault();if(introActive)interactIntro();else interactChapter();return;}
-      if(e.button===0)shoot();
+      if(e.button===0){if(insideProceduralHouse){interactProcedural();return;}if(!introActive&&currentRoom?.name==='CASA + RUA'&&tryEnterProceduralHouse())return;shoot();}
     });
     document.addEventListener('pointerlockerror',()=>{
       showToast('O NAVEGADOR BLOQUEOU O MOUSE — TENTE NOVAMENTE');
@@ -1583,7 +1583,18 @@
       procBox(root,w,h,d,wallMat,0,h/2,0);procBox(root,2.25,.18,d+.22,procMats.roof,0,h+.12,0);
       for(const side of [-1,1]){const rp=procBox(root,4.1,.2,d+.45,procMats.roof,side*1.55,h+.63,0);rp.rotation.z=side*-.32;procBox(root,1.25,1.05,.12,procMats.window,side*1.72,2.1,-d/2-.15);for(const dx of [-.68,.68])procBox(root,.1,1.22,.16,procMats.wood,side*1.72+dx,2.1,-d/2-.18);for(const yy of [1.5,2.7])procBox(root,1.48,.1,.16,procMats.wood,side*1.72,yy,-d/2-.18);}
       const door=procBox(root,1.05,2.45,.18,procMats.door,0,1.23,-d/2-.15);procBox(root,.08,.08,.1,procMats.lamp,.35,1.25,-d/2-.28,false);
-      procBox(interior,w-.35,.16,d-.35,procMats.wood,0,.02,0);procBox(interior,w-.35,.18,.16,wallMat,0,3.15,-d/2+.08);procBox(interior,.16,3.1,d-.35,wallMat,-(w-.35)/2,1.55,0);procBox(interior,.16,3.1,d-.35,wallMat,(w-.35)/2,1.55,0);procBox(interior,w-.35,.18,.16,wallMat,0,3.15,d/2-.08);procBox(interior,1.7,.5,.85,procMats.wood,-1.6,.34,-.6);procBox(interior,.65,.55,.65,procMats.metal,1.65,.3,1.2);interior.visible=false;
+      procBox(interior,w-.35,.16,d-.35,procMats.wood,0,.02,0);procBox(interior,2.15,3.1,.18,wallMat,-2.2,1.55,-d/2+.08);procBox(interior,2.15,3.1,.18,wallMat,2.2,1.55,-d/2+.08);procBox(interior,2.3,.55,.18,wallMat,0,2.88,-d/2+.08);procBox(interior,.16,3.1,d-.35,wallMat,-(w-.35)/2,1.55,0);procBox(interior,.16,3.1,d-.35,wallMat,(w-.35)/2,1.55,0);procBox(interior,w-.35,.18,.16,wallMat,0,3.15,d/2-.08);
+      // Sala mobiliada: tapete, sofá, mesa, estante, cozinha e luzes quentes.
+      const rugMat=mat(seed%2?0x4c3931:0x39423e,.98),sofaMat=mat(seed%2?0x47494a:0x55463d,.97),cabinetMat=mat(0x584431,.94),whiteMat=mat(0x9a9486,.92);
+      procBox(interior,3.1,.035,2.25,rugMat,.15,.12,.65,false);procBox(interior,2.25,.48,.78,sofaMat,-1.35,.43,.7);procBox(interior,2.25,.62,.22,sofaMat,-1.35,.82,1.02);for(const sx of [-2.25,-.45])procBox(interior,.18,.48,.78,sofaMat,sx,.43,.7);
+      procBox(interior,1.55,.18,.95,procMats.wood,.45,.55,.85);for(const [tx,tz] of [[-.15,.5],[1.05,.5],[-.15,1.2],[1.05,1.2]])procBox(interior,.08,.42,.08,procMats.wood,tx,.29,tz);
+      procBox(interior,1.65,1.45,.5,cabinetMat,-2.72,.78,-1.7);for(let shelf=0;shelf<3;shelf++)procBox(interior,1.48,.045,.54,procMats.wood,-2.72,.3+shelf*.48,-1.42,false);
+      procBox(interior,2.05,.88,.68,whiteMat,1.9,.46,-2.75);procBox(interior,2.1,.12,.72,procMats.metal,1.9,.96,-2.75);procBox(interior,.78,.58,.55,procMats.metal,1.45,1.25,-2.75);procBox(interior,.75,.08,.52,procMats.wood,2.38,1.03,-2.75);
+      procBox(interior,.9,.65,.5,cabinetMat,2.65,.36,1.75);procBox(interior,.94,.09,.54,procMats.wood,2.65,.72,1.75);
+      for(const [wx,wz] of [[-2.72,-2.9],[2.72,-2.9]]){procBox(interior,.62,.52,.035,procMats.window,wx,2.1,wz,false);procBox(interior,.06,.58,.07,procMats.wood,wx,2.1,wz-.025,false);procBox(interior,.68,.06,.07,procMats.wood,wx,2.1,wz-.025,false);}
+      const ceilingLamp=procBox(interior,.42,.08,.42,procMats.lamp,0,3.02,0,false);const warmLight=new THREE.PointLight(0xffd39a,.8,8,2);warmLight.position.set(0,2.85,0);interior.add(warmLight);
+      // Saque espalhado nos cômodos para incentivar exploração.
+      const lootSeed=seed%3;procBox(interior,.22,.16,.16,procMats.ammo,-2.35,.18,2.35,false);procBox(interior,.2,.3,.16,lootSeed===1?procMats.food:procMats.metal,2.45,.22,.6,false);interior.visible=false;
       const house={x,z,root,interior,door,doorX:x,doorZ:z-d/2-.7,hp:220,destroyed:false,seed};root.traverse(o=>{if(o.isMesh){o.userData.house=house;destructibleMeshes.push(o);}});return house;
     }
     function makeStreetLamp(x,z,working){const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);procBox(g,.18,5.5,.18,procMats.metal,0,2.75,0);const arm=procBox(g,1.05,.12,.12,procMats.metal,x<0?.45:-.45,5.35,0);arm.rotation.z=x<0?-.08:.08;procBox(g,.36,.13,.32,procMats.lamp,x<0?.82:-.82,5.28,0,false);let light=null;if(working){light=new THREE.PointLight(0xffdca0,1.15,13,2);light.position.set(x<0?.82:-.82,5.05,0);g.add(light);}return {group:g,light,working};}
@@ -1598,6 +1609,13 @@
     }
     function updateProceduralWorld(){if(currentRoom?.name==='CASA + RUA'&&insideProceduralHouse===null&&camera.position.z>12){const center=Math.max(0,Math.floor((camera.position.z-38)/38));for(let i=Math.max(0,center-2);i<=center+2;i++)if(!proceduralChunks.has(i))proceduralChunks.set(i,generateStreetChunk(i));for(const [i,c] of proceduralChunks)if(Math.abs(i-center)>3){scene.remove(c.group);for(const h of c.houses){scene.remove(h.root);scene.remove(h.interior);h.root.traverse(o=>{const n=destructibleMeshes.indexOf(o);if(n>=0)destructibleMeshes.splice(n,1);});}for(const l of c.lamps)scene.remove(l.group);for(const it of c.items)scene.remove(it.group);proceduralChunks.delete(i);}}}
     function updateSurvival(dt,now){if(!locked)return;hunger=Math.max(0,hunger-dt*.12);if(hunger<=0&&now-lastHungerDamage>1800){playerHp=Math.max(1,playerHp-3);lastHungerDamage=now;updatePlayerHealth();showToast('FOME EXTREMA · -3 HP',700);}if(hungerFill)hungerFill.style.width=hunger+'%';if(hungerLabel)hungerLabel.textContent=Math.ceil(hunger)+'%';if(hunger<=25){if(hungerFill)hungerFill.style.background='linear-gradient(90deg,#9d3029,#e24c3d)';}else if(hungerFill)hungerFill.style.background='linear-gradient(90deg,#b68a42,#e4c778)';}
+    function tryEnterProceduralHouse(){
+      if(insideProceduralHouse)return false;
+      let nearest=null,dist=Infinity;
+      for(const c of proceduralChunks.values())for(const h of c.houses){if(h.destroyed)continue;const d=Math.hypot(camera.position.x-h.doorX,camera.position.z-h.doorZ);if(d<dist){dist=d;nearest=h;}}
+      if(!nearest||dist>2.45)return false;
+      insideProceduralHouse=nearest;nearest.root.visible=false;nearest.interior.visible=true;camera.position.set(nearest.x,groundY,nearest.z);showToast('CASA INVADIDA · CLIQUE ESQUERDO PARA SAIR',1200);return true;
+    }
     function interactProcedural(){
       if(introActive&&camera.position.z<=12){interactIntro();return;}
       if(insideProceduralHouse){const h=insideProceduralHouse;h.interior.visible=false;h.root.visible=!h.destroyed;camera.position.set(h.doorX,groundY,h.doorZ-1.4);insideProceduralHouse=null;showToast('VOCÊ SAIU DA CASA',900);return;}
