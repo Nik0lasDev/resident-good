@@ -518,7 +518,7 @@
       // Linhas do mapa usadas pela colisão e pela visão dos inimigos durante a abertura.
       enemiesWakeAt=performance.now()+2500;
       // Posição inicial livre, fora da divisória em z=0.
-      const e=makeEnemy(5.1,6.7,5);e.type='walker';e.maxHp=105;e.hp=105;e.speed=1.15;e.attackDamage=8;e.attackRange=1.28;e.feedingIntro=true;
+      const e=makeEnemy(5.1,6.7,5);e.type='walker';e.maxHp=300;e.hp=300;e.speed=1.15;e.attackDamage=8;e.attackRange=1.28;e.feedingIntro=true;
       // O invasor começa agachado, consumindo um braço humano sobre o chão ensanguentado.
       e.root.scale.set(1,.72,1);e.root.position.y=-.2;e.torso.rotation.x=.28;e.head.rotation.x=.32;
       e.limbs.leftArm.rotation.x=1.05;e.limbs.rightArm.rotation.x=.92;e.limbs.leftLeg.rotation.x=.48;e.limbs.rightLeg.rotation.x=.62;
@@ -1074,7 +1074,7 @@
         let distance=Math.hypot(dx,dz);
         // Os infectados só detectam o jogador dentro do alcance e com linha de visão.
         // Depois de perdê-lo, investigam a última posição conhecida por alguns segundos.
-        const sightRange=e.type==='runner'?12:e.type==='brute'?7:9;
+        const sightRange=e.isPaleStalker?22:e.type==='runner'?12:e.type==='brute'?7:9;
         const canSeePlayer=distance<=sightRange&&hasFacilityLineOfSight(e.root.position.x,e.root.position.z,playerX,playerZ);
         if(canSeePlayer){
           e.lastKnownX=playerX;e.lastKnownZ=playerZ;e.alertUntil=now+4200;e.hasLastKnown=true;
