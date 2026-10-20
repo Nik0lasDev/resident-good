@@ -31,6 +31,10 @@
     .eyebrow{font-size:9px;letter-spacing:.16em;color:#9daab4;font-weight:800;margin-bottom:5px}
     #ammo{font-size:26px;font-weight:800;line-height:1.15;letter-spacing:-.04em}
     #ammo small{font-size:14px;color:#9daab4;letter-spacing:0}
+    #battery-wrap{display:none;margin-top:8px}
+    #battery-track{height:5px;background:#343d40;border-radius:8px;overflow:hidden;margin-top:4px}
+    #battery-fill{height:100%;width:100%;background:linear-gradient(90deg,#78bd8a,#d8e9b7);transition:width .15s}
+    #battery-label{display:flex;justify-content:space-between;font-size:9px;color:#aeb8c0;letter-spacing:.08em}
     #status{font-size:11px;color:#e5a15a;margin-top:6px;min-height:14px}
     #help{position:absolute;right:22px;bottom:22px;padding:13px 15px;color:#aeb8c0;font-size:10px;line-height:1.9;text-align:right}
     kbd{display:inline-block;padding:1px 5px;border:1px solid #5a636b;border-radius:4px;color:#f2f4f6;background:#282f35;font:inherit;font-weight:700}
@@ -75,6 +79,7 @@
     <div id="bottom-left" class="panel">
       <div id="weapon-name" class="eyebrow">PISTOLA / 9 MM</div>
       <div id="ammo">12 <small>/ 48</small></div>
+      <div id="battery-wrap"><div id="battery-label"><span>BATERIA</span><span id="battery-percent">100%</span></div><div id="battery-track"><div id="battery-fill"></div></div></div>
       <div id="status">PRONTA</div>
     </div>
     <div id="help" class="panel"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> mover<br><kbd>SHIFT</kbd> correr · <kbd>ESPAÇO</kbd> pular · <kbd>R</kbd> recarregar · <kbd>E</kbd> trocar arma<br><kbd>CLIQUE</kbd> atirar · <kbd>ESC</kbd> liberar mouse</div>
@@ -452,21 +457,70 @@
       }
     }
     rifle.visible=false;
+    // Lanterna de mão: ocupa o mesmo espaço de equipamento das armas.
+    const flashlightModel=new THREE.Group();
+    flashlightModel.position.set(.32,-.23,-.58);
+    flashlightModel.renderOrder=20;
+    camera.add(flashlightModel);
+    const flashlightBody=new THREE.Mesh(new THREE.CylinderGeometry(.045,.052,.25,12),mat(0x252d30,.35,.72));
+    flashlightBody.rotation.x=Math.PI/2;
+    flashlightBody.position.set(0,.015,0);
+    flashlightBody.renderOrder=20;flashlightBody.frustumCulled=false;flashlightModel.add(flashlightBody);
+    const flashlightHead=new THREE.Mesh(new THREE.CylinderGeometry(.062,.05,.075,12),mat(0x586267,.28,.8));
+    flashlightHead.rotation.x=Math.PI/2;flashlightHead.position.set(0,.015,-.145);
+    flashlightHead.renderOrder=20;flashlightHead.frustumCulled=false;flashlightModel.add(flashlightHead);
+    const flashlightLens=new THREE.Mesh(new THREE.CircleGeometry(.043,12),new THREE.MeshBasicMaterial({color:0xdce9bf}));
+    flashlightLens.position.set(0,.015,-.185);flashlightLens.renderOrder=21;flashlightLens.frustumCulled=false;flashlightModel.add(flashlightLens);
+    flashlightModel.visible=false;
+    const flashlightTarget=new THREE.Object3D();
+    flashlightTarget.position.set(0,0,-1);
+    camera.add(flashlightTarget);
+    const flashlightSpot=new THREE.SpotLight(0xdce9bf,0,19,Math.PI/7,0.45,1.4);
+    flashlightSpot.position.set(0.28,-0.16,-0.55);
+    flashlightSpot.target=flashlightTarget;
+    flashlightSpot.castShadow=false;
+    camera.add(flashlightSpot);
+    let flashlightBattery=100;
+    const flashlightBatteryDrain=0.8; // bateria cheia dura cerca de 125 segundos ligada
+    const flashlightIndex=3;
     const weapons=[
       {name:'PISTOLA / 9 MM',magSize:12,magazine:12,reserve:48,damage:25,fireDelay:260,reloadMs:1350,model:gun},
       {name:'ESCOPETA',magSize:6,magazine:6,reserve:30,damage:45,fireDelay:750,reloadMs:1650,model:shotgun},
       {name:'RIFLE DE ASSALTO',magSize:30,magazine:30,reserve:120,damage:18,fireDelay:115,reloadMs:1450,model:rifle}
     ];
     let weaponIndex=0;
+    function updateFlashlightUI(){
+      const active=weaponIndex===flashlightIndex;
+      ui.batteryWrap.style.display=active?'block':'none';
+      ui.batteryFill.style.width=flashlightBattery+'%';
+      ui.batteryPercent.textContent=Math.ceil(flashlightBattery)+'%';
+      ui.batteryFill.style.background=flashlightBattery<=20?'linear-gradient(90deg,#a52f2b,#ed5548)':'linear-gradient(90deg,#78bd8a,#d8e9b7)';
+      flashlightSpot.intensity=active&&flashlightBattery>0?22*(0.25+0.75*flashlightBattery/100):0;
+      flashlightModel.visible=active;
+      if(active)ui.ammo.innerHTML=flashlightBattery>0?'BATERIA <small>'+Math.ceil(flashlightBattery)+'%</small>':'SEM CARGA';
+    }
     function switchWeapon(){
       if(reloading)return;
-      // Guarda a munição atual para que cada arma mantenha seu próprio carregador.
-      weapons[weaponIndex].magazine=magazine;weapons[weaponIndex].reserve=reserve;
-      weaponIndex=(weaponIndex+1)%weapons.length;
+      // Guarda munição somente quando uma arma de fogo está equipada.
+      if(weaponIndex<weapons.length){
+        weapons[weaponIndex].magazine=magazine;weapons[weaponIndex].reserve=reserve;
+      }
+      weaponIndex=(weaponIndex+1)%(weapons.length+1);
+      const flashlightActive=weaponIndex===flashlightIndex;
+      weapons.forEach((item,index)=>item.model.visible=!flashlightActive&&index===weaponIndex);
+      flashlightModel.visible=flashlightActive;
+      flashlightSpot.intensity=flashlightActive&&flashlightBattery>0?22*(0.25+0.75*flashlightBattery/100):0;
+      if(flashlightActive){
+        ui.weapon.textContent='LANTERNA';
+        ui.status.textContent=flashlightBattery>0?'ILUMINANDO · SEM DISPARO':'BATERIA ESGOTADA';
+        updateFlashlightUI();
+        showToast(flashlightBattery>0?'LANTERNA LIGADA':'LANTERNA SEM BATERIA',850);
+        return;
+      }
       const w=weapons[weaponIndex];
-      weapons.forEach(item=>item.model.visible=item===w);
       magazine=w.magazine;reserve=w.reserve;updateAmmo();
       ui.weapon.textContent=w.name;ui.status.textContent='ARMA TROCADA';
+      updateFlashlightUI();
       showToast('ARMA: '+w.name,850);
     }
 
@@ -516,6 +570,7 @@
       overlay:document.getElementById('overlay'), start:document.getElementById('start'),
       objectiveTitle:document.getElementById('objective-title'), objectiveDetail:document.getElementById('objective-detail'), objectivePrompt:document.getElementById('objective-prompt'),
       ammo:document.getElementById('ammo'), status:document.getElementById('status'),
+      batteryWrap:document.getElementById('battery-wrap'), batteryFill:document.getElementById('battery-fill'), batteryPercent:document.getElementById('battery-percent'),
       health:document.getElementById('health-fill'), healthLabel:document.getElementById('health-label'),
       playerHealth:document.getElementById('player-fill'), playerHealthLabel:document.getElementById('player-health-label'),
       hitmarker:document.getElementById('hitmarker'), crosshair:document.getElementById('crosshair'),
@@ -574,7 +629,10 @@
     const clock = new THREE.Clock();
     initFacility();
     const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-    function updateAmmo(){ui.ammo.innerHTML=String(magazine)+' <small>/ '+reserve+'</small>';}
+    function updateAmmo(){
+      if(weaponIndex===flashlightIndex){updateFlashlightUI();return;}
+      ui.ammo.innerHTML=String(magazine)+' <small>/ '+reserve+'</small>';
+    }
     function updateHealth(){
       const active=enemies.filter(e=>e.alive).length,total=Math.max(1,enemies.length);
       ui.health.style.width=(active/total*100)+'%';
@@ -638,6 +696,7 @@
     window.addEventListener('blur',()=>keys.clear());
 
     function reload(){
+      if(weaponIndex===flashlightIndex){showToast('A LANTERNA NÃO PRECISA RECARREGAR');return;}
       const w=weapons[weaponIndex];
       if(reloading||magazine===w.magSize||reserve<=0){if(reserve<=0&&magazine<w.magSize)showToast('SEM MUNIÇÃO RESERVA');return;}
       reloading=true;reloadEnd=performance.now()+w.reloadMs;
@@ -645,6 +704,7 @@
     }
     function shoot(){
       const now=performance.now();
+      if(weaponIndex===flashlightIndex){ui.status.textContent='LANTERNA EQUIPADA · NÃO É POSSÍVEL ATIRAR';return;}
       const w=weapons[weaponIndex];
       if(reloading||now-lastShot<w.fireDelay)return;
       // Clicar para atirar com o carregador vazio inicia a recarga automaticamente.
@@ -757,6 +817,11 @@
       }
     }
     function update(dt,now){
+      if(locked&&weaponIndex===flashlightIndex&&flashlightBattery>0){
+        flashlightBattery=Math.max(0,flashlightBattery-flashlightBatteryDrain*dt);
+        updateFlashlightUI();
+        if(flashlightBattery<=0)ui.status.textContent='BATERIA ESGOTADA';
+      }
       if(reloading&&now>=reloadEnd){
         const needed=weapons[weaponIndex].magSize-magazine, amount=Math.min(needed,reserve);
         magazine+=amount;reserve-=amount;reloading=false;updateAmmo();ui.status.textContent='PRONTA';
