@@ -96,7 +96,7 @@
         <div class="tip"><b>01 / MOVIMENTO</b>WASD · Shift corre</div>
         <div class="tip"><b>02 / COMBATE</b>Mire na cabeça · clique atira</div>
         <div class="tip"><b>03 / SOBREVIVÊNCIA</b>R recarrega · E troca arma</div>
-        <div class="tip"><b>04 / INTERAÇÃO</b>F examina e recolhe objetos</div>
+        <div class="tip"><b>04 / INTERAÇÃO</b>Botão direito examina e recolhe objetos</div>
       </div>
       <button id="start">CONTINUAR JOGO</button>
       <div id="mobile-note">Pressione ESC para pausar ou retomar o jogo.</div>
@@ -954,22 +954,21 @@
       pitch=clamp(pitch-e.movementY*.0022,-1.25,1.25);
     });
     document.addEventListener('keydown',e=>{
-      if(['KeyW','KeyA','KeyS','KeyD','ShiftLeft','ShiftRight','Space','KeyR','KeyE','KeyF'].includes(e.code))e.preventDefault();
+      if(['KeyW','KeyA','KeyS','KeyD','ShiftLeft','ShiftRight','Space','KeyR','KeyE'].includes(e.code))e.preventDefault();
       keys.add(e.code);
       if(e.code==='Space' && locked && !e.repeat && camera.position.y <= groundY + 0.001){
         verticalVelocity = jumpVelocity;
       }
       if(e.code==='KeyR'&&!e.repeat)reload();
       if(e.code==='KeyE'&&!e.repeat && locked)switchWeapon();
-      if(e.code==='KeyF'&&!e.repeat && locked){e.preventDefault();if(introActive)interactIntro();else interactChapter();}
+      
     });
     document.addEventListener('keyup',e=>keys.delete(e.code));
+    document.addEventListener('contextmenu',e=>e.preventDefault());
     document.addEventListener('mousedown',e=>{
-      if(e.button!==0)return;
-      // O início é tratado apenas pelo botão; evitar pedir Pointer Lock duas vezes
-      // no mesmo clique (mousedown + click), o que pode fazer o navegador rejeitar.
       if(!locked)return;
-      shoot();
+      if(e.button===2){e.preventDefault();if(introActive)interactIntro();else interactChapter();return;}
+      if(e.button===0)shoot();
     });
     document.addEventListener('pointerlockerror',()=>{
       showToast('O NAVEGADOR BLOQUEOU O MOUSE — TENTE NOVAMENTE');
