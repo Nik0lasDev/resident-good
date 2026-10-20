@@ -528,6 +528,23 @@
       const forearm=new THREE.Mesh(new THREE.CapsuleGeometry(.075,.25,4,8),armSkin);forearm.rotation.x=Math.PI/2;forearm.position.z=-.38;armProp.add(forearm);
       const hand=new THREE.SphereGeometry(.09,10,8);const palm=new THREE.Mesh(hand,armSkin);palm.position.z=-.56;armProp.add(palm);
       for(let finger=0;finger<4;finger++){const digit=new THREE.Mesh(new THREE.CapsuleGeometry(.018,.09,3,5),armSkin);digit.rotation.x=Math.PI/2;digit.position.set((finger-1.5)*.035,-.025,-.65);armProp.add(digit);}
+      // Caixa de munição presa à mão do braço, com seis cartuchos visíveis.
+      const ammoBox=new THREE.Group();ammoBox.position.set(.02,-.035,-.68);ammoBox.rotation.set(.08,.12,-.08);armProp.add(ammoBox);
+      const ammoCaseMat=mat(0x454b32,.82,.18),ammoEdgeMat=mat(0x77785b,.65,.3),ammoTextMat=mat(0xd8cda5,.9);
+      const ammoCase=new THREE.Mesh(new THREE.BoxGeometry(.31,.19,.12),ammoCaseMat);ammoCase.castShadow=true;ammoBox.add(ammoCase);
+      const ammoLid=new THREE.Mesh(new THREE.BoxGeometry(.32,.035,.125),ammoEdgeMat);ammoLid.position.y=.105;ammoBox.add(ammoLid);
+      const ammoLabelCanvas=document.createElement('canvas');ammoLabelCanvas.width=128;ammoLabelCanvas.height=64;
+      const ammoCtx=ammoLabelCanvas.getContext('2d');ammoCtx.fillStyle='#d8cda5';ammoCtx.fillRect(5,5,118,54);
+      ammoCtx.fillStyle='#343a28';ammoCtx.font='bold 42px sans-serif';ammoCtx.textAlign='center';ammoCtx.textBaseline='middle';ammoCtx.fillText('6',64,32);
+      const ammoLabelTex=new THREE.CanvasTexture(ammoLabelCanvas);ammoLabelTex.colorSpace=THREE.SRGBColorSpace;
+      const ammoLabel=new THREE.Mesh(new THREE.PlaneGeometry(.17,.085),new THREE.MeshBasicMaterial({map:ammoLabelTex}));
+      ammoLabel.position.set(0,.012,.061);ammoBox.add(ammoLabel);
+      const cartridgeMat=mat(0xb28a43,.4,.7),cartridgeTipMat=mat(0x8a8c86,.35,.6);
+      for(let i=0;i<6;i++){
+        const x=(i%3-.0)*.075-.075,z=(Math.floor(i/3)-.5)*.045;
+        const casing=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,.07,8),cartridgeMat);casing.rotation.x=Math.PI/2;casing.position.set(x,.055,z);ammoBox.add(casing);
+        const tip=new THREE.Mesh(new THREE.ConeGeometry(.012,.025,8),cartridgeTipMat);tip.rotation.x=-Math.PI/2;tip.position.set(x,.055,z-.045);ammoBox.add(tip);
+      }
       const woundEnd=new THREE.Mesh(new THREE.CylinderGeometry(.065,.08,.035,10),armBlood);woundEnd.rotation.x=Math.PI/2;woundEnd.position.z=.06;armProp.add(woundEnd);
       const poolMat=mat(0x3d0909,.35),splashMat=mat(0x64120e,.4);
       for(const [bx,bz,sx,sz] of [[5.05,6.65,1.35,.9],[4.25,7.1,.5,.3],[5.8,6.3,.42,.26],[5.45,7.45,.28,.2]]){const pool=new THREE.Mesh(new THREE.CircleGeometry(1,28),bx===5.05&&bz===6.65?poolMat:splashMat);pool.rotation.x=-Math.PI/2;pool.scale.set(sx,sz,1);pool.position.set(bx,.012,bz);pool.receiveShadow=true;scene.add(pool);roomObjects.push(pool);e.bloodPuddles.push(pool);}
