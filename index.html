@@ -1253,18 +1253,29 @@
           e.jaw.rotation.x=.28+Math.max(0,Math.sin(now*.009+e.phase))*(e.isPaleStalker?.2:.12);
           if(e.isPaleStalker){e.limbs.leftArm.rotation.z=-.1-Math.sin(e.gaitPhase*.5)*.06;e.limbs.rightArm.rotation.z=.1+Math.sin(e.gaitPhase*.5+1)*.06;}
         }else{
-          // Sem detectar nem investigar, o infectado fica parado em estado de espera.
-          e.root.position.y=0;e.root.rotation.z=Math.sin(now*.002+e.phase)*.012;
-          e.root.rotation.x=0;
-          const breath=e.isPaleStalker?.032:.018;
-          e.torso.rotation.x=-.13+Math.sin(now*(e.isPaleStalker?.004:.003)+e.phase)*breath;
-          e.torso.rotation.z=Math.sin(now*.0025+e.phase)*.018;
-          e.head.rotation.x=Math.sin(now*(e.isPaleStalker?.0017:.0022)+e.phase)*(e.isPaleStalker?.075:.055);
-          e.head.rotation.z=Math.sin(now*.0018+e.phase)*(e.isPaleStalker?.065:.045);
-          e.jaw.rotation.x=.28+Math.max(0,Math.sin(now*(e.isPaleStalker?.006:.008)+e.phase))*(e.isPaleStalker?.22:.15);
-          if(e.isPaleStalker){e.limbs.leftArm.rotation.x=-.12+Math.sin(now*.0027+e.phase)*.045;e.limbs.rightArm.rotation.x=-.2+Math.sin(now*.0021+e.phase+1.4)*.06;}
-          e.limbs.leftLeg.rotation.x=0;e.limbs.rightLeg.rotation.x=0;
-          e.limbs.leftArm.rotation.z=-.12;e.limbs.rightArm.rotation.z=.12;
+          // Espera viva: respiração irregular, peso oscilando e pequenos movimentos involuntários.
+          const idleTime=now*.001;
+          const breathWave=Math.sin(now*(e.isPaleStalker?.0022:.0018)+e.phase);
+          const weightShift=Math.sin(idleTime*.72+e.phase);
+          const headTwitch=Math.pow(Math.max(0,Math.sin(now*.0011+e.phase*2.1)),10);
+          e.root.position.y=Math.max(0,breathWave)*.008;
+          e.root.rotation.x=Math.sin(idleTime*.43+e.phase)*.008;
+          e.root.rotation.z=weightShift*(e.isPaleStalker?.022:.014);
+          e.root.rotation.y+=Math.sin(idleTime*.31+e.phase)*.00012;
+          const breath=e.isPaleStalker?.047:.027;
+          e.torso.rotation.x=-.13+breathWave*breath;
+          e.torso.rotation.z=Math.sin(idleTime*.8+e.phase)*.025;
+          e.head.rotation.x=Math.sin(now*(e.isPaleStalker?.0015:.0019)+e.phase)*(e.isPaleStalker?.095:.07)+headTwitch*(e.isPaleStalker?.045:.025);
+          e.head.rotation.y=Math.sin(idleTime*.37+e.phase+1.7)*(e.isPaleStalker?.075:.035);
+          e.head.rotation.z=Math.sin(idleTime*.57+e.phase)*(e.isPaleStalker?.085:.055);
+          e.jaw.rotation.x=.28+Math.max(0,Math.sin(now*(e.isPaleStalker?.0048:.006)+e.phase))*(e.isPaleStalker?.25:.17);
+          const armDrift=Math.sin(idleTime*.63+e.phase);
+          e.limbs.leftArm.rotation.x=(e.isPaleStalker?-.16:-.08)+Math.sin(idleTime*.54+e.phase)*.075+breathWave*.035;
+          e.limbs.rightArm.rotation.x=(e.isPaleStalker?-.24:-.12)+Math.sin(idleTime*.47+e.phase+1.8)*.085-breathWave*.025;
+          e.limbs.leftArm.rotation.z=-.12+armDrift*(e.isPaleStalker?.055:.035);
+          e.limbs.rightArm.rotation.z=.12+Math.sin(idleTime*.51+e.phase+2)* (e.isPaleStalker?.06:.04);
+          e.limbs.leftLeg.rotation.x=weightShift*.025;
+          e.limbs.rightLeg.rotation.x=-weightShift*.018;
           if(canAttack){
             const attackProgress=(now-e.attackStarted)/520;
             const punch=Math.max(0,Math.sin(Math.min(1,Math.max(0,attackProgress))*Math.PI));
