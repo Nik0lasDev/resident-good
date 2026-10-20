@@ -156,38 +156,43 @@
       const wound=mat(0x58221e,.96),bone=mat(0xb2a88d,.96),eye=mat(0x9e2e22,.45);
       const type=['walker','runner','walker','brute','walker','walker','runner','brute'][index%8];
       function part(g,m,parent,x,y,z,head=false){const o=new THREE.Mesh(g,m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);parts.push(o);if(head)headParts.add(o);return o;}
-      const torso=part(new THREE.CapsuleGeometry(.255,.48,5,10),cloth,root,0,1.22,.035);torso.rotation.x=-.13;
-      part(new THREE.CapsuleGeometry(.105,.15,4,8),skin,root,0,1.61,-.015).rotation.x=-.25;
-      const skull=part(new THREE.SphereGeometry(.205,16,12),skin,root,0,1.83,-.045,true);skull.scale.set(.94,1.12,.88);
-      part(new THREE.SphereGeometry(.13,12,8),enemyMaterials.armor,root,0,1.73,-.11,true).scale.set(1,.52,.8);
-      part(new THREE.BoxGeometry(.145,.07,.11),enemyMaterials.eyes,root,0,1.735,-.205,true);
-      part(new THREE.ConeGeometry(.035,.11,7),skin,root,0,1.79,-.225,true).rotation.x=-.55;
+      // Malhas orgânicas de alta resolução para quebrar a silhueta de boneco feito de primitives.
+      function sculptedSphere(rx,ry,rz,seed=0){const g=new THREE.SphereGeometry(1,32,24);const p=g.attributes.position;for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i);const n=1+.025*Math.sin(x*13+seed)*Math.cos(y*11-seed)+.014*Math.sin(z*19+x*7+seed);p.setXYZ(i,x*rx*n,y*ry*n,z*rz*n);}g.computeVertexNormals();return g;}
+      function torsoGeometry(){const rings=[[-.48,.17,.12],[-.36,.235,.145],[-.16,.29,.17],[.04,.34,.18],[.20,.30,.16],[.34,.205,.13],[.43,.14,.11]],verts=[],indices=[],seg=32;for(let r=0;r<rings.length;r++){const [y,rx,rz]=rings[r];for(let j=0;j<seg;j++){const a=j/seg*Math.PI*2,n=1+.035*Math.sin(a*3+r*.8)+.018*Math.cos(a*7-r);verts.push(Math.cos(a)*rx*n,y,Math.sin(a)*rz*n);}}for(let r=0;r<rings.length-1;r++)for(let j=0;j<seg;j++){const a=r*seg+j,b=r*seg+(j+1)%seg,c=(r+1)*seg+(j+1)%seg,d=(r+1)*seg+j;indices.push(a,b,d,b,c,d);}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));g.setIndex(indices);g.computeVertexNormals();return g;}
+      const torso=part(torsoGeometry(),cloth,root,0,1.22,.035);torso.rotation.x=-.13;
+      part(sculptedSphere(.115,.16,.105,2),skin,root,0,1.61,-.015).rotation.x=-.25;
+      const skull=part(sculptedSphere(.205,.245,.185,4),skin,root,0,1.83,-.045,true);skull.scale.set(.94,1.12,.88);
+      const socketMat=mat(0x292a25,.98);
+      for(const side of [-1,1]){part(sculptedSphere(.071,.052,.035,side),socketMat,root,side*.075,1.855,-.201,true);part(sculptedSphere(.078,.028,.042,side+3),skin,root,side*.075,1.918,-.204,true).rotation.z=side*-.12;part(sculptedSphere(.071,.046,.055,side+7),skin,root,side*.135,1.79,-.16,true);}
+      part(sculptedSphere(.042,.085,.052,9),skin,root,0,1.805,-.211,true).rotation.x=-.22;
+      part(sculptedSphere(.052,.025,.025,10),wound,root,0,1.758,-.244,true);
       for(const side of [-1,1]){
         part(new THREE.SphereGeometry(.022,8,6),eye,root,side*.075,1.86,-.222,true);
         part(new THREE.SphereGeometry(.055,9,7),skin,root,side*.205,1.82,-.035,true);
         part(new THREE.SphereGeometry(.065,9,7),wound,root,side*.205,1.82,-.075,true).scale.set(.75,1,.6);
       }
       // Mandíbula aberta, dentes irregulares e cabelo empastado.
-      const jaw=part(new THREE.CapsuleGeometry(.105,.12,4,8),wound,root,0,1.665,-.19,true);jaw.rotation.x=.28;
+      const jaw=part(sculptedSphere(.105,.065,.075,11),skin,root,0,1.665,-.19,true);jaw.rotation.x=.24;
       const teeth=mat(0xc9c0a4,.72),hair=mat(0x292b28,.99);
-      for(let t=0;t<4;t++)part(new THREE.ConeGeometry(.018,.055,5),teeth,root,-.06+t*.04,1.69,-.272,true).rotation.x=Math.PI;
-      for(let t=0;t<5;t++){const tuft=part(new THREE.ConeGeometry(.055,.16,6),hair,root,-.14+t*.07,1.99-(t%2)*.025,-.015,true);tuft.rotation.z=(t-2)*.16;tuft.rotation.x=-.2;}
+      const scalp=part(sculptedSphere(.19,.09,.17,12),hair,root,0,2.015,-.005,true);scalp.rotation.x=-.12;
+      for(let t=0;t<9;t++){const tuft=part(sculptedSphere(.035,.095,.045,t+20),hair,root,-.16+t*.04,1.99-(t%3)*.025,-.025,true);tuft.rotation.z=(t-4)*.12;tuft.rotation.x=-.25+(t%2)*.18;}
+      for(let t=0;t<5;t++)part(sculptedSphere(.013,.045,.012,t+30),teeth,root,-.065+t*.032,1.686,-.264,true);
       part(new THREE.SphereGeometry(.105,10,8),wound,root,-.13,1.37,-.19).scale.set(1,.68,.28);
       part(new THREE.BoxGeometry(.13,.16,.018),enemyMaterials.armor,root,.12,1.23,-.222).rotation.z=-.24;
       for(let i=0;i<3;i++)part(new THREE.CapsuleGeometry(.012,.13,3,5),bone,root,-.095+i*.055,1.25,-.235);
       const leftArm=new THREE.Group();leftArm.position.set(-.31,1.43,0);root.add(leftArm);limbs.leftArm=leftArm;
       const rightArm=new THREE.Group();rightArm.position.set(.31,1.43,0);root.add(rightArm);limbs.rightArm=rightArm;
       for(const [arm,side] of [[leftArm,-1],[rightArm,1]]){
-         part(new THREE.CapsuleGeometry(.085,.32,4,8),cloth,arm,0,-.19,0).rotation.z=side*.1;
-         part(new THREE.CapsuleGeometry(.065,.22,4,8),skin,arm,side*.025,-.45,-.025);
-         part(new THREE.SphereGeometry(.075,10,8),skin,arm,side*.035,-.59,-.055);
+         part(sculptedSphere(.095,.22,.095,side+40),cloth,arm,0,-.19,0).rotation.z=side*.1;
+         part(sculptedSphere(.068,.18,.066,side+44),skin,arm,side*.025,-.45,-.025).rotation.z=side*.06;
+         part(sculptedSphere(.073,.085,.062,side+48),skin,arm,side*.035,-.59,-.055);
          for(let finger=0;finger<3;finger++)part(new THREE.ConeGeometry(.018,.085,5),wound,arm,side*.035+(finger-1)*.035,-.65,-.115).rotation.x=-.35;
          part(new THREE.BoxGeometry(.14,.16,.018),wound,arm,0,-.23,-.082).rotation.z=side*.18;
          part(new THREE.BoxGeometry(.17,.09,.035),cloth,arm,side*.01,-.12,-.065).rotation.z=side*.16;
        }
       const leftLeg=new THREE.Group();leftLeg.position.set(-.14,.82,.015);root.add(leftLeg);limbs.leftLeg=leftLeg;
       const rightLeg=new THREE.Group();rightLeg.position.set(.14,.82,-.015);root.add(rightLeg);limbs.rightLeg=rightLeg;
-      for(const [leg,side] of [[leftLeg,-1],[rightLeg,1]]){part(new THREE.CapsuleGeometry(.095,.39,4,8),pants,leg,0,-.25,0);part(new THREE.CapsuleGeometry(.075,.16,4,8),skin,leg,side*.012,-.48,-.025);part(new THREE.BoxGeometry(.15,.12,.27),enemyMaterials.armor,leg,0,-.59,-.065);part(new THREE.BoxGeometry(.17,.07,.29),enemyMaterials.eyes,leg,0,-.66,-.105);part(new THREE.BoxGeometry(.09,.08,.02),wound,leg,side*.025,-.29,-.09);}
+      for(const [leg,side] of [[leftLeg,-1],[rightLeg,1]]){part(sculptedSphere(.105,.27,.105,side+50),pants,leg,0,-.25,0).rotation.z=side*-.025;part(sculptedSphere(.073,.105,.075,side+55),skin,leg,side*.012,-.48,-.025);part(sculptedSphere(.105,.075,.17,side+60),enemyMaterials.armor,leg,0,-.59,-.065);part(sculptedSphere(.09,.025,.14,side+65),enemyMaterials.eyes,leg,0,-.65,-.105);part(sculptedSphere(.045,.055,.018,side+70),wound,leg,side*.025,-.29,-.09);}
       if(type==='runner')root.scale.set(.82,.94,.82);
       if(type==='brute'){root.scale.set(1.25,1.12,1.2);part(new THREE.BoxGeometry(.32,.22,.03),enemyMaterials.armor,root,0,1.32,-.22);part(new THREE.CapsuleGeometry(.12,.2,4,8),wound,root,-.2,1.46,-.02);}
       // Barras de vida dos inimigos ficam ocultas; o HP continua ativo internamente.
