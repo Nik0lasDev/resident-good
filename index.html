@@ -1381,20 +1381,25 @@
     // Colisores retangulares dos móveis da casa (centro X/Z e largura/profundidade).
     // Mantidos separados das paredes para que portas e corredores continuem funcionando.
     const homeFurnitureColliders=[
-      [-10.55,-6.2,2.35,3.15], // cama
-      [-8.0,-7.75,1.0,.85], // criado-mudo
-      [6.7,-6.7,3.8,.85], // armários e bancada da cozinha
-      [10.1,-6.7,1.15,.95], // geladeira
-      [8.8,5.9,3.0,.95], // sofá
-      [8.4,3.65,1.8,.85], // mesa de centro
-      [8.8,1.2,2.2,.28], // televisão e suporte
-      [7.0,-8.15,2.5,.32] // prateleira baixa/armário encostado na parede
+      // x, z, largura, profundidade, base Y, altura: colisões limitadas ao volume real.
+      [-10.55,-6.2,2.35,3.15,0,.5], // cama
+      [-8.0,-7.75,1.0,.85,0,.925], // criado-mudo
+      [6.7,-6.7,3.8,.92,0,.9], // armários e bancada da cozinha
+      [10.1,-6.7,1.15,.95,0,2.15], // geladeira
+      [8.8,5.9,3.0,.95,0,.95], // sofá
+      [8.4,3.65,1.8,.89,0,.56], // mesa de centro
+      [8.8,1.2,2.2,.28,.425,1.25], // televisão e suporte
+      [7.0,-8.15,2.5,.36,2.19,.12] // prateleira alta: não bloqueia o jogador por baixo
     ];
     function blockedByFacilityWall(x,z,radius=.38){
       if(introActive){
-        // Impede atravessar os móveis sólidos da casa, com teste AABB e raio do jogador.
-        for(const [fx,fz,fw,fd] of homeFurnitureColliders){
-          if(x+radius>fx-fw/2&&x-radius<fx+fw/2&&z+radius>fz-fd/2&&z-radius<fz+fd/2)return true;
+        // Colisão 3D: só bloqueia se o corpo do jogador estiver na altura do móvel.
+        const playerBottom=Math.max(0,camera.position.y-groundY);
+        const playerTop=playerBottom+groundY;
+        for(const [fx,fz,fw,fd,fy,fh] of homeFurnitureColliders){
+          const overlapsXZ=x+radius>fx-fw/2&&x-radius<fx+fw/2&&z+radius>fz-fd/2&&z-radius<fz+fd/2;
+          const overlapsY=playerBottom<fy+fh&&playerTop>fy;
+          if(overlapsXZ&&overlapsY)return true;
         }
         // Limites da planta em L: impede atravessar o vazio onde a ala foi removida.
         const entryGapOpen=homeDoors.some(d=>d.name==='porta de entrada'&&d.open&&x+radius>d.blockX-d.blockW/2&&x-radius<d.blockX+d.blockW/2);
