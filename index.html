@@ -10,6 +10,8 @@
     *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101419;color:#f4f6f8}
     canvas{display:block;width:100%;height:100%;outline:none}
     #hud{position:fixed;inset:0;pointer-events:none;user-select:none}
+    /* HUD limpo: mantém vida do jogador, munição, controles e minimapa. */
+    #brand,#chapter-objective,#target,.tag{display:none!important}
     .panel{background:linear-gradient(135deg,rgba(15,20,25,.9),rgba(15,20,25,.65));border:1px solid rgba(220,230,238,.15);box-shadow:0 8px 28px #0003;backdrop-filter:blur(8px);border-radius:10px}
     #brand{position:absolute;left:22px;top:20px;padding:11px 14px;letter-spacing:.12em;font-size:11px;font-weight:800;color:#c8d1d8}
     #brand span{color:#e5a15a}
@@ -171,8 +173,9 @@
       if(type==='runner')root.scale.set(.82,.94,.82);
       if(type==='spitter')part(new THREE.SphereGeometry(.105,10,8),wound,root,0,1.49,-.19).scale.set(1.25,.8,.55);
       if(type==='brute'){root.scale.set(1.25,1.12,1.2);part(new THREE.BoxGeometry(.32,.22,.03),enemyMaterials.armor,root,0,1.32,-.22);part(new THREE.CapsuleGeometry(.12,.2,4,8),wound,root,-.2,1.46,-.02);}
-      const healthBg=new THREE.Mesh(new THREE.PlaneGeometry(.8,.075),new THREE.MeshBasicMaterial({color:0x22201e,side:THREE.DoubleSide,depthTest:false}));healthBg.position.set(0,2.35,0);root.add(healthBg);
-      const healthFill=new THREE.Mesh(new THREE.PlaneGeometry(.76,.045),new THREE.MeshBasicMaterial({color:0xa63b30,side:THREE.DoubleSide,depthTest:false}));healthFill.position.set(0,2.35,.006);root.add(healthFill);
+      // Barras de vida dos inimigos ficam ocultas; o HP continua ativo internamente.
+      const healthBg=new THREE.Mesh(new THREE.PlaneGeometry(.8,.075),new THREE.MeshBasicMaterial({color:0x22201e,side:THREE.DoubleSide,depthTest:false}));healthBg.position.set(0,2.35,0);healthBg.visible=false;root.add(healthBg);
+      const healthFill=new THREE.Mesh(new THREE.PlaneGeometry(.76,.045),new THREE.MeshBasicMaterial({color:0xa63b30,side:THREE.DoubleSide,depthTest:false}));healthFill.position.set(0,2.35,.006);healthFill.visible=false;root.add(healthFill);
       const maxHp=type==='brute'?190:type==='runner'?62:type==='spitter'?86:105;
       const e={root,parts,limbs,protectedParts,headParts,hasVest:false,hasArmoredPants:false,hasHelmet:false,hp:maxHp,maxHp,spawn:new THREE.Vector3(x,0,z),lastAttack:0,respawnAt:0,healthFill,healthBg,phase:index*1.7,gaitPhase:0,attackStarted:-9999,attackSide:1,alive:true,type};
       enemies.push(e);return e;
