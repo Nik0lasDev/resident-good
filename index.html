@@ -568,6 +568,7 @@
     }
     function switchWeapon(){
       if(reloading)return;
+      if(introActive&&!introGunPicked){showToast('ENCONTRE A ARMA NA COZINHA',900);return;}
       // Guarda munição somente quando uma arma de fogo está equipada.
       if(introActive&&!introGunPicked&&!introFlashlightTaken){showToast('PRIMEIRO, PEGUE A LANTERNA',900);return;}
       if(weaponIndex<weapons.length){
@@ -813,6 +814,11 @@
     function updateEnemies(dt,now){
       for(const e of enemies){
         if(!e.alive)continue;
+        if(introActive&&Math.hypot(camera.position.x-e.root.position.x,camera.position.z-e.root.position.z)>5){
+          // O invasor permanece na cozinha até o protagonista se aproximar.
+          e.root.position.y=0;
+          continue;
+        }
         if(now<enemiesWakeAt){
           // Durante a abertura, o invasor fica na cozinha até o jogador chegar perto.
           if(introActive){const d0=Math.hypot(camera.position.x-e.root.position.x,camera.position.z-e.root.position.z);if(d0>5){e.root.position.y=0;continue;}}
