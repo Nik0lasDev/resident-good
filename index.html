@@ -316,42 +316,79 @@
       showToast('EXPLORE O COMPLEXO E SOBREVIVA',1800);
     }
     function buildHome(){
+      // Casa reconstruída como uma única planta explorável, com leitura visual de survival horror.
       currentRoom={name:'CASA',w:24,d:18,doors:[],decor:0};roomIndex=0;introWalls=[];
-      const floor=mat(0x49443d,.95),wall=mat(0x777064,.95),trim=mat(0x393831,.85),ceiling=mat(0x292a27,.95),wood=mat(0x554337,.88),fabric=mat(0x494c50,.98),metal=mat(0x555b59,.55,.35);
+      const floor=mat(0x403c36,.96),wall=mat(0x777064,.96),wallDark=mat(0x514d45,.98),trim=mat(0x292a26,.9),ceiling=mat(0x252724,.98),wood=mat(0x514033,.9),woodLight=mat(0x725941,.92),fabric=mat(0x45484a,.99),metal=mat(0x555b59,.55,.35),glass=mat(0x202b2d,.3,.25);
       box(24,.35,18,floor,0,-.2,0,false,true);
-      // Paredes externas e uma divisória com vão aberto entre quarto e cozinha.
-      const walls=[ [0,-9,24,.3],[-6.8,9,10.4,.3],[6.8,9,10.4,.3],[-12,0,.3,18],[12,0,.3,18],[-.1,-5.65,.3,6.7],[-.1,5.65,.3,6.7],[2.25,0,4.5,.3],[10,0,4,.3] ];
-      for(const [x,z,w,d] of walls){box(w,3.4,d,wall,x,1.5,z);box(w,.12,d+.04,trim,x,3.18,z,false,false);introWalls.push([x,z,w,d]);}
+      // Piso gasto em tábuas largas: juntas discretas e marcas de uso, sem aparência de blocos soltos.
+      const floorSeam=mat(0x292a27,.98),floorWear=mat(0x50483e,.98);
+      for(let z=-8.2;z<8.5;z+=1.15){box(23.7,.012,.018,floorSeam,0,.002,z,false,false);}
+      for(let x=-11.2;x<11.5;x+=3.8){for(let z=-8.3;z<8.4;z+=2.3)box(.018,.013,1.12,floorSeam,x,.003,z,false,false);}
+      for(const [x,z,w,d] of [[-7,-7,1.3,.035],[1.5,-3.5,.8,.025],[3.2,5.2,1.1,.025],[9,-2,.65,.025],[-3,7,.9,.025]])box(w,.008,d,floorWear,x,.004,z,false,false);
+      // Paredes exteriores e divisórias baixas mantêm o percurso conectado dentro do mesmo mapa.
+      const walls=[[0,-9,24,.3],[-6.8,9,10.4,.3],[6.8,9,10.4,.3],[-12,0,.3,18],[12,0,.3,18],[-.1,-5.65,.3,6.7],[-.1,5.65,.3,6.7],[2.25,0,4.5,.3],[10,0,4,.3]];
+      for(const [x,z,w,d] of walls){
+        box(w,3.4,d,wall,x,1.5,z);
+        box(w,.12,d+.05,trim,x,3.18,z,false,false);
+        box(w,.16,d+.055,wallDark,x,.02,z,false,false);
+        introWalls.push([x,z,w,d]);
+      }
+      // Teto contínuo e fechado; moldura e juntas reforçam a altura e a leitura arquitetónica.
       box(24,.3,18,ceiling,0,3.35,0,false,true);
-      // Quarto: cama, cabeceira, criado-mudo e interruptor visível na parede.
-      box(2.2,.28,3.1,wood,-9.5,-.01,-6.2);box(2.05,.22,2.45,fabric,-9.5,.2,-6.35);box(2.08,.16,.65,mat(0xb6b3a7,.98),-9.5,.36,-5.25);
-      box(1.0,.65,.85,wood,-8.0,.25,-4.55);box(.22,.12,.12,metal,-7.85,.65,-4.82,false,false);
+      const ceilingSeam=mat(0x343631,.98);
+      for(let x=-10;x<=10;x+=4)box(.025,.012,17.5,ceilingSeam,x,3.19,0,false,false);
+      for(let z=-7;z<=7;z+=4)box(23.5,.012,.025,ceilingSeam,0,3.19,z,false,false);
+      // Rodapés internos visíveis ao longo das paredes, sem criar novas barreiras de colisão.
+      for(const [x,z,w,d] of walls)box(w,.18,d+.07,trim,x,.08,z,false,false);
+      // Quarto: cama, colchão amarrotado, travesseiro, criado-mudo e interruptor na parede.
+      box(2.35,.3,3.15,wood,-9.5,-.015,-6.2);box(2.22,.2,2.55,fabric,-9.5,.22,-6.35);
+      box(2.05,.07,1.0,mat(0x77746b,.99),-9.5,.34,-6.95);box(1.9,.06,.75,mat(0x5b5a53,.99),-9.5,.35,-5.65);
+      box(2.1,.14,.55,mat(0xb6b3a7,.98),-9.5,.37,-5.25);
+      box(1.0,.65,.85,wood,-8.0,.25,-4.55);box(1.04,.055,.88,woodLight,-8.0,.6,-4.55);box(.22,.12,.12,metal,-7.85,.65,-4.82,false,false);
+      // Interruptor montado na parede, com placa, tecla e pequeno parafuso.
       lightSwitchObject=new THREE.Group();lightSwitchObject.position.set(-11.82,1.35,-4.6);lightSwitchObject.rotation.y=Math.PI/2;scene.add(lightSwitchObject);roomObjects.push(lightSwitchObject);
-      const switchPlate=new THREE.Mesh(new THREE.BoxGeometry(.22,.32,.055),mat(0xd4d0bf,.8),);switchPlate.position.z=-.03;lightSwitchObject.add(switchPlate);
+      const switchPlate=new THREE.Mesh(new THREE.BoxGeometry(.22,.32,.055),mat(0xd4d0bf,.8));switchPlate.position.z=-.03;lightSwitchObject.add(switchPlate);
       const switchToggle=new THREE.Mesh(new THREE.BoxGeometry(.07,.12,.035),mat(0x77766c,.65));switchToggle.position.set(0,0,-.065);lightSwitchObject.add(switchToggle);
-      // Cozinha: balcão, pia e geladeira na parte superior direita da casa.
+      const switchScrew=new THREE.Mesh(new THREE.SphereGeometry(.012,8,6),metal);switchScrew.position.set(.07,.11,-.067);lightSwitchObject.add(switchScrew);
+      // Cozinha: armários inferiores, bancada, pia, torneira e geladeira.
       box(3.8,.95,.85,wood,6.7,.35,-6.7);box(3.9,.08,.92,metal,6.7,.86,-6.7,false,false);
+      for(let x=5.55;x<8.3;x+=1.05){box(.035,.68,.035,trim,x,.36,-6.25,false,false);box(.25,.035,.045,metal,x,.53,-6.19,false,false);}
+      box(1.05,.12,.42,mat(0x292f30,.4,.5),6.3,.92,-6.68,false,false);box(.08,.28,.06,metal,6.75,1.04,-6.9,false,false);box(.35,.045,.06,metal,6.58,1.17,-6.9,false,false);
       box(1.15,2.3,.95,mat(0xb6b5aa,.82),10.1,1.0,-6.7);box(.8,.12,.08,metal,10.1,1.8,-6.2,false,false);
-      // Sala de estar na parte inferior direita: sofá, mesa baixa e televisão.
+      box(.86,.055,.05,trim,10.1,.03,-6.2,false,false);box(.82,.08,.04,mat(0x77766c,.7),10.1,.55,-6.205,false,false);
+      // Prateleira, recipientes escuros e pequenos utensílios para quebrar o vazio da cozinha.
+      box(2.5,.12,.32,wood,7.0,2.25,-8.15);box(2.5,.055,.36,woodLight,7.0,2.31,-8.15,false,false);
+      for(const [x,h,c] of [[6.15,.28,0x494d48],[6.65,.38,0x6a6253],[7.25,.24,0x343b3a],[7.75,.32,0x5d5145]]){const jar=mat(c,.75);box(.18,h,.18,jar,x,2.31+h/2,-8.15,false,false);}
+      // Sala de estar: sofá com almofadas, mesa baixa, televisão e móvel.
       box(3.0,.72,.95,fabric,8.8,.36,5.9);box(3.0,.3,.28,fabric,8.8,.82,5.48);box(.22,.65,.95,fabric,7.35,.45,5.9);box(.22,.65,.95,fabric,10.25,.45,5.9);
-      box(1.8,.28,.85,wood,8.4,.25,3.65);box(2.2,1.25,.18,mat(0x242625,.35,.3),8.8,1.05,1.2);box(.9,.12,.35,wood,8.8,.06,1.2);
-      // Porta de entrada: vão real na parede externa e folha aberta junto à parede.
+      box(.78,.13,.62,mat(0x555653,.99),8.05,.77,5.72);box(.78,.13,.62,mat(0x555653,.99),9.25,.77,5.72);
+      box(1.8,.28,.85,wood,8.4,.25,3.65);box(1.84,.06,.89,woodLight,8.4,.42,3.65,false,false);
+      box(2.2,1.25,.18,mat(0x171b1c,.35,.35),8.8,1.05,1.2);box(1.98,1.03,.025,glass,8.8,1.07,1.095,false,false);box(.9,.12,.35,wood,8.8,.06,1.2);
+      box(.28,.035,.22,metal,8.05,.47,3.6,false,false);box(.18,.04,.14,mat(0x272b2b,.6,.3),8.72,.48,3.6,false,false);
+      // Porta de entrada e passagem interna: guarnições espessas, dobradiças e maçanetas legíveis.
       const doorWood=mat(0x39291f,.9),doorTrim=mat(0x241d18,.85),handleMat=mat(0xb0a17d,.4,.65);
       box(.16,2.45,.16,doorTrim,-.9,1.12,8.86,false,false);box(.16,2.45,.16,doorTrim,.9,1.12,8.86,false,false);box(1.95,.16,.16,doorTrim,0,2.38,8.86,false,false);
       box(1.45,2.1,.12,doorWood,.72,1.0,8.55,false,false);box(.07,.18,.05,handleMat,.18,1.0,8.46,false,false);
-      // Segunda porta entre cozinha e sala de estar, colocada no vão da divisória.
+      for(const y of [.45,1.65])box(.035,.12,.035,metal,1.38,y,8.48,false,false);
       box(.16,2.35,.16,doorTrim,4.55,1.1,0,false,false);box(.16,2.35,.16,doorTrim,7.95,1.1,0,false,false);box(3.55,.16,.16,doorTrim,6.25,2.28,0,false,false);
       box(.12,2.05,1.05,doorWood,4.95,1.0,.32,false,false);box(.05,.16,.08,handleMat,4.9,1.0,-.22,false,false);
-      // Arma montada na parede da cozinha; será recolhida com F.
+      // Arma de parede na cozinha, destacada por um suporte gasto.
       wallGunObject=new THREE.Group();wallGunObject.position.set(10.8,1.5,-2.2);scene.add(wallGunObject);roomObjects.push(wallGunObject);
       const gunMount=new THREE.Mesh(new THREE.BoxGeometry(.48,.72,.08),wood);wallGunObject.add(gunMount);
+      const mountEdge=new THREE.Mesh(new THREE.BoxGeometry(.52,.045,.1),woodLight);mountEdge.position.y=-.34;wallGunObject.add(mountEdge);
       const gunBarrel=new THREE.Mesh(new THREE.BoxGeometry(.09,.08,.8),metal);gunBarrel.position.set(0,.1,-.36);wallGunObject.add(gunBarrel);
       const gunBody=new THREE.Mesh(new THREE.BoxGeometry(.15,.16,.42),mat(0x252a2b,.5,.55));gunBody.position.set(0,.04,-.12);wallGunObject.add(gunBody);
       const gunGrip=new THREE.Mesh(new THREE.BoxGeometry(.12,.22,.12),mat(0x292c2b,.8));gunGrip.position.set(0,-.13,.04);wallGunObject.add(gunGrip);
-      // Lâmpadas fracas de emergência: o interruptor não acende as luzes da casa.
-      const bulbMat=new THREE.MeshStandardMaterial({color:0x756b53,emissive:0x30291c,emissiveIntensity:.3});
-      box(.3,.08,.3,bulbMat,-6,2.9,-2.8,false,false);box(.3,.08,.3,bulbMat,6,2.9,2.8,false,false);
-      const homeFill=new THREE.HemisphereLight(0x8b98a1,0x24201b,.25);scene.add(homeFill);roomObjects.push(homeFill);
+      // Luminárias reais no alto das paredes: corpo, difusor emissivo e luz local suave.
+      const lampHousing=mat(0x282b27,.62,.18),lampGlow=new THREE.MeshStandardMaterial({color:0xe6dfc8,emissive:0xb9ad86,emissiveIntensity:1.8,roughness:.4});
+      const wallLamps=[[-8.5,-8.78,0],[-2.8,-8.78,0],[5.2,-8.78,0],[10.8,-8.78,0],[-11.78,-5.8,Math.PI/2],[-11.78,2.8,Math.PI/2],[11.78,-5.5,-Math.PI/2],[11.78,3.2,-Math.PI/2],[-8.5,8.78,Math.PI],[7.5,8.78,Math.PI],[-.1,-3.5,Math.PI/2],[-.1,3.2,Math.PI/2],[3.2,-.18,0],[9.7,.18,Math.PI]];
+      for(const [x,z,rotation] of wallLamps){
+        const housing=box(.72,.18,.22,lampHousing,x,2.92,z,false,false);housing.rotation.y=rotation;
+        const diffuser=box(.54,.055,.07,lampGlow,x,2.89,z,false,false);diffuser.rotation.y=rotation;
+        const light=new THREE.PointLight(0xd5c79c,.48,5.5,1.8);light.position.set(x,2.72,z);scene.add(light);roomObjects.push(light);
+      }
+      // A iluminação geral continua fraca para preservar a atmosfera noturna.
+      const homeFill=new THREE.HemisphereLight(0x8b98a1,0x24201b,.18);scene.add(homeFill);roomObjects.push(homeFill);
       // Linhas do mapa usadas pela colisão e pela visão dos inimigos durante a abertura.
       enemiesWakeAt=performance.now()+2500;
       const e=makeEnemy(5.3,0,0);e.type='walker';e.maxHp=105;e.hp=105;e.speed=1.15;e.attackDamage=8;e.attackRange=1.28;e.feedingIntro=true;
