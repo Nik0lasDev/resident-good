@@ -338,7 +338,7 @@
       // Paredes exteriores e divisórias baixas mantêm o percurso conectado dentro do mesmo mapa.
       const walls=[[0,-9,24,.3],[.8,9,1.6,.3],[8.2,9,7.6,.3],[-12,-3.325,.3,11.35],[-6,2.5,12,.3],[0,5.5,.3,7],[12,0,.3,18],[.1,-8,.3,2],[.1,497.5,.3,1005],[2.8,0,5.6,.3],[9.6,0,4.8,.3]];
       for(const [x,z,w,d] of walls){
-        box(w,3.4,d,wall,x,1.5,z);
+        box(w,3.7,d,wall,x,1.65,z);
         box(w,.12,d+.05,trim,x,3.18,z,false,false);
         box(w,.16,d+.055,wallDark,x,.02,z,false,false);
         introWalls.push([x,z,w,d]);
@@ -356,19 +356,19 @@
           const doorW=width-.12,plankW=doorW/6;
           for(let i=0;i<6;i++){
             const px=.06+plankW*(i+.5);
-            addPart(new THREE.BoxGeometry(plankW-.018,2.2,.13),plankMats[i%plankMats.length],px,1.12,0);
-            addPart(new THREE.BoxGeometry(.012,2.12,.012),seamMat,.06+plankW*i,1.12,-.073,false);
-            for(let g=0;g<3;g++)addPart(new THREE.BoxGeometry(plankW*.58,.012,.014),rustMat,px,.48+g*.61,-.078,false);
+            addPart(new THREE.BoxGeometry(plankW-.018,2.62,.13),plankMats[i%plankMats.length],px,1.41,0);
+            addPart(new THREE.BoxGeometry(.012,2.52,.012),seamMat,.06+plankW*i,1.41,-.073,false);
+            for(let g=0;g<3;g++)addPart(new THREE.BoxGeometry(plankW*.58,.012,.014),rustMat,px,.53+g*.72,-.078,false);
           }
-          for(const py of [.16,2.08]){
+          for(const py of [.16,2.62]){
             addPart(new THREE.BoxGeometry(width-.08,.16,.055),ironMat,width/2,py,-.09);
             for(let i=0;i<5;i++)addPart(new THREE.SphereGeometry(.025,8,6),rustMat,.14+i*(width-.28)/4,py,-.125,false);
           }
-          for(const px of [.08,width-.08])addPart(new THREE.BoxGeometry(.13,2.28,.06),doorEdge,px,1.12,-.085);
-          addPart(new THREE.BoxGeometry(.14,.34,.035),doorDark,width*.79,1.02,-.115,false);
-          addPart(new THREE.CylinderGeometry(.065,.065,.03,12),doorMetal,width*.79,1.04,-.14,false).rotation.x=Math.PI/2;
-          const lever=addPart(new THREE.CylinderGeometry(.022,.022,.16,10),doorMetal,width*.79-.06,1.04,-.17,false);lever.rotation.z=Math.PI/2;
-          for(const py of [.25,1.12,1.99]){
+          for(const px of [.08,width-.08])addPart(new THREE.BoxGeometry(.13,2.72,.06),doorEdge,px,1.41,-.085);
+          addPart(new THREE.BoxGeometry(.14,.34,.035),doorDark,width*.79,1.3,-.115,false);
+          addPart(new THREE.CylinderGeometry(.065,.065,.03,12),doorMetal,width*.79,1.32,-.14,false).rotation.x=Math.PI/2;
+          const lever=addPart(new THREE.CylinderGeometry(.022,.022,.16,10),doorMetal,width*.79-.06,1.32,-.17,false);lever.rotation.z=Math.PI/2;
+          for(const py of [.25,1.41,2.55]){
             addPart(new THREE.BoxGeometry(.09,.22,.05),ironMat,.13,py,-.095,false);
             addPart(new THREE.CylinderGeometry(.028,.028,.23,10),doorMetal,.13,py,-.13,false);
           }
@@ -376,12 +376,12 @@
           return;
         }
         // Modelo atual das outras portas: painel de madeira envelhecida.
-        addPart(new THREE.BoxGeometry(width-.1,2.22,.13),doorMat,width/2,1.12,0);
+        addPart(new THREE.BoxGeometry(width-.1,2.62,.13),doorMat,width/2,1.41,0);
         // Travessas e montantes formam uma moldura de madeira espessa, em vez de linhas planas.
-        for(const [px,pw] of [[.09,.14],[width/2,.09],[width-.09,.14]])addPart(new THREE.BoxGeometry(pw,2.18,.055),doorEdge,px,1.12,-.083);
-        for(const py of [.12,2.12])addPart(new THREE.BoxGeometry(width-.12,.13,.055),doorEdge,width/2,py,-.083);
-        for(const py of [.48,1.12,1.76]){
-          const ph=.48,pw=width*.62,px=width/2,pz=-.094;
+        for(const [px,pw] of [[.09,.14],[width/2,.09],[width-.09,.14]])addPart(new THREE.BoxGeometry(pw,2.58,.055),doorEdge,px,1.41,-.083);
+        for(const py of [.12,2.7])addPart(new THREE.BoxGeometry(width-.12,.13,.055),doorEdge,width/2,py,-.083);
+        for(const py of [.55,1.41,2.27]){
+          const ph=.62,pw=width*.62,px=width/2,pz=-.094;
           addPart(new THREE.BoxGeometry(pw,.045,.035),doorEdge,px,py+ph/2,pz);
           addPart(new THREE.BoxGeometry(pw,.045,.035),doorEdge,px,py-ph/2,pz);
           addPart(new THREE.BoxGeometry(.045,ph,.035),doorEdge,px-pw/2,py,pz);
@@ -389,15 +389,15 @@
           addPart(new THREE.BoxGeometry(pw-.09,ph-.09,.018),doorInset,px,py,pz-.012,false);
         }
         // Veios discretos e desgastados na madeira.
-        for(let i=0;i<5;i++){const gx=.28+i*(width-.56)/4;addPart(new THREE.BoxGeometry(.018,1.72,.012),doorEdge,gx,1.12,-.105,false);}
+        for(let i=0;i<5;i++){const gx=.28+i*(width-.56)/4;addPart(new THREE.BoxGeometry(.018,2.12,.012),doorEdge,gx,1.41,-.105,false);}
         // Maçaneta de alavanca com placa escura e roseta metálica.
         const handleX=width*.82;
-        addPart(new THREE.BoxGeometry(.16,.3,.025),doorDark,handleX,1.02,-.116,false);
-        addPart(new THREE.CylinderGeometry(.075,.075,.025,16),doorMetal,handleX,1.04,-.14,false).rotation.x=Math.PI/2;
-        const lever=addPart(new THREE.CylinderGeometry(.025,.025,.19,10),doorMetal,handleX-.07,1.04,-.18,false);lever.rotation.z=Math.PI/2;
-        addPart(new THREE.SphereGeometry(.035,10,8),doorMetal,handleX-.16,1.04,-.18,false);
+        addPart(new THREE.BoxGeometry(.16,.3,.025),doorDark,handleX,1.3,-.116,false);
+        addPart(new THREE.CylinderGeometry(.075,.075,.025,16),doorMetal,handleX,1.32,-.14,false).rotation.x=Math.PI/2;
+        const lever=addPart(new THREE.CylinderGeometry(.025,.025,.19,10),doorMetal,handleX-.07,1.32,-.18,false);lever.rotation.z=Math.PI/2;
+        addPart(new THREE.SphereGeometry(.035,10,8),doorMetal,handleX-.16,1.32,-.18,false);
         // Três dobradiças articuladas aparentes no lado da dobradiça.
-        for(const py of [.22,1.12,2.02]){
+        for(const py of [.25,1.41,2.55]){
           addPart(new THREE.BoxGeometry(.075,.2,.045),doorDark,.12,py,-.09,false);
           addPart(new THREE.CylinderGeometry(.027,.027,.22,10),doorMetal,.12,py,-.125,false);
         }
@@ -450,12 +450,12 @@
       box(.28,.035,.22,metal,8.05,.47,3.6,false,false);box(.18,.04,.14,mat(0x272b2b,.6,.3),8.72,.48,3.6,false,false);
       // Guarnições alinhadas com as três portas funcionais.
       const doorTrim=mat(0x241d18,.85);
-      for(const x of [1.6,4.4])box(.16,2.45,.16,doorTrim,x,1.12,8.86,false,false);
-      box(2.95,.16,.16,doorTrim,3,2.38,8.86,false,false);
-      for(const z of [-8,-6])box(.16,2.4,.16,doorTrim,.4,1.12,z,false,false);
-      box(.16,.16,2.15,doorTrim,.4,2.38,-7,false,false);
-      for(const x of [5.6,7.2])box(.16,2.4,.16,doorTrim,x,1.12,0,false,false);
-      box(1.75,.16,.16,doorTrim,6.4,2.38,0,false,false);
+      for(const x of [1.6,4.4])box(.16,2.8,.16,doorTrim,x,1.4,8.86,false,false);
+      box(2.95,.16,.16,doorTrim,3,2.78,8.86,false,false);
+      for(const z of [-8,-6])box(.16,2.8,.16,doorTrim,.1,1.4,z,false,false);
+      box(.16,.16,2.15,doorTrim,.1,2.78,-7,false,false);
+      for(const x of [5.6,7.2])box(.16,2.8,.16,doorTrim,x,1.4,0,false,false);
+      box(1.75,.16,.16,doorTrim,6.4,2.78,0,false,false);
       // Arma de parede na cozinha, destacada por um suporte gasto.
       wallGunObject=new THREE.Group();wallGunObject.position.set(10.8,1.5,-2.2);scene.add(wallGunObject);roomObjects.push(wallGunObject);
       const gunMount=new THREE.Mesh(new THREE.BoxGeometry(.48,.72,.08),wood);wallGunObject.add(gunMount);
