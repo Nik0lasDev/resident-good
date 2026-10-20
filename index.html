@@ -619,7 +619,8 @@
     // Assim a arma da parede usa exatamente a mesma geometria e os mesmos materiais.
     const wallPistolModel=gun.clone(true);
     wallPistolModel.position.set(0,.02,-.19);
-    wallPistolModel.rotation.set(0,0,0);
+    // Deixa a pistola de lado no suporte, com o cano paralelo à parede.
+    wallPistolModel.rotation.set(0,Math.PI/2,0);
     wallPistolModel.scale.set(2.25,2.25,2.25);
     wallPistolModel.traverse(part=>{if(part.isMesh){part.castShadow=true;part.receiveShadow=true;part.renderOrder=2;part.frustumCulled=false;}});
     // A arma é anexada ao suporte depois que buildHome() criar wallGunObject.
