@@ -1178,15 +1178,9 @@
           e.limbs.leftLeg.rotation.x=0;e.limbs.rightLeg.rotation.x=0;
           e.limbs.leftArm.rotation.x=-.16;e.limbs.rightArm.rotation.x=-.16;
         }
-        if(introActive&&Math.hypot(camera.position.x-e.root.position.x,camera.position.z-e.root.position.z)>5){
-          // O invasor permanece na cozinha até o protagonista se aproximar.
-          e.root.position.y=0;
-          continue;
-        }
         if(now<enemiesWakeAt){
           // Durante a abertura, o invasor fica na cozinha até o jogador chegar perto.
-          if(introActive){const d0=Math.hypot(camera.position.x-e.root.position.x,camera.position.z-e.root.position.z);if(d0>5){e.root.position.y=0;continue;}}
-          else {e.root.position.y=0;continue;}
+          e.root.position.y=0;continue;
         }
         const playerX=camera.position.x,playerZ=camera.position.z;
         let dx=playerX-e.root.position.x,dz=playerZ-e.root.position.z;
@@ -1196,7 +1190,7 @@
         const sightRange=e.isPaleStalker?22:e.type==='runner'?12:e.type==='brute'?7:9;
         const canSeePlayer=distance<=sightRange&&hasFacilityLineOfSight(e.root.position.x,e.root.position.z,playerX,playerZ);
         if(canSeePlayer){
-          e.lastKnownX=playerX;e.lastKnownZ=playerZ;e.alertUntil=now+4200;e.hasLastKnown=true;
+          e.lastKnownX=playerX;e.lastKnownZ=playerZ;e.alertUntil=now+12000;e.hasLastKnown=true;
         }
         const alerted=canSeePlayer||(e.alertUntil||0)>now;
         const targetX=canSeePlayer?playerX:(e.lastKnownX??playerX);
