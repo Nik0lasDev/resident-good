@@ -541,32 +541,70 @@
       wallGunObject=new THREE.Group();wallGunObject.position.set(11.81,1.5,-2.2);wallGunObject.rotation.y=Math.PI/2;scene.add(wallGunObject);roomObjects.push(wallGunObject);
       const gunMount=new THREE.Mesh(new THREE.BoxGeometry(.56,.88,.075),wood);wallGunObject.add(gunMount);
       const mountEdge=new THREE.Mesh(new THREE.BoxGeometry(.6,.035,.09),woodLight);mountEdge.position.y=-.42;wallGunObject.add(mountEdge);
-      // Área externa provisória para teste: calçada, rua, lixeira e casas em blocos simples.
-      const outdoorGround=mat(0x343530,.98),sidewalkMat=mat(0x55534d,.96),roadMat=mat(0x1b1e1d,.98);
-      const roadMarkMat=mat(0x777363,.9),binMat=mat(0x252c28,.92),binLidMat=mat(0x191e1c,.9);
+      // Exterior residencial: rua contínua, calçadas com meio-fio, acesso à porta e pequenos jardins.
+      const outdoorGround=mat(0x292c28,.99),grassMat=mat(0x30382b,.99),sidewalkMat=mat(0x68665e,.97),curbMat=mat(0x88847a,.96),roadMat=mat(0x171a19,.99);
+      const roadMarkMat=mat(0x77766b,.94),driveMat=mat(0x454641,.99),binMat=mat(0x252c28,.92),binLidMat=mat(0x191e1c,.9);
       box(48,.22,38,outdoorGround,0,-.24,25,false,true);
-      box(48,.08,2.2,sidewalkMat,0,-.075,11.1,false,true);
-      box(48,.08,1.8,sidewalkMat,0,-.075,24.1,false,true);
+      // As faixas de terreno e a calçada acompanham a frente da casa sem criar degraus no caminho.
+      box(48,.035,4.4,grassMat,0,-.105,13.8,false,true);
+      box(48,.09,2.2,sidewalkMat,0,-.055,11.1,false,true);
+      box(48,.12,.16,curbMat,0,-.005,12.28,false,true);
+      box(48,.09,1.8,sidewalkMat,0,-.055,24.1,false,true);
+      box(48,.12,.16,curbMat,0,-.005,23.12,false,true);
       box(48,.06,6.8,roadMat,0,-.09,17.7,false,true);
-      for(let x=-22;x<=22;x+=5.5)box(2.5,.012,.12,roadMarkMat,x,-.052,17.7,false,false);
+      for(let x=-22;x<=22;x+=5.5)box(2.25,.014,.1,roadMarkMat,x,-.052,17.7,false,false);
+      // Caminho de entrada e placas de concreto com pequenas juntas, mantendo a passagem livre.
+      box(2.2,.035,3.0,driveMat,3.0,-.065,10.0,false,true);
+      for(let z=9.0;z<=11.1;z+=.72)box(2.12,.012,.025,curbMat,3.0,-.044,z,false,false);
+      // Canteiros baixos e arbustos quebram o aspecto vazio sem invadir a área caminhável.
+      const shrubMat=mat(0x283528,.99),leafMat=mat(0x343e2c,.99),barkMat=mat(0x302820,.99);
+      for(const [x,z,w,d] of [[-17,13.9,5.4,2.0],[-8,13.9,4.0,2.0],[12,13.9,5.0,2.0],[20,13.9,3.2,2.0]]){
+        box(w,.035,d,mat(0x3d4036,.99),x,-.085,z,false,true);
+        for(let j=0;j<Math.floor(w/1.25);j++){
+          const bx=x-w/2+.65+j*1.25;
+          const bush=new THREE.Mesh(new THREE.SphereGeometry(.48,8,6),j%2?shrubMat:leafMat);
+          bush.position.set(bx,.34,z-.08);bush.scale.set(1.15,.72,.8);bush.castShadow=true;bush.receiveShadow=true;scene.add(bush);roomObjects.push(bush);
+        }
+      }
       // Lixeira encostada ao lado direito da entrada, sem bloquear a passagem.
       const trashBin=new THREE.Group();trashBin.position.set(4.85,0,10.25);scene.add(trashBin);roomObjects.push(trashBin);
       const binBody=new THREE.Mesh(new THREE.BoxGeometry(.72,1.05,.68),binMat);binBody.position.y=.53;binBody.castShadow=true;binBody.receiveShadow=true;trashBin.add(binBody);
       const binLid=new THREE.Mesh(new THREE.BoxGeometry(.82,.13,.76),binLidMat);binLid.position.set(0,1.1,0);binLid.castShadow=true;trashBin.add(binLid);
       const binFront=new THREE.Mesh(new THREE.BoxGeometry(.34,.22,.025),mat(0x66716a,.85));binFront.position.set(0,.63,-.353);trashBin.add(binFront);
-      // Casas vizinhas deliberadamente simples: volumes provisórios para testar escala e percurso.
+      // Casas vizinhas com telhados inclinados, beirais, soleiras e janelas com moldura.
       const neighborWallMats=[mat(0x514b43,.96),mat(0x484c49,.96),mat(0x5b5147,.96),mat(0x3d4244,.96)];
       const neighborRoofMats=[mat(0x292522,.96),mat(0x302c28,.96),mat(0x24292a,.96)];
-      const neighborDoorMat=mat(0x3d3028,.94),neighborWindowMat=mat(0x35434a,.42,.15);
+      const neighborDoorMat=mat(0x30251f,.94),neighborWindowMat=mat(0x35434a,.42,.15),windowFrameMat=mat(0x77756b,.9);
       const neighborHouses=[[-13,28,0],[-3,30,1],[8,28,2],[18,31,3]];
       for(let i=0;i<neighborHouses.length;i++){
-        const [hx,hz,mi]=neighborHouses[i],hm=neighborWallMats[mi],rw=i%2?6.2:5.4,rd=i%2?5.2:5.8;
+        const [hx,hz,mi]=neighborHouses[i],hm=neighborWallMats[mi],rw=i%2?6.2:5.4,rd=i%2?5.2:5.8,front=hz-rd/2-.055;
         box(rw,3.5,rd,hm,hx,1.75,hz);
-        box(rw+.45,.28,rd+.45,neighborRoofMats[i%neighborRoofMats.length],hx,3.64,hz);
-        box(.9,1.8,.09,neighborDoorMat,hx,0.9,hz-rd/2-.052,false,true);
+        // Telhado de duas águas, montado com duas peças inclinadas.
+        const roofGroup=new THREE.Group();roofGroup.position.set(hx,3.55,hz);scene.add(roofGroup);roomObjects.push(roofGroup);
+        const roofMat=neighborRoofMats[i%neighborRoofMats.length];
+        for(const side of [-1,1]){
+          const slope=new THREE.Mesh(new THREE.BoxGeometry(rw*.57,.22,rd+.7),roofMat);
+          slope.position.set(side*rw*.25,.28,0);slope.rotation.z=side*-0.48;slope.castShadow=true;slope.receiveShadow=true;roofGroup.add(slope);
+        }
+        box(rw+.28,.12,rd+.35,roofMat,hx,3.48,hz);
+        box(rw+.16,.12,.16,windowFrameMat,hx,1.05,front-.02,false,false);
+        box(.9,1.8,.11,neighborDoorMat,hx,.9,front,false,true);
+        box(.96,.1,.16,windowFrameMat,hx,1.88,front-.045,false,false);
+        box(.12,1.9,.13,windowFrameMat,hx-.52,.95,front-.04,false,false);
+        box(.12,1.9,.13,windowFrameMat,hx+.52,.95,front-.04,false,false);
         for(const wx of [hx-rw*.27,hx+rw*.27]){
-          box(.95,.85,.07,neighborWindowMat,wx,2.05,hz-rd/2-.06,false,true);
-          box(1.08,.08,.1,trim,wx,2.05,hz-rd/2-.11,false,false);
+          box(1.0,.9,.09,windowFrameMat,wx,2.05,front-.015,false,false);
+          box(.82,.72,.035,neighborWindowMat,wx,2.05,front-.075,false,true);
+          box(.86,.045,.08,windowFrameMat,wx,1.58,front-.095,false,false);
+          box(.045,.82,.07,windowFrameMat,wx,2.05,front-.095,false,false);
+          box(.045,.82,.07,windowFrameMat,wx,2.05,front-.095,false,false);
+        }
+      }
+      // Árvores escuras ao longo da rua para dar escala e profundidade ao exterior.
+      for(const [tx,tz,scale] of [[-21,20,1.0],[21,20,1.1],[-21,31,.9],[22,31,1.0]]){
+        const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.16,.23,2.1,7),barkMat);trunk.position.set(tx,1.05,tz);trunk.castShadow=true;trunk.receiveShadow=true;scene.add(trunk);roomObjects.push(trunk);
+        for(const [ox,oy,oz,r] of [[0,2.45,0,.95],[-.42,2.15,.08,.68],[.4,2.25,-.08,.72]]){
+          const crown=new THREE.Mesh(new THREE.SphereGeometry(r,8,7),leafMat);crown.position.set(tx+ox*scale,oy*scale,tz+oz);crown.scale.set(1,1.12,.92);crown.castShadow=true;crown.receiveShadow=true;scene.add(crown);roomObjects.push(crown);
         }
       }
       // As dimensões maiores permitem caminhar da entrada até a rua durante o teste.
