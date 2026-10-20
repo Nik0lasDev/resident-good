@@ -56,7 +56,7 @@
 </head>
 <body>
   <div id="hud">
-    <div id="minimap-wrap"><div id="minimap-title">MAPA DA SALA <span id="minimap-room">01</span></div><canvas id="minimap" width="220" height="180" aria-label="Minimapa da sala atual"></canvas></div>
+    <div id="minimap-wrap"><div id="minimap-title">MAPA DO COMPLEXO <span id="minimap-room">ARKLAY</span></div><canvas id="minimap" width="220" height="180" aria-label="Minimapa da sala atual"></canvas></div>
     <div id="brand" class="panel">RESIDENT <span>GOOD</span> <span style="color:#89949c">/ FPS TEST</span></div>
     <div id="target" class="panel">
       <div class="target-row"><span>AMEAÇAS HOSTIS</span><span id="health-label" class="muted">4 ATIVOS</span></div>
@@ -329,22 +329,17 @@
       const enemyData={root,parts,limbs,protectedParts,headParts,hasVest,hasArmoredPants,hasHelmet,hp:100,maxHp:100,spawn:new THREE.Vector3(x,0,z),lastAttack:0,respawnAt:0,healthFill,healthBg,phase:index*1.7,gaitPhase:0,attackStarted:-9999,attackSide:1,alive:true};
       enemies.push(enemyData);return enemyData;
     }
-    let roomIndex=0,currentRoom=null,roomTransitionLock=0;
-    const roomPalette=[
-      {floor:0x4d5650,wall:0x747b70,trim:0x343a35,accent:0xc77b42},
-      {floor:0x514b49,wall:0x78665e,trim:0x3b302d,accent:0xb95e48},
-      {floor:0x414e59,wall:0x647781,trim:0x29363d,accent:0x6bb9c9},
-      {floor:0x555044,wall:0x82765b,trim:0x3a3428,accent:0xd3ad62},
-      {floor:0x4c454f,wall:0x75677c,trim:0x332c39,accent:0xb28bc9}
+    // Mapa único e fixo: complexo policial/laboratório abandonado, sem transições entre salas.
+    let roomIndex=1,currentRoom={name:'COMPLEXO ARKLAY',w:56,d:44,doors:[],decor:0},roomTransitionLock=0;
+    const facilityWalls=[
+      [0,-22,56,.65],[0,22,56,.65],[-28,0,.65,44],[28,0,.65,44],
+      [-11,-14,20,.5],[11,-14,20,.5],
+      [-19,-7,.5,12],[-7,-7,.5,12],[7,-7,.5,12],[19,-7,.5,12],
+      [-20,2,16,.5],[1,2,18,.5],[21,2,10,.5],
+      [-13,10,.5,12],[13,10,.5],[0,15,.5,14],
+      [-21,16,12,.5],[20,16,12,.5],
+      [-4,-18,7,.5],[4,19,8,.5]
     ];
-    const roomTypes=[
-      {name:'CÂMARA DE CONTENÇÃO',shape:'square',w:20,d:20,doorCount:4,decor:0},
-      {name:'CORREDOR DE SERVIÇO',shape:'wide',w:24,d:16,doorCount:2,decor:1},
-      {name:'SALA DE TRIAGEM',shape:'tall',w:16,d:24,doorCount:3,decor:2},
-      {name:'CÂMARA OCTOGONAL',shape:'octagon',w:20,d:20,doorCount:3,decor:3},
-      {name:'SALA DE ARMAZENAMENTO',shape:'wide',w:22,d:18,doorCount:2,decor:4}
-    ];
-    const roomSides=['north','east','south','west'];
     function clearRoom(){
       for(const object of roomObjects)scene.remove(object);
       roomObjects.length=0;
@@ -353,76 +348,44 @@
       for(const orb of activeEnemyOrbs)scene.remove(orb.mesh);
       activeEnemyOrbs.length=0;
     }
-    function addWall(side,start,end,room,palette){
-      if(end-start<.1)return;
-      const length=end-start,mid=(start+end)/2;
-      if(side==='north'||side==='south'){
-        const z=side==='north'?-room.d/2:room.d/2;
-        box(length,4.2,.5,mat(palette.wall),mid,1.9,z);
-        box(length,.18,.62,mat(palette.trim),mid,4.03,z);
-      }else{
-        const x=side==='west'?-room.w/2:room.w/2;
-        box(.5,4.2,length,mat(palette.wall),x,1.9,mid);
-        box(.62,.18,length,mat(palette.trim),x,4.03,mid);
+    function buildFacilityMap(){
+      const w=currentRoom.w,d=currentRoom.d;
+      const floor=mat(0x454b49,.96),tileDark=mat(0x292f30,.95),wallMat=mat(0x626967,.9),wallTrim=mat(0x252b2c,.75,.15);
+      box(w,.36,d,floor,0,-.2,0,false,true);
+      for(let x=-w/2+1;x<w/2;x+=2)box(.025,.008,d-.8,tileDark,x,.005,0,false,false);
+      for(let z=-d/2+1;z<d/2;z+=2)box(w-.8,.008,.025,tileDark,0,.006,z,false,false);
+      for(const [x,z,ww,dd] of facilityWalls){
+        box(ww,4.2,dd,wallMat,x,1.9,z);
+        box(ww,.16,dd+.06,wallTrim,x,4.02,z,false,false);
+      }
+      // Sinais de emergência, luminárias e mobiliário ajudam a identificar setores do complexo.
+      const signMat=mat(0x9c3d31,.55,.1),lightMat=new THREE.MeshStandardMaterial({color:0xe5a15a,emissive:0x8c3e16,emissiveIntensity:1.1});
+      for(const [x,z,label] of [[-19,-17,'RECEPÇÃO'],[18,-17,'LABORATÓRIO'],[-21,8,'ENFERMARIA'],[20,9,'ARQUIVO']]){
+        box(3.2,.12,.12,signMat,x,3.2,z,false,false);
+        box(1.8,.06,.08,lightMat,x,3.38,z,false,false);
+      }
+      const furniture=mat(0x343b3a,.82,.08),metal=mat(0x6c7471,.48,.48);
+      // Balcão da recepção, macas e bancadas abandonadas.
+      box(5,.95,1.1,furniture,-20,-.0,-17);
+      box(2.2,.65,.9,metal,17,.25,-17);box(2.2,.65,.9,metal,21,.25,-17);
+      box(2.6,.35,1.1,metal,-20,.1,8);box(2.6,.35,1.1,metal,-16,.1,8);
+      box(4,.8,1.1,furniture,20,.2,8);box(3,.8,1.1,furniture,20,.2,12);
+      // Caixotes e armários de manutenção espalhados pelos corredores.
+      for(const [x,z] of [[-5,-18],[5,-18],[-24,-1],[24,-1],[-5,8],[6,12],[-23,18],[24,18]]){
+        box(1.05,1.15,1.05,furniture,x,.38,z);
+        box(1.08,.08,1.08,metal,x,1.0,z,false,false);
       }
     }
-    function buildRoom(room,palette){
-      const w=room.w,d=room.d,doorWidth=3.25;
-      box(w,.36,d,mat(palette.floor),0,-.2,0,false,true);
-      const tile=mat(palette.trim);
-      for(let x=-w/2+1;x<w/2;x+=2)box(.018,.008,d-1,tile,x,0,0,false,false);
-      for(let z=-d/2+1;z<d/2;z+=2)box(w-1,.008,.018,tile,0,.005,z,false,false);
-      for(const side of roomSides){
-        const half=(side==='north'||side==='south'?w:d)/2;
-        if(room.doors.includes(side)){
-          addWall(side,-half,-doorWidth/2,room,palette);addWall(side,doorWidth/2,half,room,palette);
-          const frame=mat(palette.accent,.5,.18);
-          if(side==='north'||side==='south'){
-            const z=side==='north'?-d/2:d/2;
-            box(.16,3.4,.72,frame,-doorWidth/2,1.5,z);box(.16,3.4,.72,frame,doorWidth/2,1.5,z);
-            box(doorWidth+.16,.16,.72,frame,0,3.15,z);
-          }else{
-            const x=side==='west'?-w/2:w/2;
-            box(.72,3.4,.16,frame,x,1.5,-doorWidth/2);box(.72,3.4,.16,frame,x,1.5,doorWidth/2);
-            box(.72,.16,doorWidth+.16,frame,x,3.15,0);
-          }
-        }else addWall(side,-half,half,room,palette);
-      }
-      if(room.shape==='octagon'){
-        const corner=mat(palette.wall);
-        for(const x of [-1,1])for(const z of [-1,1]){
-          const bevel=new THREE.Mesh(new THREE.BoxGeometry(2.5,4.2,.55),corner);
-          bevel.position.set(x*(w/2-1),1.9,z*(d/2-1));bevel.rotation.y=x*z*Math.PI/4;
-          bevel.castShadow=true;scene.add(bevel);roomObjects.push(bevel);
-        }
-      }
-      const obstacleMat=mat(palette.trim,.82,.12),count=room.decor===1?6:room.decor===4?8:room.decor===3?4:5;
-      for(let i=0;i<count;i++){
-        const angle=i/count*Math.PI*2+roomIndex*.37,radius=room.decor===1?3.8:room.decor===4?5.2:4.1;
-        const x=Math.cos(angle)*radius,z=Math.sin(angle)*radius;
-        const sx=room.decor===4?1.5:.7+(i%3)*.25,sz=room.decor===1?1.25:.65;
-        box(sx,room.decor===3?2.8:1.25,sz,obstacleMat,x,room.decor===3?1.2:.45,z);
-        if(room.decor===2&&i%2===0)box(sx+.12,.06,sz+.12,mat(palette.accent,.45,.25),x,1.1,z,false,false);
-      }
-      box(2.8,.08,.08,mat(palette.accent),0,3.65,-d/2+.32,false,false);
-    }
-    function chooseRoom(requiredSide=null){
-      const template=roomTypes[roomIndex%roomTypes.length];
-      const available=roomSides.filter(side=>side!==requiredSide);
-      const doors=available.sort(()=>Math.random()-.5).slice(0,template.doorCount-(requiredSide?1:0));
-      if(requiredSide)doors.push(requiredSide);
-      return {...template,doors};
-    }
-    function spawnRoomEnemies(room){
-      const types=['runner','soldier','brute','ranged'],count=3+Math.min(3,Math.floor(roomIndex/2));
-      for(let i=0;i<count;i++){
-        let x=0,z=0,attempt=0;
-        do{x=(Math.random()-.5)*(room.w-6);z=(Math.random()-.5)*(room.d-6);attempt++;}
-        while(Math.hypot(x-camera.position.x,z-camera.position.z)<4&&attempt<20);
-        const e=makeEnemy(x,z,i%4);
-        e.type=types[(i+roomIndex)%types.length];
+    function spawnFacilityEnemies(){
+      const placements=[
+        [-20,-11],[-3,-10],[16,-10],[23,7],[-20,12],[-6,17],[8,17],[20,19]
+      ];
+      const types=['soldier','runner','ranged','brute','soldier','ranged','runner','brute'];
+      for(let i=0;i<placements.length;i++){
+        const [x,z]=placements[i],e=makeEnemy(x,z,i%4);
+        e.type=types[i];
         e.maxHp=e.type==='brute'?180:e.type==='runner'?65:e.type==='ranged'?80:100;e.hp=e.maxHp;
-        e.speed=e.type==='runner'?2.8:e.type==='brute' ? .72:e.type==='ranged'?1.05:1.45;
+        e.speed=e.type==='runner'?2.8:e.type==='brute'?.72:e.type==='ranged'?1.05:1.45;
         e.attackDamage=e.type==='brute'?16:e.type==='runner'?5:e.type==='ranged'?4:8;
         e.attackRange=e.type==='ranged'?5:1.28;
         e.healthFill.material.color.set(e.type==='brute'?0xb84c39:e.type==='runner'?0xe0bd59:e.type==='ranged'?0x68a8d2:0xc84b40);
@@ -435,37 +398,12 @@
       }
       updateHealth();
     }
-    function enterRoom(exitSide=null){
-      clearRoom();
-      const opposite=exitSide?({north:'south',south:'north',east:'west',west:'east'}[exitSide]):null;
-      currentRoom=chooseRoom(opposite);buildRoom(currentRoom,roomPalette[roomIndex%roomPalette.length]);
-      if(exitSide){
-        if(opposite==='north')camera.position.set(0,groundY,-currentRoom.d/2+2.4);
-        if(opposite==='south')camera.position.set(0,groundY,currentRoom.d/2-2.4);
-        if(opposite==='east')camera.position.set(currentRoom.w/2-2.4,groundY,0);
-        if(opposite==='west')camera.position.set(-currentRoom.w/2+2.4,groundY,0);
-      }else camera.position.set(0,groundY,0);
-      spawnRoomEnemies(currentRoom);roomIndex++;updateHealth();
-      showToast('SALA '+roomIndex+' · '+currentRoom.name,1300);
+    function initFacility(){
+      clearRoom();camera.position.set(0,groundY,0);
+      buildFacilityMap();spawnFacilityEnemies();
+      showToast('COMPLEXO ARKLAY · SETOR DE CONTENÇÃO',1800);
     }
-    function tryRoomExit(){
-      if(!currentRoom||performance.now()<roomTransitionLock)return false;
-      const allDead=enemies.length>0&&enemies.every(e=>!e.alive),x=camera.position.x,z=camera.position.z;
-      let side=null;
-      // O jogador é limitado a 0,9 m da parede; detectar a porta antes desse limite.
-      const threshold=1.05;
-      if(z<=-currentRoom.d/2+threshold&&Math.abs(x)<1.8)side='north';
-      else if(z>=currentRoom.d/2-threshold&&Math.abs(x)<1.8)side='south';
-      else if(x>=currentRoom.w/2-threshold&&Math.abs(z)<1.8)side='east';
-      else if(x<=-currentRoom.w/2+threshold&&Math.abs(z)<1.8)side='west';
-      if(!side||!currentRoom.doors.includes(side))return false;
-      if(!allDead){
-        camera.position.x=clamp(camera.position.x,-currentRoom.w/2+.9,currentRoom.w/2-.9);
-        camera.position.z=clamp(camera.position.z,-currentRoom.d/2+.9,currentRoom.d/2-.9);
-        showToast('ELIMINE TODOS OS INIMIGOS PARA ABRIR AS PORTAS',1000);return true;
-      }
-      enterRoom(side);roomTransitionLock=performance.now()+700;return true;
-    }
+    function tryRoomExit(){return false;}
     // Inicialização adiada até HUD e física estarem prontos.
         // Grupo da arma e dos braços, preso à câmera em primeira pessoa.
     const gun = new THREE.Group();
@@ -696,7 +634,7 @@
     const jumpVelocity = 6.2;
     const gravity = 17;
     const clock = new THREE.Clock();
-    enterRoom();
+    initFacility();
     const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
     function updateAmmo(){ui.ammo.innerHTML=String(magazine)+' <small>/ '+reserve+'</small>';}
     function updateHealth(){
@@ -888,10 +826,8 @@
         if(move.lengthSq()>0){
           move.normalize().multiplyScalar(speed*dt);
           camera.position.x+=move.x;camera.position.z+=move.z;
-          if(!tryRoomExit()){
-            camera.position.x=clamp(camera.position.x,-currentRoom.w/2+.9,currentRoom.w/2-.9);
-            camera.position.z=clamp(camera.position.z,-currentRoom.d/2+.9,currentRoom.d/2-.9);
-          }
+          camera.position.x=clamp(camera.position.x,-currentRoom.w/2+1,currentRoom.w/2-1);
+          camera.position.z=clamp(camera.position.z,-currentRoom.d/2+1,currentRoom.d/2-1);
         }
       }
     }
@@ -899,39 +835,26 @@
     const minimapCtx=minimapCanvas.getContext('2d');
     function drawMinimap(){
       const ctx=minimapCtx,W=minimapCanvas.width,H=minimapCanvas.height;
-      ctx.clearRect(0,0,W,H);ctx.fillStyle='#20272b';ctx.fillRect(0,0,W,H);
-      if(!currentRoom)return;
-      document.getElementById('minimap-room').textContent=String(roomIndex).padStart(2,'0');
-      const pad=15,scale=Math.min((W-pad*2)/currentRoom.w,(H-pad*2)/currentRoom.d);
+      ctx.clearRect(0,0,W,H);ctx.fillStyle='#171d20';ctx.fillRect(0,0,W,H);
+      const pad=12,scale=Math.min((W-pad*2)/currentRoom.w,(H-pad*2)/currentRoom.d);
       const rw=currentRoom.w*scale,rh=currentRoom.d*scale,left=(W-rw)/2,top=(H-rh)/2;
-      const px=x=>left+(x+currentRoom.w/2)*scale;
-      const pz=z=>top+(z+currentRoom.d/2)*scale;
-      ctx.fillStyle='#414a4d';ctx.fillRect(left,top,rw,rh);
-      ctx.strokeStyle='#aab3b6';ctx.lineWidth=3;ctx.lineCap='square';
-      const doorHalf=1.625;
-      ctx.beginPath();
-      if(!currentRoom.doors.includes('north')){ctx.moveTo(left,top);ctx.lineTo(left+rw,top)}
-      else{ctx.moveTo(left,top);ctx.lineTo(px(-doorHalf),top);ctx.moveTo(px(doorHalf),top);ctx.lineTo(left+rw,top)}
-      if(!currentRoom.doors.includes('south')){ctx.moveTo(left,top+rh);ctx.lineTo(left+rw,top+rh)}
-      else{ctx.moveTo(left,top+rh);ctx.lineTo(px(-doorHalf),top+rh);ctx.moveTo(px(doorHalf),top+rh);ctx.lineTo(left+rw,top+rh)}
-      if(!currentRoom.doors.includes('west')){ctx.moveTo(left,top);ctx.lineTo(left,top+rh)}
-      else{ctx.moveTo(left,top);ctx.lineTo(left,pz(-doorHalf));ctx.moveTo(left,pz(doorHalf));ctx.lineTo(left,top+rh)}
-      if(!currentRoom.doors.includes('east')){ctx.moveTo(left+rw,top);ctx.lineTo(left+rw,top+rh)}
-      else{ctx.moveTo(left+rw,top);ctx.lineTo(left+rw,pz(-doorHalf));ctx.moveTo(left+rw,pz(doorHalf));ctx.lineTo(left+rw,top+rh)}
-      ctx.stroke();
-      const count=currentRoom.decor===1?6:currentRoom.decor===4?8:currentRoom.decor===3?4:5;
-      for(let i=0;i<count;i++){
-        const angle=i/count*Math.PI*2+(roomIndex-1)*.37,radius=currentRoom.decor===1?3.8:currentRoom.decor===4?5.2:4.1;
-        const x=Math.cos(angle)*radius,z=Math.sin(angle)*radius;
-        const sx=currentRoom.decor===4?1.5:.7+(i%3)*.25,sz=currentRoom.decor===1?1.25:.65;
-        ctx.fillStyle='#778080';ctx.fillRect(px(x-sx/2),pz(z-sz/2),Math.max(2,sx*scale),Math.max(2,sz*scale));
+      const px=x=>left+(x+currentRoom.w/2)*scale,pz=z=>top+(z+currentRoom.d/2)*scale;
+      ctx.fillStyle='#333b3c';ctx.fillRect(left,top,rw,rh);
+      // The same wall coordinates drive the 3D environment and its top-down map.
+      ctx.fillStyle='#a7aeaa';
+      for(const [x,z,ww,dd] of facilityWalls){
+        ctx.fillRect(px(x-ww/2),pz(z-dd/2),Math.max(2,ww*scale),Math.max(2,dd*scale));
+      }
+      ctx.fillStyle='#b8a27d';
+      for(const [x,z] of [[-20,-17],[17,-17],[21,-17],[-20,8],[-16,8],[20,8],[20,12],[-5,-18],[5,-18],[-24,-1],[24,-1],[-5,8],[6,12],[-23,18],[24,18]]){
+        ctx.fillRect(px(x-.55),pz(z-.55),Math.max(2,1.1*scale),Math.max(2,1.1*scale));
       }
       for(const enemy of enemies){
         if(!enemy.alive)continue;
         ctx.fillStyle=enemy.type==='brute'?'#ff704d':enemy.type==='ranged'?'#68c5ff':enemy.type==='runner'?'#f4d35e':'#ff5b55';
         ctx.beginPath();ctx.arc(px(enemy.root.position.x),pz(enemy.root.position.z),3.2,0,Math.PI*2);ctx.fill();
       }
-      const x=px(camera.position.x),y=pz(camera.position.z),yaw=camera.rotation.y;
+      const x=px(camera.position.x),y=pz(camera.position.z);
       ctx.save();ctx.translate(x,y);ctx.rotate(-yaw);
       ctx.fillStyle='#8dffb0';ctx.strokeStyle='#eaffef';ctx.lineWidth=1.2;
       ctx.beginPath();ctx.moveTo(0,-7);ctx.lineTo(5,5);ctx.lineTo(0,3);ctx.lineTo(-5,5);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
