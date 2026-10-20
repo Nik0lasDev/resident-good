@@ -1378,8 +1378,24 @@
     }
     const minimapCanvas=document.getElementById('minimap');
     const minimapCtx=minimapCanvas.getContext('2d');
+    // Colisores retangulares dos móveis da casa (centro X/Z e largura/profundidade).
+    // Mantidos separados das paredes para que portas e corredores continuem funcionando.
+    const homeFurnitureColliders=[
+      [-10.55,-6.2,2.35,3.15], // cama
+      [-8.0,-7.75,1.0,.85], // criado-mudo
+      [6.7,-6.7,3.8,.85], // armários e bancada da cozinha
+      [10.1,-6.7,1.15,.95], // geladeira
+      [8.8,5.9,3.0,.95], // sofá
+      [8.4,3.65,1.8,.85], // mesa de centro
+      [8.8,1.2,2.2,.28], // televisão e suporte
+      [7.0,-8.15,2.5,.32] // prateleira baixa/armário encostado na parede
+    ];
     function blockedByFacilityWall(x,z,radius=.38){
       if(introActive){
+        // Impede atravessar os móveis sólidos da casa, com teste AABB e raio do jogador.
+        for(const [fx,fz,fw,fd] of homeFurnitureColliders){
+          if(x+radius>fx-fw/2&&x-radius<fx+fw/2&&z+radius>fz-fd/2&&z-radius<fz+fd/2)return true;
+        }
         // Limites da planta em L: impede atravessar o vazio onde a ala foi removida.
         const entryGapOpen=homeDoors.some(d=>d.name==='porta de entrada'&&d.open&&x+radius>d.blockX-d.blockW/2&&x-radius<d.blockX+d.blockW/2);
         // A parede da frente só bloqueia a passagem junto à porta; depois de sair, a rua fica livre.
