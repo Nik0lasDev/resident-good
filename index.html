@@ -621,7 +621,7 @@
     wallPistolModel.rotation.set(0,Math.PI/2,0);
     wallPistolModel.scale.set(2.25,2.25,2.25);
     wallPistolModel.traverse(part=>{if(part.isMesh){part.castShadow=true;part.receiveShadow=true;part.renderOrder=2;part.frustumCulled=false;}});
-    wallGunObject.add(wallPistolModel);
+    // A arma é anexada ao suporte depois que buildHome() criar wallGunObject.
     // Materiais de pele e tecido com profundidade fixa em relação à câmera.
     const skinMat = new THREE.MeshStandardMaterial({color:0xc98d6b,roughness:.88,side:THREE.DoubleSide,depthTest:false,depthWrite:false});
     const skinLight = new THREE.MeshStandardMaterial({color:0xd8a17e,roughness:.9,side:THREE.DoubleSide,depthTest:false,depthWrite:false});
@@ -899,6 +899,7 @@
     const gravity = 17;
     const clock = new THREE.Clock();
     buildHome();
+    wallGunObject.add(wallPistolModel);
     const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
     function updateAmmo(){
       if(weaponIndex===flashlightIndex){updateFlashlightUI();return;}
