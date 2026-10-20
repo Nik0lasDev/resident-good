@@ -200,7 +200,8 @@
       const teeth=mat(0xb9ad91,.88),hair=mat(0x171816,.99);
       for(let tooth=0;tooth<7;tooth++){const sideX=-.066+tooth*.022;const fang=part(new THREE.ConeGeometry(.012,.042+(tooth%3)*.012,5),teeth,root,sideX,1.71,-.278,true);fang.rotation.x=Math.PI;fang.rotation.z=(tooth%2?-.18:.16);}
       const scalp=part(sculptedSphere(.19,.09,.17,12),hair,root,0,2.015,-.005,true);scalp.rotation.x=-.12;
-      for(let t=0;t<9;t++){const tuft=part(sculptedSphere(.035,.095,.045,t+20),hair,root,-.16+t*.04,1.99-(t%3)*.025,-.025,true);tuft.rotation.z=(t-4)*.12;tuft.rotation.x=-.25+(t%2)*.18;}
+      const hairTufts=[];
+      for(let t=0;t<9;t++){const tuft=part(sculptedSphere(.035,.095,.045,t+20),hair,root,-.16+t*.04,1.99-(t%3)*.025,-.025,true);tuft.rotation.z=(t-4)*.12;tuft.rotation.x=-.25+(t%2)*.18;hairTufts.push(tuft);}
       for(let t=0;t<5;t++)part(sculptedSphere(.013,.045,.012,t+30),teeth,root,-.065+t*.032,1.686,-.264,true);
       part(new THREE.SphereGeometry(.105,10,8),wound,root,-.13,1.37,-.19).scale.set(1,.68,.28);
       part(new THREE.BoxGeometry(.13,.16,.018),enemyMaterials.armor,root,.12,1.23,-.222).rotation.z=-.24;
@@ -218,6 +219,29 @@
       const leftLeg=new THREE.Group();leftLeg.position.set(-.14,.82,.015);root.add(leftLeg);limbs.leftLeg=leftLeg;
       const rightLeg=new THREE.Group();rightLeg.position.set(.14,.82,-.015);root.add(rightLeg);limbs.rightLeg=rightLeg;
       for(const [leg,side] of [[leftLeg,-1],[rightLeg,1]]){part(sculptedSphere(.105,.27,.105,side+50),pants,leg,0,-.25,0).rotation.z=side*-.025;part(sculptedSphere(.073,.105,.075,side+55),skin,leg,side*.012,-.48,-.025);part(sculptedSphere(.105,.075,.17,side+60),enemyMaterials.armor,leg,0,-.59,-.065);part(sculptedSphere(.09,.025,.14,side+65),enemyMaterials.eyes,leg,0,-.65,-.105);part(sculptedSphere(.045,.055,.018,side+70),wound,leg,side*.025,-.29,-.09);}
+      // O infectado principal ganha uma silhueta inspirada no horror de SCP-096:
+      // corpo cadavérico pálido, cabeça sem cabelo, olhos apagados e braços anormalmente longos.
+      if(index===5){
+        scalp.visible=false;for(const tuft of hairTufts)tuft.visible=false;
+        skin.color.setHex(0xd8d2c7);cloth.color.setHex(0x77716a);pants.color.setHex(0x383633);
+        eye.color.setHex(0x171211);
+        root.scale.set(.84,1.04,.84);
+        leftArm.scale.y=1.28;rightArm.scale.y=1.28;
+        skull.scale.set(1.03,1.22,.94);
+        mouth.scale.set(1.62,1.3,1.12);mouth.position.y=1.704;
+        jaw.scale.set(1.12,.88,1.05);jaw.position.y=1.625;
+        for(const p of headParts){if(p.material===hair)p.visible=false;}
+        // Veias escuras discretas e sulcos no rosto; sem sangue exagerado.
+        const vein=mat(0x65534d,.98);
+        for(const side of [-1,1]){
+          const line=new THREE.CatmullRomCurve3([
+            new THREE.Vector3(side*.105,1.91,-.215),
+            new THREE.Vector3(side*.13,1.86,-.218),
+            new THREE.Vector3(side*.16,1.79,-.205)
+          ]);
+          part(new THREE.TubeGeometry(line,8,.006,5,false),vein,root,0,0,0,true);
+        }
+      }
       if(type==='runner')root.scale.set(.82,.94,.82);
       if(type==='brute'){root.scale.set(1.25,1.12,1.2);part(new THREE.BoxGeometry(.32,.22,.03),enemyMaterials.armor,root,0,1.32,-.22);part(new THREE.CapsuleGeometry(.12,.2,4,8),wound,root,-.2,1.46,-.02);}
       // Barras de vida dos inimigos ficam ocultas; o HP continua ativo internamente.
