@@ -554,6 +554,16 @@
       const droppedFore=new THREE.Mesh(new THREE.CapsuleGeometry(.075,.25,4,8),armSkin);droppedFore.rotation.x=Math.PI/2;droppedFore.position.z=-.38;droppedArm.add(droppedFore);
       const droppedPalm=new THREE.Mesh(new THREE.SphereGeometry(.09,10,8),armSkin);droppedPalm.position.z=-.56;droppedArm.add(droppedPalm);
       const droppedWound=new THREE.Mesh(new THREE.CylinderGeometry(.065,.08,.035,10),armBlood);droppedWound.rotation.x=Math.PI/2;droppedWound.position.z=.06;droppedArm.add(droppedWound);
+      // A cópia no chão também mantém a caixa de munição presa à mão.
+      const groundAmmoBox=new THREE.Group();groundAmmoBox.position.set(.02,-.035,-.68);groundAmmoBox.rotation.set(.08,.12,-.08);droppedArm.add(groundAmmoBox);
+      const groundAmmoCase=new THREE.Mesh(new THREE.BoxGeometry(.31,.19,.12),ammoCaseMat);groundAmmoCase.castShadow=true;groundAmmoBox.add(groundAmmoCase);
+      const groundAmmoLid=new THREE.Mesh(new THREE.BoxGeometry(.32,.035,.125),ammoEdgeMat);groundAmmoLid.position.y=.105;groundAmmoBox.add(groundAmmoLid);
+      const groundAmmoLabel=new THREE.Mesh(new THREE.PlaneGeometry(.17,.085),new THREE.MeshBasicMaterial({map:ammoLabelTex}));groundAmmoLabel.position.set(0,.012,.061);groundAmmoBox.add(groundAmmoLabel);
+      for(let i=0;i<6;i++){
+        const x=(i%3-.0)*.075-.075,z=(Math.floor(i/3)-.5)*.045;
+        const casing=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,.07,8),cartridgeMat);casing.rotation.x=Math.PI/2;casing.position.set(x,.055,z);groundAmmoBox.add(casing);
+        const tip=new THREE.Mesh(new THREE.ConeGeometry(.012,.025,8),cartridgeTipMat);tip.rotation.x=-Math.PI/2;tip.position.set(x,.055,z-.045);groundAmmoBox.add(tip);
+      }
       e.root.rotation.y=Math.PI/2;
       camera.position.set(-9.2,groundY,-2.65);yaw=-Math.PI/2;pitch=0;
       weapons[0].magazine=6;weapons[0].reserve=0;magazine=6;reserve=0;weaponIndex=0;
