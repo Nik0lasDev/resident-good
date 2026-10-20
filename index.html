@@ -545,7 +545,7 @@
       // As dimensões maiores permitem caminhar da entrada até a rua durante o teste.
       currentRoom.w=44;currentRoom.d=60;
       // Luz ambiente geral da casa permanece baixa; o quarto recebe iluminação local adicional para ficar aproximadamente duas vezes mais claro.
-      const homeFill=new THREE.HemisphereLight(0x87949a,0x373027,.42);scene.add(homeFill);roomObjects.push(homeFill);
+      const homeFill=new THREE.HemisphereLight(0x87949a,0x211b16,.12);scene.add(homeFill);roomObjects.push(homeFill);
       const bedroomFill=new THREE.PointLight(0xd9d1b8,2.0,9,2);bedroomFill.position.set(-9.5,2.55,-6.2);bedroomFill.castShadow=true;bedroomFill.shadow.mapSize.set(512,512);bedroomFill.shadow.bias=-.0005;scene.add(bedroomFill);roomObjects.push(bedroomFill);
       // Linhas do mapa usadas pela colisão e pela visão dos inimigos durante a abertura.
       enemiesWakeAt=performance.now()+2500;
