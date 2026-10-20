@@ -1080,7 +1080,7 @@
         // Limites da planta em L: impede atravessar o vazio onde a ala foi removida.
         const entryGapOpen=homeDoors.some(d=>d.name==='porta de entrada'&&d.open&&x+radius>d.blockX-d.blockW/2&&x-radius<d.blockX+d.blockW/2);
         if(x < -12+radius || x > 12-radius || z < -9+radius || (z > 9-radius && !entryGapOpen))return true;
-        if(z > 2+radius && x < 0+radius)return true;
+        if(z > 2-radius && x < radius)return true;
         for(const door of homeDoors){if(!door.open&&x+radius>door.blockX-door.blockW/2&&x-radius<door.blockX+door.blockW/2&&z+radius>door.blockZ-door.blockD/2&&z-radius<door.blockZ+door.blockD/2)return true;}
       }
       const activeWalls=introActive?introWalls:facilityWalls;
@@ -1131,10 +1131,12 @@
       }
       if(introActive){
         ctx.fillStyle='#b8a27d';
-        ctx.fillRect(px(-8.1),pz(.1),Math.max(2,2.2*scale),Math.max(2,3.1*scale));
-        ctx.fillRect(px(4.8),pz(-7.1),Math.max(2,3.8*scale),Math.max(2,.9*scale));
+        // Símbolos posicionados sobre os objetos reais da casa: cama, bancada da cozinha e sofá.
+        ctx.fillRect(px(-9.5-1.15),pz(-6.2-1.55),Math.max(2,2.3*scale),Math.max(2,3.1*scale));
+        ctx.fillRect(px(6.7-1.9),pz(-6.7-.45),Math.max(2,3.8*scale),Math.max(2,.9*scale));
+        ctx.fillRect(px(8.8-1.5),pz(5.9-.475),Math.max(2,3*scale),Math.max(2,.95*scale));
         ctx.fillStyle='#d9d3b9';
-        if(!introGunPicked)ctx.fillRect(px(10.55),pz(-2.55),Math.max(2,.5*scale),Math.max(2,.7*scale));
+        if(!introGunPicked)ctx.fillRect(px(10.8-.24),pz(-2.2-.36),Math.max(2,.48*scale),Math.max(2,.72*scale));
       }else{
         ctx.fillStyle='#b8a27d';
         for(const [x,z] of [[-20,-17],[17,-17],[21,-17],[-20,8],[-16,8],[20,8],[20,12],[-5,-18],[5,-18],[-24,-1],[24,-1],[-5,8],[6,12],[-23,18],[24,18]]){
