@@ -148,15 +148,15 @@
       const daylight = Math.max(0, Math.sin(((gameMinutes / 60) - 6) / 12 * Math.PI));
       const phase = hour >= 5 && hour < 7 ? 'AMANHECER' : hour >= 7 && hour < 17 ? 'DIA' : hour >= 17 && hour < 20 ? 'ENTARDECER' : 'NOITE';
       if(phaseLabel)phaseLabel.textContent = phase;
-      worldAmbientLight.intensity = 0.07 + daylight * 0.41;
+      worldAmbientLight.intensity = 0.09 + daylight * 0.72;
       const nightSky = new THREE.Color(0x080d17);
-      const daySky = new THREE.Color(introActive ? 0x777064 : 0x9aa5a8);
+      const daySky = new THREE.Color(introActive ? 0x9b9281 : 0xc8d8df);
       const dawnSky = new THREE.Color(0x625650);
       const dawn = Math.max(0, 1 - Math.abs((gameMinutes / 60) - 6) / 2, 1 - Math.abs((gameMinutes / 60) - 18) / 2);
       const sky = nightSky.clone().lerp(daySky, daylight).lerp(dawnSky, Math.min(0.55, dawn * 0.45));
       scene.background.copy(sky);
       scene.fog.color.copy(sky);
-      if(homeAmbientLight)homeAmbientLight.intensity = 0.025 + daylight * 0.14;
+      if(homeAmbientLight)homeAmbientLight.intensity = 0.035 + daylight * 0.22;
     }
 
     const mat = (color, roughness = 0.85, metalness = 0) => new THREE.MeshStandardMaterial({ color, roughness, metalness });
@@ -1489,6 +1489,15 @@
         if(z > 2-radius && z <= 9.65 && x < radius)return true;
         for(const door of homeDoors){if(!door.open&&x+radius>door.blockX-door.blockW/2&&x-radius<door.blockX+door.blockW/2&&z+radius>door.blockZ-door.blockD/2&&z-radius<door.blockZ+door.blockD/2)return true;}
       }
+      if(insideProceduralHouse){
+        const h=insideProceduralHouse,halfW=(h.width||9.2)/2,halfD=(h.depth||10.4)/2;
+        if(x< -halfW+radius||x>halfW-radius||z< -halfD+radius||z>halfD-radius)return true;
+        if(Math.abs(z-.25)<.18+radius&&Math.abs(x)>1.15&&Math.abs(x)<3.95)return true;
+        if(Math.abs(x-.8)<.18+radius&&z>2.35&&z<4.45)return true;
+        if(Math.abs(x-.8)<.18+radius&&z>4.5&&z<5.45)return true;
+        if(Math.abs(z-4.55)<.18+radius&&x< -1.5&&x> -3.65)return true;
+        if(Math.abs(x+1.5)<.18+radius&&z>4.25&&z<5.45)return true;
+      }
       if(z>12&&insideProceduralHouse===null){for(const c of proceduralChunks.values())for(const h of c.houses){if(h.destroyed)continue;if(x+radius>h.x-(h.width||6.6)/2&&x-radius<h.x+(h.width||6.6)/2&&z+radius>h.z-(h.depth||7.2)/2&&z-radius<h.z+(h.depth||7.2)/2)return true;}return false;}
       const activeWalls=introActive?introWalls:facilityWalls;
       for(const [wx,wz,ww,wd] of activeWalls){
@@ -1507,11 +1516,23 @@
     function drawMinimap(){
       const ctx=minimapCtx,W=minimapCanvas.width,H=minimapCanvas.height;
       ctx.clearRect(0,0,W,H);ctx.fillStyle='#343a3b';ctx.fillRect(0,0,W,H);
-      const pad=12,scale=Math.min((W-pad*2)/currentRoom.w,(H-pad*2)/currentRoom.d);
-      const rw=currentRoom.w*scale,rh=currentRoom.d*scale,left=(W-rw)/2,top=(H-rh)/2;
-      const px=x=>left+(x+currentRoom.w/2)*scale,pz=z=>top+(z+currentRoom.d/2)*scale;
+      const streetMode=currentRoom?.name==='CASA + RUA'&&camera.position.z>12;
+      const mapW=streetMode?44:currentRoom.w,mapD=streetMode?60:currentRoom.d;
+      const pad=12,scale=Math.min((W-pad*2)/mapW,(H-pad*2)/mapD);
+      const rw=mapW*scale,rh=mapD*scale,left=(W-rw)/2,top=(H-rh)/2;
+      const mapCenterX=streetMode?camera.position.x:0,mapCenterZ=streetMode?camera.position.z:0;
+      const px=x=>left+(x-mapCenterX+mapW/2)*scale,pz=z=>top+(z-mapCenterZ+mapD/2)*scale;
       // Desenha o contorno real da planta, não um retângulo: a ala inferior esquerda não existe.
-      if(introActive){
+      if(streetMode){
+        ctx.fillStyle='#343a3b';ctx.fillRect(left,top,rw,rh);ctx.fillStyle='#77756d';ctx.fillRect(px(-22),top,44*scale,rh);
+        ctx.fillStyle='#c9b98b';for(let zz=mapCenterZ-30;zz<mapCenterZ+30;zz+=8)ctx.fillRect(px(-.06),pz(zz),Math.max(1,.12*scale),Math.max(2,3*scale));
+        for(const c of proceduralChunks.values()){
+          for(const h of c.houses){if(h.z<mapCenterZ-32||h.z>mapCenterZ+32)continue;const hx=px(h.x-(h.width||9.2)/2),hz=pz(h.z-(h.depth||10.4)/2),hw=Math.max(3,(h.width||9.2)*scale),hd=Math.max(3,(h.depth||10.4)*scale);ctx.fillStyle=h.destroyed?'#554b43':'#9b8874';ctx.fillRect(hx,hz,hw,hd);ctx.strokeStyle='#d3c1a0';ctx.lineWidth=1;ctx.strokeRect(hx,hz,hw,hd);ctx.fillStyle='#3c3028';ctx.fillRect(px(h.doorX-.55),pz(h.doorZ-.25),Math.max(2,1.1*scale),Math.max(2,.5*scale));}
+          for(const lamp of c.lamps){ctx.fillStyle=lamp.working?'#f6d879':'#555b5c';ctx.beginPath();ctx.arc(px(lamp.group.position.x),pz(lamp.group.position.z),2.5,0,Math.PI*2);ctx.fill();}
+          for(const item of c.items){if(item.collected)continue;ctx.fillStyle=item.kind==='food'?'#65df82':item.kind==='ammo'?'#e8c65e':'#66c9f0';ctx.fillRect(px(item.group.position.x)-2,pz(item.group.position.z)-2,4,4);}
+          for(const h of c.houses)for(const item of h.items){if(item.collected)continue;ctx.fillStyle=item.kind==='food'?'#65df82':item.kind==='ammo'?'#e8c65e':'#66c9f0';ctx.fillRect(px(item.group.position.x)-2,pz(item.group.position.z)-2,4,4);}
+        }
+      }else if(introActive){
         ctx.beginPath();
         ctx.moveTo(px(-12),pz(-9));
         ctx.lineTo(px(12),pz(-9));
@@ -1533,10 +1554,11 @@
         ctx.lineTo(px(0),pz(9));ctx.lineTo(px(0),pz(2));ctx.lineTo(px(-12),pz(2));ctx.closePath();ctx.clip();
       }
       ctx.fillStyle='#a7aeaa';
-      for(const [x,z,ww,dd] of (introActive?introWalls:facilityWalls)){
+      for(const [x,z,ww,dd] of (streetMode?[]:(introActive?introWalls:facilityWalls))){
         ctx.fillRect(px(x-ww/2),pz(z-dd/2),Math.max(2,ww*scale),Math.max(2,dd*scale));
       }
-      if(introActive){
+      if(streetMode){ctx.font='bold 8px system-ui';ctx.textAlign='left';ctx.fillStyle='#65df82';ctx.fillText('● COMIDA',left+4,top+10);ctx.fillStyle='#e8c65e';ctx.fillText('● MUNIÇÃO',left+4,top+20);ctx.fillStyle='#66c9f0';ctx.fillText('● BATERIA',left+4,top+30);
+      }else if(introActive){
         ctx.fillStyle='#b8a27d';
         // Símbolos posicionados sobre os objetos reais da casa: cama, bancada da cozinha e sofá.
         ctx.fillRect(px(-10.55-1.15),pz(-6.2-1.55),Math.max(2,2.3*scale),Math.max(2,3.1*scale));
@@ -1581,7 +1603,12 @@
       const root=new THREE.Group();root.position.set(x,0,z);scene.add(root);const interior=new THREE.Group();interior.position.set(x,0,z);scene.add(interior);
       // Casas maiores: planta de 9,2 x 10,4 unidades, com sala, cozinha, quarto e banheiro.
       const wallMat=[procMats.brickA,procMats.brickB,procMats.brickC][seed%3],w=9.2,d=10.4,h=3.5;
-      procBox(root,w,h,d,wallMat,0,h/2,0);procBox(root,2.8,.18,d+.22,procMats.roof,0,h+.12,0);
+      procBox(root,w,h,d,wallMat,0,h/2,0);
+procBox(root,w+.12,.22,.14,procMats.wood,0,.22,-d/2-.06,false);procBox(root,w+.12,.16,.14,procMats.wood,0,3.22,-d/2-.06,false);
+procBox(root,w+.12,.22,.14,procMats.wood,0,.22,d/2+.06,false);procBox(root,w+.12,.16,.14,procMats.wood,0,3.22,d/2+.06,false);
+for(const side of [-1,1]){procBox(root,.14,.22,d+.12,procMats.wood,side*(w/2+.02),.22,0,false);procBox(root,.14,.16,d+.12,procMats.wood,side*(w/2+.02),3.22,0,false);}
+procBox(root,.24,.2,d+.6,procMats.roof,0,h+.58,0);for(const side of [-1,1]){const rp=procBox(root,5.8,.22,d+.7,procMats.roof,side*2.05,h+.38,0);rp.rotation.z=side*-.32;}
+procBox(root,1.48,.14,.24,procMats.wood,0,2.52,-d/2-.16,false);procBox(root,.13,2.55,.22,procMats.wood,-.72,1.28,-d/2-.16,false);procBox(root,.13,2.55,.22,procMats.wood,.72,1.28,-d/2-.16,false);procBox(root,1.55,.12,.5,procMats.wood,0,.06,-d/2-.36,false);
       for(const side of [-1,1]){const rp=procBox(root,5.8,.2,d+.45,procMats.roof,side*2.05,h+.63,0);rp.rotation.z=side*-.32;procBox(root,1.25,1.05,.12,procMats.window,side*2.55,2.1,-d/2-.15);for(const dx of [-.68,.68])procBox(root,.1,1.22,.16,procMats.wood,side*2.55+dx,2.1,-d/2-.18);for(const yy of [1.5,2.7])procBox(root,1.48,.1,.16,procMats.wood,side*2.55,yy,-d/2-.18);}
       procBox(root,1.25,2.45,.18,procMats.door,0,1.23,-d/2-.15);procBox(root,.08,.08,.1,procMats.lamp,.45,1.25,-d/2-.28,false);
       // Casca interna com entrada larga; as divisórias formam quatro cômodos conectados.
