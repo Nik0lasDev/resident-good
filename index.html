@@ -638,7 +638,7 @@
             ui.hitmarker.style.opacity='1';hitEnd=performance.now()+110;
             if(target.hp===0){
               target.alive=false;target.root.visible=false;target.respawnAt=performance.now()+5000;
-              if(introActive){introTransitionAt=performance.now()+2300;ui.objectiveTitle.textContent='A ameaça foi eliminada';ui.objectiveDetail.textContent='O estrondo atraiu algo lá fora...';ui.objectivePrompt.textContent='PREPARE-SE';showToast('INVASOR ELIMINADO · A CASA FICOU EM SILÊNCIO',1800);}
+              if(introActive){introTransitionAt=0;ui.objectiveTitle.textContent='A ameaça foi eliminada';ui.objectiveDetail.textContent='A casa ficou em silêncio. Você sobreviveu ao invasor.';ui.objectivePrompt.textContent='CASA CONCLUÍDA';showToast('INVASOR ELIMINADO · VOCÊ SOBREVIVEU',1800);}
               updateHealth();showToast(isHeadshot?'HEADSHOT · ELIMINAÇÃO':'INIMIGO ELIMINADO');
             }else showToast(isHeadshot?'HEADSHOT · -'+Math.round(appliedDamage)+' HP':'ACERTO · '+Math.ceil(target.hp)+' HP');
           }
@@ -907,7 +907,7 @@
       if(now>muzzleEnd)muzzleFlash.visible=false;
       updateBullets(dt);
       if(locked){updateEnemies(dt,now);updateEnemyOrbs(dt);if(!introActive)updateChapterUI();}
-      if(introActive&&introTransitionAt>0&&now>=introTransitionAt){introTransitionAt=0;initFacility();showToast('VOCÊ PRECISA DESCOBRIR O QUE ESTÁ ACONTECENDO',2200);}
+      
       if(now>hitEnd)ui.hitmarker.style.opacity='0';
       if(now>toastEnd)ui.toast.style.opacity='0';
       recoil=Math.max(0,recoil-dt*.7);
