@@ -142,13 +142,29 @@
       part(new THREE.SphereGeometry(.13,12,8),enemyMaterials.armor,root,0,1.73,-.11,true).scale.set(1,.52,.8);
       part(new THREE.BoxGeometry(.145,.07,.11),enemyMaterials.eyes,root,0,1.735,-.205,true);
       part(new THREE.ConeGeometry(.035,.11,7),skin,root,0,1.79,-.225,true).rotation.x=-.55;
-      for(const side of [-1,1]){part(new THREE.SphereGeometry(.022,8,6),eye,root,side*.075,1.86,-.222,true);part(new THREE.SphereGeometry(.055,9,7),skin,root,side*.205,1.82,-.035,true);}
+      for(const side of [-1,1]){
+        part(new THREE.SphereGeometry(.022,8,6),eye,root,side*.075,1.86,-.222,true);
+        part(new THREE.SphereGeometry(.055,9,7),skin,root,side*.205,1.82,-.035,true);
+        part(new THREE.SphereGeometry(.065,9,7),wound,root,side*.205,1.82,-.075,true).scale.set(.75,1,.6);
+      }
+      // Mandíbula aberta, dentes irregulares e cabelo empastado.
+      const jaw=part(new THREE.CapsuleGeometry(.105,.12,4,8),wound,root,0,1.665,-.19,true);jaw.rotation.x=.28;
+      const teeth=mat(0xc9c0a4,.72),hair=mat(0x292b28,.99);
+      for(let t=0;t<4;t++)part(new THREE.ConeGeometry(.018,.055,5),teeth,root,-.06+t*.04,1.69,-.272,true).rotation.x=Math.PI;
+      for(let t=0;t<5;t++){const tuft=part(new THREE.ConeGeometry(.055,.16,6),hair,root,-.14+t*.07,1.99-(t%2)*.025,-.015,true);tuft.rotation.z=(t-2)*.16;tuft.rotation.x=-.2;}
       part(new THREE.SphereGeometry(.105,10,8),wound,root,-.13,1.37,-.19).scale.set(1,.68,.28);
       part(new THREE.BoxGeometry(.13,.16,.018),enemyMaterials.armor,root,.12,1.23,-.222).rotation.z=-.24;
       for(let i=0;i<3;i++)part(new THREE.CapsuleGeometry(.012,.13,3,5),bone,root,-.095+i*.055,1.25,-.235);
       const leftArm=new THREE.Group();leftArm.position.set(-.31,1.43,0);root.add(leftArm);limbs.leftArm=leftArm;
       const rightArm=new THREE.Group();rightArm.position.set(.31,1.43,0);root.add(rightArm);limbs.rightArm=rightArm;
-      for(const [arm,side] of [[leftArm,-1],[rightArm,1]]){part(new THREE.CapsuleGeometry(.085,.32,4,8),cloth,arm,0,-.19,0).rotation.z=side*.1;part(new THREE.CapsuleGeometry(.065,.22,4,8),skin,arm,side*.025,-.45,-.025);part(new THREE.SphereGeometry(.075,10,8),skin,arm,side*.035,-.59,-.055);part(new THREE.ConeGeometry(.022,.095,6),skin,arm,side*.07,-.65,-.07).rotation.z=side*-.35;part(new THREE.BoxGeometry(.14,.16,.018),wound,arm,0,-.23,-.082).rotation.z=side*.18;}
+      for(const [arm,side] of [[leftArm,-1],[rightArm,1]]){
+         part(new THREE.CapsuleGeometry(.085,.32,4,8),cloth,arm,0,-.19,0).rotation.z=side*.1;
+         part(new THREE.CapsuleGeometry(.065,.22,4,8),skin,arm,side*.025,-.45,-.025);
+         part(new THREE.SphereGeometry(.075,10,8),skin,arm,side*.035,-.59,-.055);
+         for(let finger=0;finger<3;finger++)part(new THREE.ConeGeometry(.018,.085,5),wound,arm,side*.035+(finger-1)*.035,-.65,-.115).rotation.x=-.35;
+         part(new THREE.BoxGeometry(.14,.16,.018),wound,arm,0,-.23,-.082).rotation.z=side*.18;
+         part(new THREE.BoxGeometry(.17,.09,.035),cloth,arm,side*.01,-.12,-.065).rotation.z=side*.16;
+       }
       const leftLeg=new THREE.Group();leftLeg.position.set(-.14,.82,.015);root.add(leftLeg);limbs.leftLeg=leftLeg;
       const rightLeg=new THREE.Group();rightLeg.position.set(.14,.82,-.015);root.add(rightLeg);limbs.rightLeg=rightLeg;
       for(const [leg,side] of [[leftLeg,-1],[rightLeg,1]]){part(new THREE.CapsuleGeometry(.095,.39,4,8),pants,leg,0,-.25,0);part(new THREE.CapsuleGeometry(.075,.16,4,8),skin,leg,side*.012,-.48,-.025);part(new THREE.BoxGeometry(.15,.12,.27),enemyMaterials.armor,leg,0,-.59,-.065);part(new THREE.BoxGeometry(.17,.07,.29),enemyMaterials.eyes,leg,0,-.66,-.105);part(new THREE.BoxGeometry(.09,.08,.02),wound,leg,side*.025,-.29,-.09);}
@@ -202,7 +218,10 @@
         [-27.48,-12,Math.PI/2],[-27.48,0,Math.PI/2],[-27.48,12,Math.PI/2],
         [27.48,-12,-Math.PI/2],[27.48,0,-Math.PI/2],[27.48,12,-Math.PI/2],
         [-20,21.48,Math.PI],[0,21.48,Math.PI],[20,21.48,Math.PI],
-        [-19,-8.8,Math.PI/2],[19,-8.8,-Math.PI/2],[0,10,Math.PI/2]
+        [-19,-8.8,Math.PI/2],[19,-8.8,-Math.PI/2],[0,10,Math.PI/2],
+        [-12,-12,0],[12,-12,0],[-12,-2,Math.PI/2],[12,-2,-Math.PI/2],
+        [-22,5,Math.PI/2],[22,5,-Math.PI/2],[-8,18,Math.PI],[8,18,Math.PI],
+        [-2,-20,0],[2,20,Math.PI]
       ];
       wallLamps.forEach(([x,z,rotation])=>{
         const housing=box(.72,.18,.22,lampHousing,x,3.55,z,false,false);
@@ -229,7 +248,23 @@
       for(const [x,z] of [[-5,-18],[5,-18],[-24,-1],[24,-1],[-5,8],[6,12],[-23,18],[24,18]]){
         box(1.05,1.15,1.05,furniture,x,.38,z);
         box(1.08,.08,1.08,metal,x,1.0,z,false,false);
+        box(.7,.035,.7,wallTrim,x,1.06,z,false,false);
       }
+      // Elementos arquitetônicos para dar escala e identidade às alas.
+      const pillarMat=mat(0x3c4443,.82,.12),edgeMat=mat(0x8a8c7d,.72,.18),warningMat=mat(0xb47b32,.7,.05);
+      for(const [x,z] of [[-25,-13],[-14,-13],[14,-13],[25,-13],[-25,3],[25,3],[-11,14],[11,14],[-3,20],[3,20]]){
+        box(.32,4.05,.32,pillarMat,x,1.86,z);
+        box(.38,.12,.38,edgeMat,x,3.91,z,false,false);
+        box(.38,.1,.38,warningMat,x,3.78,z,false,false);
+      }
+      for(const [x,z,ww,dd] of [[-19,-14,12,.08],[19,-14,12,.08],[-20,2,12,.08],[20,2,12,.08],[-13,10,.08,8],[13,10,.08,8]])box(ww,.12,dd,wallTrim,x,.18,z,false,false);
+      const ventMat=mat(0x252c2c,.55,.5);
+      for(const [x,z,rot] of [[-24,-13,0],[24,-13,0],[-25,7,Math.PI/2],[25,7,Math.PI/2],[-8,1,0],[8,1,0]]){
+        const vent=box(1.1,.38,.08,ventMat,x,3.25,z,false,false);vent.rotation.y=rot;
+        for(let k=0;k<4;k++){const slat=box(.84,.025,.095,metal,x,3.12+k*.085,z,false,false);slat.rotation.y=rot;}
+      }
+      const guideMat=new THREE.MeshStandardMaterial({color:0x87927d,emissive:0x273426,emissiveIntensity:.25,roughness:.85});
+      for(const [x,z,ww,dd] of [[0,-20,5,.08],[0,5,5,.08],[-23,0,.08,5],[23,0,.08,5],[0,19,5,.08]])box(ww,.018,dd,guideMat,x,.015,z,false,false);
     }
     function spawnFacilityEnemies(){
       const placements=[
