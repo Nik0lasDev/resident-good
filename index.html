@@ -1103,8 +1103,28 @@
       const pad=12,scale=Math.min((W-pad*2)/currentRoom.w,(H-pad*2)/currentRoom.d);
       const rw=currentRoom.w*scale,rh=currentRoom.d*scale,left=(W-rw)/2,top=(H-rh)/2;
       const px=x=>left+(x+currentRoom.w/2)*scale,pz=z=>top+(z+currentRoom.d/2)*scale;
-      ctx.fillStyle='#333b3c';ctx.fillRect(left,top,rw,rh);
+      // Desenha o contorno real da planta, não um retângulo: a ala inferior esquerda não existe.
+      if(introActive){
+        ctx.beginPath();
+        ctx.moveTo(px(-12),pz(-9));
+        ctx.lineTo(px(12),pz(-9));
+        ctx.lineTo(px(12),pz(9));
+        ctx.lineTo(px(0),pz(9));
+        ctx.lineTo(px(0),pz(2));
+        ctx.lineTo(px(-12),pz(2));
+        ctx.closePath();
+        ctx.fillStyle='#333b3c';ctx.fill();
+        ctx.strokeStyle='#687271';ctx.lineWidth=1.5;ctx.stroke();
+      }else{
+        ctx.fillStyle='#333b3c';ctx.fillRect(left,top,rw,rh);
+      }
       // The same wall coordinates drive the 3D environment and its top-down map.
+      ctx.save();
+      if(introActive){
+        ctx.beginPath();
+        ctx.moveTo(px(-12),pz(-9));ctx.lineTo(px(12),pz(-9));ctx.lineTo(px(12),pz(9));
+        ctx.lineTo(px(0),pz(9));ctx.lineTo(px(0),pz(2));ctx.lineTo(px(-12),pz(2));ctx.closePath();ctx.clip();
+      }
       ctx.fillStyle='#a7aeaa';
       for(const [x,z,ww,dd] of (introActive?introWalls:facilityWalls)){
         ctx.fillRect(px(x-ww/2),pz(z-dd/2),Math.max(2,ww*scale),Math.max(2,dd*scale));
@@ -1130,6 +1150,7 @@
       ctx.save();ctx.translate(x,y);ctx.rotate(-yaw);
       ctx.fillStyle='#8dffb0';ctx.strokeStyle='#eaffef';ctx.lineWidth=1.2;
       ctx.beginPath();ctx.moveTo(0,-7);ctx.lineTo(5,5);ctx.lineTo(0,3);ctx.lineTo(-5,5);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
+      ctx.restore();
     }
     function animate(){
       requestAnimationFrame(animate);
