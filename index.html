@@ -128,7 +128,7 @@
     document.body.prepend(renderer.domElement);
 
     // A instalação não recebe luz solar: a iluminação ambiente é mínima e as luminárias fazem o trabalho.
-    scene.add(new THREE.HemisphereLight(0x26312e, 0x111514, 0.12));
+    scene.add(new THREE.HemisphereLight(0x77858a, 0x29251f, 0.48));
 
     const mat = (color, roughness = 0.85, metalness = 0) => new THREE.MeshStandardMaterial({ color, roughness, metalness });
     const concrete = mat(0x737c7c), floorMat = mat(0x515b59), trim = mat(0x333b3c), orange = mat(0xc77b42), dark = mat(0x202629, 0.42, 0.6);
@@ -545,7 +545,7 @@
       // As dimensões maiores permitem caminhar da entrada até a rua durante o teste.
       currentRoom.w=44;currentRoom.d=60;
       // Sem lâmpadas nem iluminação artificial na casa; apenas luz ambiente mínima e a lanterna do jogador.
-      const homeFill=new THREE.HemisphereLight(0x626b72,0x17130f,.09);scene.add(homeFill);roomObjects.push(homeFill);
+      const homeFill=new THREE.HemisphereLight(0x87949a,0x373027,.42);scene.add(homeFill);roomObjects.push(homeFill);
       // Linhas do mapa usadas pela colisão e pela visão dos inimigos durante a abertura.
       enemiesWakeAt=performance.now()+2500;
       // Posição inicial livre, fora da divisória em z=0.
@@ -1364,7 +1364,7 @@
     }
     function drawMinimap(){
       const ctx=minimapCtx,W=minimapCanvas.width,H=minimapCanvas.height;
-      ctx.clearRect(0,0,W,H);ctx.fillStyle='#171d20';ctx.fillRect(0,0,W,H);
+      ctx.clearRect(0,0,W,H);ctx.fillStyle='#343a3b';ctx.fillRect(0,0,W,H);
       const pad=12,scale=Math.min((W-pad*2)/currentRoom.w,(H-pad*2)/currentRoom.d);
       const rw=currentRoom.w*scale,rh=currentRoom.d*scale,left=(W-rw)/2,top=(H-rh)/2;
       const px=x=>left+(x+currentRoom.w/2)*scale,pz=z=>top+(z+currentRoom.d/2)*scale;
@@ -1381,7 +1381,7 @@
         ctx.fillStyle='#333b3c';ctx.fill();
         ctx.strokeStyle='#687271';ctx.lineWidth=1.5;ctx.stroke();
       }else{
-        ctx.fillStyle='#333b3c';ctx.fillRect(left,top,rw,rh);
+        ctx.fillStyle='#626967';ctx.fillRect(left,top,rw,rh);
       }
       // The same wall coordinates drive the 3D environment and its top-down map.
       ctx.save();
