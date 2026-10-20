@@ -473,10 +473,11 @@
     flashlightLens.position.set(0,.015,-.185);flashlightLens.renderOrder=21;flashlightLens.frustumCulled=false;flashlightModel.add(flashlightLens);
     flashlightModel.visible=false;
     const flashlightTarget=new THREE.Object3D();
-    flashlightTarget.position.set(0,0,-1);
+    flashlightTarget.position.set(0,0,-10);
     camera.add(flashlightTarget);
     const flashlightSpot=new THREE.SpotLight(0xdce9bf,0,19,Math.PI/7,0.45,1.4);
-    flashlightSpot.position.set(0.28,-0.16,-0.55);
+    // Alinha o feixe ao eixo central da câmera, para iluminar onde a mira aponta.
+    flashlightSpot.position.set(0,0,-0.2);
     flashlightSpot.target=flashlightTarget;
     flashlightSpot.castShadow=false;
     camera.add(flashlightSpot);
